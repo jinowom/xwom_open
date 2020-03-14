@@ -155,7 +155,6 @@ backend/main.php
 ------------
 ……
 
-![Image text]https://raw.githubusercontent.com/jinostart/xwom_open/master/img/login.png
 
 
 ## 八、特别鸣谢Links

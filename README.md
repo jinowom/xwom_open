@@ -154,8 +154,12 @@ backend/main.php
 七、运行效果
 ------------
 ……
-
-
+![登录](img/login.png)
+![菜单管理](img/mnu.png)
+![权限管理-管理员管理](img/rabc1.png)
+![权限管理-部门、团队管理](img/rabc2.png)
+![全栈配置管理](img/All_set.png)
+![全栈配置管理之二](img/All_set2.png)
 
 ## 八、特别鸣谢Links
 ------------

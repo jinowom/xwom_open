@@ -61,4 +61,5 @@ phpunit.phar
 /api/config/main-local.php
 /api/config/params-local.php
 /api/config/test-local.php
-
+#img itself is not needed
+/img

@@ -49,11 +49,29 @@ xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开
 
 四、快速体验Experience
 ------------
-demo地址  http://xwom.womtech.cn    测试管理员账号： administator  密码：123456 
+demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  密码：123456 
 
 友情提示：数据每天、每6小时，将还原更新一次，如果您提交操作数据，如果不见了，切勿诧异，您懂的。
 
-五、安装 Installation
+五、运行效果
+------------
+……
+
+![登录](http://xwom.womtech.cn/demo_img/login.png)
+
+![菜单管理](http://xwom.womtech.cn/demo_img/mnu.png)
+
+![权限管理-管理员管理](http://xwom.womtech.cn/demo_img/rabc1.png)
+
+![权限管理-部门、团队管理](http://xwom.womtech.cn/demo_img/rabc2.png)
+
+![全栈配置管理](http://xwom.womtech.cn/demo_img/All_set.png)
+
+![全栈配置管理之二](http://xwom.womtech.cn/demo_img/All_set2.png)
+
+
+
+六、安装 Installation
 ------------
 友情提示：如果您要安装，建议php版本>=7.1
 
@@ -105,7 +123,7 @@ $ php ./yii migrate/up --interactive=0 #导入迁移备份数据库，执行此�
     略
  ```
  
-六## 配置Configuration
+七## 配置Configuration
 
 ```php
 common/main-local.php
@@ -159,22 +177,6 @@ backend/main.php
 
 
 ```
-七、运行效果
-------------
-……
-
-![登录](img/login.png)
-
-![菜单管理](img/mnu.png)
-
-![权限管理-管理员管理](img/rabc1.png)
-
-![权限管理-部门、团队管理](img/rabc2.png)
-
-![全栈配置管理](img/All_set.png)
-
-![全栈配置管理之二](img/All_set2.png)
-
 
 ## 八、特别鸣谢Links
 ------------

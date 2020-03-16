@@ -57,17 +57,17 @@ demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  �
 ------------
 ……
 
-![登录](http://xwom.womtech.cn/demo_img/login.png)
+![登录](http://xwom.womtech.cn/images/demo_img/login.png)
 
-![菜单管理](http://xwom.womtech.cn/demo_img/mnu.png)
+![菜单管理](http://xwom.womtech.cn/images/demo_img/mnu.png)
 
-![权限管理-管理员管理](http://xwom.womtech.cn/demo_img/rabc1.png)
+![权限管理-管理员管理](http://xwom.womtech.cn/images/demo_img/rabc1.png)
 
-![权限管理-部门、团队管理](http://xwom.womtech.cn/demo_img/rabc2.png)
+![权限管理-部门、团队管理](http://xwom.womtech.cn/images/demo_img/rabc2.png)
 
-![全栈配置管理](http://xwom.womtech.cn/demo_img/All_set.png)
+![全栈配置管理](http://xwom.womtech.cn/images/demo_img/All_set.png)
 
-![全栈配置管理之二](http://xwom.womtech.cn/demo_img/All_set2.png)
+![全栈配置管理之二](http://xwom.womtech.cn/images/demo_img/All_set2.png)
 
 
 

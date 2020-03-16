@@ -55,7 +55,6 @@ demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  �
 
 五、运行效果
 ------------
-……
 
 ![登录](http://xwom.womtech.cn/images/demo_img/login.png)
 
@@ -70,10 +69,9 @@ demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  �
 ![全栈配置管理之二](http://xwom.womtech.cn/images/demo_img/All_set2.png)
 
 
-
 六、安装 Installation
 ------------
-友情提示：如果您要安装，建议php版本>=7.2
+友情提示：建议php版本>=7.1
 
 1、composer install  or  composer install --ignore-platform-reqs
 
@@ -181,7 +179,7 @@ backend/main.php
 ```php
 backend/main-local.php
 
-    //加载 warrence/yii2-kartikgii  扩展组件 
+    //加载 kartikgii扩展组件，并集成自定义Gii，美哒哒 
       $config['modules']['gii']['class'] = 'yii\gii\Module';
       $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','127.0.0.147','::1'];//只允许本地访问gii  用逗号隔开，添加自己的指定地址
       $config['modules']['gii']['generators'] = [

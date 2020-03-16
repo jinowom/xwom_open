@@ -2,14 +2,18 @@
 ------------
 xwom是基于Yii2的综合管理业务快速开发引擎。
 
-本引擎采用YII V2.032搭建，其运行环境与yii2(php>=5.4)一致。xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开发者更专注于业务功能开发。xwom没有对yii2做任何的修改、封装，但是把yii2的一些优秀特性几乎都用在了xwom上， 但xwom提倡简洁、快速上手，基于xwom开发可以无需文档，可以在此基础开发其实际应用，譬如：cms内容管理系统、商城、ERP、新闻采编等。
+本引擎采用YII V2.032搭建，其运行环境与yii2(php>=5.4)一致。
+
+xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开发者更专注于业务功能开发。xwom没有对yii2做任何的修改、封装，但是把yii2的一些优秀特性几乎都用在了xwom上， 但xwom提倡简洁、快速上手，基于xwom开发可以无需文档，可以在此基础开发其实际应用，譬如：cms内容管理系统、商城、ERP、新闻采编等。
 
 一、更新记录Records
 ------------
 
+1.0.0beta1 开启xwom开发引擎beta1，预装常用扩展组件，对配置文件做细致的注释说明。
+
 二、帮助Help
 ------------
-（1）QQ群： 170794993 
+（1）QQ群： 170794993  欢迎xwom爱好者，加入开源开发小组。
 
 （2）Email： chareler@163.com
 
@@ -155,15 +159,22 @@ backend/main.php
 ------------
 ……
 ![登录](img/login.png)
+
 ![菜单管理](img/mnu.png)
+
 ![权限管理-管理员管理](img/rabc1.png)
+
 ![权限管理-部门、团队管理](img/rabc2.png)
+
 ![全栈配置管理](img/All_set.png)
+
 ![全栈配置管理之二](img/All_set2.png)
+
 
 ## 八、特别鸣谢Links
 ------------
 - [Yii2](http://www.yiiframework.com/)
 - [Yii2 Extension](http://www.yiiframework.com/extension/yii2-workflow-manager)
+- 开发组成员：WeihuaWang YanchengLiu CharlesLee
 
 

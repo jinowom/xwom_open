@@ -73,9 +73,9 @@ demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  �
 
 六、安装 Installation
 ------------
-友情提示：如果您要安装，建议php版本>=7.1
+友情提示：如果您要安装，建议php版本>=7.2
 
-1、composer install
+1、composer install  or  composer install --ignore-platform-reqs
 
 2、依次执行以下命令初始化yii2框架以及导入数据库
 ```php
@@ -177,6 +177,54 @@ backend/main.php
 
 
 ```
+
+```php
+backend/main-local.php
+
+    //加载 warrence/yii2-kartikgii  扩展组件 
+      $config['modules']['gii']['class'] = 'yii\gii\Module';
+      $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','127.0.0.147','::1'];//只允许本地访问gii  用逗号隔开，添加自己的指定地址
+      $config['modules']['gii']['generators'] = [
+              'kartikgii-crud' => ['class' => 'warrence\kartikgii\crud\Generator'],
+            /*重新定义gii model & crud的生成模板*/
+             'model'=> [
+                 'class' => 'yii\gii\generators\model\Generator',
+                 'baseClass'=> 'base\BaseActiveRecord',
+                 'templates'=> [
+                     'xwom'=>'@backend/components/gii/model/default',
+                 ]
+             ],
+             'module'=> [
+                 'class' => 'yii\gii\generators\module\Generator',
+                 'templates'=> [
+                     'xwom'=>'@backend/components/gii/module/default',
+                 ]
+             ],
+             'crud' => [
+                 'class' => \backend\components\gii\crud\Generator::class,//'class' => \backend\components\gii\crud\Generator::className(),
+                 'templates' => [
+                     'xwom' => '@backend/components/gii/crud/default',
+                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/crud/default',//这是yii 自己自带的
+                 ]
+             ],
+             'controller' => [
+                 'class' => \backend\components\gii\controller\Generator::class,
+                 'templates' => [
+                     'xwom' => '@backend/components/gii/controller/default',
+                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的
+                 ]
+             ],
+             'extension' => [
+                 'class' => \backend\components\gii\extension\Generator::class,
+                 'templates' => [
+                     'xwom' => '@backend/components/gii/extension/default',
+                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的
+                 ]
+             ],
+          ];
+
+```
+
 
 ## 八、特别鸣谢Links
 ------------

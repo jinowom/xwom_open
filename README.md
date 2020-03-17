@@ -183,7 +183,7 @@ backend/main-local.php
 
     //加载 kartikgii扩展组件，并集成自定义Gii，美哒哒 
       $config['modules']['gii']['class'] = 'yii\gii\Module';
-      $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','127.0.0.147','::1'];//只允许本地访问gii  用逗号隔开，添加自己的指定地址
+      $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','::1'];//只允许本地访问gii  用逗号隔开，添加自己的指定地址
       $config['modules']['gii']['generators'] = [
               'kartikgii-crud' => ['class' => 'warrence\kartikgii\crud\Generator'],
             /*重新定义gii model & crud的生成模板*/

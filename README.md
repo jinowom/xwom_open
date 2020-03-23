@@ -249,6 +249,7 @@ backend/main-local.php
 ```php
 common
     components/          包含公共组件、公共扩展类
+    messages             多语言包（如果需要全局定义）
     config/              包含所有项目的公共配置
     extend/              需要自定义处理的第三方扩展（如果完全是第三方的扩展包，通过composer安装到vendor下面）
     javaapi/             对接java接口/php接口的类，每类接口都有父类
@@ -263,6 +264,7 @@ common
 
 console
     config/              控制台的配置
+    messages             多语言包（如果需要单独定义）
     controllers/         控制台的controller (commands)
     migrations/          数据库迁移内容
     models/              控制台的model
@@ -274,6 +276,8 @@ site1——backend（站点1）
     config/              该应用项目的配置
     controllers/         该应用项目的控制器，继承自SiteController，SiteController继承自BaseController
     external             配置的数据，如xml等
+    grid                 grid小部件（如果有，就放这里）
+    messages             多语言包（该应用如果需要单独定义）
     models/              空
     modules/             该应用项目的model，必要时扩展，继承公共的model来处理
         核心业务common   backend核心业务的模块，即：backend的core业务
@@ -286,11 +290,12 @@ site1——backend（站点1）
     views/               视图内容
     wap/                 该项目m站的入口（域名解析到此目录），以及js/css资源的管理
     web/                 该项目pc站的入口（域名解析到此目录），以及js/css资源的管理
-    widgets/             该应用项目的小部件
+    widgets/             该应用项目的小部件（如果有，可以放这里）
 
 site2——frontend（站点2）
     assets/              包含该应用管理JavaScript和CSS等应用程序资源的内容
     components/          包含该应用项目的组件、公共扩展类
+    messages             多语言包（该应用如果需要单独定义）
     config/              该应用项目的配置
     controllers/         该应用项目的控制器，继承自SiteController，SiteController继承自BaseController
     models/              该应用项目的model，必要时扩展，继承公共的model来处理
@@ -299,11 +304,12 @@ site2——frontend（站点2）
     views/               视图内容
     wap/                 该项目m站的入口（域名解析到此目录），以及js/css资源的管理
     web/                 该项目pc站的入口（域名解析到此目录），以及js/css资源的管理
-    widgets/             该应用项目的小部件
+    widgets/             该应用项目的小部件（如果有，可以放这里）
 
 site3——API （站点3 )
     assets/              包含该应用管理JavaScript和CSS等应用程序资源的内容
     components/          包含该应用项目的组件、公共扩展类
+    messages             多语言包（该应用如果需要单独定义）
     config/              该应用项目的配置
     controllers/         该应用项目的控制器，继承自SiteController，SiteController继承自BaseController
     models/              该应用项目的model，必要时扩展，继承公共的model来处理

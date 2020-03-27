@@ -27,7 +27,11 @@
         "kartik-v/yii2-widget-datepicker": "^1.4@dev",
         "kartik-v/yii2-widget-datetimepicker": "^1.4@dev",
         "jinostart/yii2-workflow-manager": "dev-master",
-        "warrence/yii2-kartikgii": "dev-master"
+        "warrence/yii2-kartikgii": "dev-master",
+        "oonne/yii2-sortable-grid-view": "dev-master",
+        "wodrow/yii2wajaxcrud": "^3.0.14",
+        "johnitvn/yii2-ajaxcrud": "*",
+        "nick-denry/yii2-round-switch-column": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",

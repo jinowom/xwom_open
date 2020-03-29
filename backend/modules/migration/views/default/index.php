@@ -15,7 +15,7 @@ AppAsset::register($this);
 /** @var ActiveForm $form */
 
 $this->title = Yii::t('app', '全栈数据迁移');
-//$this->params['breadcrumbs'][] = $this->title;//在backend\views\public\breadcrumb.php 已经写了
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>

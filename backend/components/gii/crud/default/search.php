@@ -73,6 +73,7 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
         }
         return $createAt;
     }
+    
     /**
      * Creates data provider instance with search query applied
      *
@@ -102,6 +103,23 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
         // grid filtering conditions
         <?= implode("\n        ", $searchConditions) ?>
 
+        $createAt = $this->getCreatedAt();
+        if(is_array($createAt)) {
+            $query->andFilterWhere(['>=','created_at', $createAt[0]])
+                ->andFilterWhere(['<=','created_at', $createAt[1]]);
+        }else{
+            $query->andFilterWhere(['created_at'=>$createAt]);
+        }
+        
+        $dataProvider->sort->attributes['authorName'] = 
+        [
+        	'asc'=>['created_at'=>SORT_ASC],
+        	'desc'=>['created_at'=>SORT_DESC],
+        ];
+        $dataProvider->sort->defaultOrder = 
+        [
+            'id'=>SORT_DESC,
+        ];
         return $dataProvider;
     }
 }

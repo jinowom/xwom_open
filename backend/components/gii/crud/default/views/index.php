@@ -27,7 +27,8 @@ AppAsset::register($this); <?php echo "\n";?>
 <?= !empty($generator->searchModelClass) ? "/* @var \$searchModel " . ltrim($generator->searchModelClass, '\\') . " */\n" : '' ?>
 /* @var $dataProvider yii\data\ActiveDataProvider */
 $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass)))) ?>;
-//$this->params['breadcrumbs'][] = $this->title;//在backend\views\public\breadcrumb.php 已经写了
+//$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Xp Specials'), 'url' => ['/xpaper/xp-special/index']];//上级菜单示例
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <!-- 面包屑 -->
 <?php  echo "<?";?>
@@ -106,7 +107,7 @@ $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::ca
                         $count = 0;
                         if (($tableSchema = $generator->getTableSchema()) === false) {
                             foreach ($generator->getColumnNames() as $name) {
-                                if (++$count < 10) {
+                                if (++$count < 6) {
                                     echo "                    '" . $name . "',\n";
                                 } else {
                                     echo "                   // '" . $name . "',\n";
@@ -115,10 +116,20 @@ $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::ca
                         } else {
                             foreach ($tableSchema->columns as $column) {
                                 $format = $generator->generateColumnFormat($column);
-                                if (++$count < 10) {
-                                    echo "                     '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+                                if ($column->type === 'date') {
+                                    $columnDisplay = "            ['attribute' => '$column->name','format' => ['date',(isset(Yii::\$app->modules['datecontrol']['displaySettings']['date'])) ? Yii::\$app->modules['datecontrol']['displaySettings']['date'] : 'd-m-Y']],";
+
+                                } elseif ($column->type === 'time') {
+                                    $columnDisplay = "            ['attribute' => '$column->name','format' => ['time',(isset(Yii::\$app->modules['datecontrol']['displaySettings']['time'])) ? Yii::\$app->modules['datecontrol']['displaySettings']['time'] : 'H:i:s A']],";
+                                } elseif ($column->type === 'datetime' || $column->type === 'timestamp') {
+                                    $columnDisplay = "            ['attribute' => '$column->name','format' => ['datetime',(isset(Yii::\$app->modules['datecontrol']['displaySettings']['datetime'])) ? Yii::\$app->modules['datecontrol']['displaySettings']['datetime'] : 'd-m-Y H:i:s A']],";
                                 } else {
-                                    echo "                     // '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+                                    $columnDisplay = "            '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',";
+                                }
+                                if (++$count < 10) {
+                                    echo $columnDisplay ."\n";
+                                } else {
+                                    echo "//" . $columnDisplay . " \n";
                                 }
                             }
                         }
@@ -134,9 +145,9 @@ $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::ca
 				'buttons' => [
                                         'view' => function ($url, $model, $key){
                                             //return Html::a('查看', Url::to(['view','id'=>$model->id]), ['class' => "layui-btn layui-btn-xs layui-default-view"]);
-                                            return Html::Button('查看',
+                                            return Html::Button(Yii::t('app', 'View'),
                                                     [
-                                                    'onclick' => 'xadmin.open("查看", "'.$url.'",500,550)',
+                                                    'onclick' => 'xadmin.open("'.Yii::t('app', 'View').'", "'.$url.'",500,550)',
                                                     'data-target' => '#view-modal',
                                                     'class' => 'layui-btn layui-btn-xs layui-default-view',
                                                     'id' => 'modalButton',
@@ -146,9 +157,9 @@ $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::ca
                                         },
                                         'update' => function ($url, $model, $key) {
                                             //return Html::a('修改', Url::to(['update','id'=>$model->id]), ['class' => "layui-btn layui-btn-normal layui-btn-xs layui-default-update"]);
-                                            return Html::Button('修改',
+                                            return Html::Button(Yii::t('app', 'Update'),
                                                     [
-                                                    'onclick' => 'xadmin.open("修改", "'.$url.'",500,550)',
+                                                    'onclick' => 'xadmin.open("'.Yii::t('app', 'Update').'", "'.$url.'",500,550)',
                                                     'data-target' => '#update-modal',
                                                     'class' => 'layui-btn layui-btn-normal layui-btn-xs layui-default-update',
                                                     'id' => 'modalButton',
@@ -160,20 +171,41 @@ $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::ca
                                         'delete'=>function($url,$model,$key)
                                             {
                                                 $options=[
-                                                    'title'=>Yii::t('yii', '删除'),
-                                                    'aria-label'=>Yii::t('yii','删除'),
-                                                    'data-confirm'=>Yii::t('yii','Are you sure you want to delete this item?'),
+                                                    'title'=>Yii::t('app', 'Delete'),
+                                                    'aria-label'=>Yii::t('app','Delete'),
+                                                    'data-confirm'=>Yii::t('app','Are you sure you want to delete this item?'),
                                                     'data-method'=>'post',
                                                     'data-pjax'=>'0',
                                                     'class'=>'layui-btn layui-btn-danger layui-btn-xs layui-default-delete'
                                                     ];
-                                                    return Html::a('删除',$url,$options); 
+                                                    return Html::a(Yii::t('app','Delete'),$url,$options); 
                                                 //if($model->status == 0){//不同的视图，需要修改这里字段名称 或者不用判断，直接 return
                                                     //return Html::a('删除',$url,$options); 
                                                     //} else {
                                                      //  return Html::a('已审',$url,$options);  
                                                    // }
                                             },
+                                        //接手 如果不需要，调试后必须删除
+                                        /*
+                                        'approve'=>function($url,$model,$key)
+                                        {
+                                                $options=[
+                                                        'title'=>Yii::t('app', 'rove task'),
+                                                        'aria-label'=>Yii::t('app','rove task'),
+                                                        'data-confirm'=>Yii::t('app','Are you sure you want to rove this item?'),
+                                                        'data-method'=>'post',
+                                                        'data-pjax'=>'0',
+                                                        'class'=>'layui-btn layui-btn-normal layui-btn-xs layui-default-approve'
+                                                                ];
+                                                if($model->status ==1){
+                                                  return Html::a('接手任务', $url, $options); 
+                                                } else {
+                                                   return Html::a('已委派',$url,$options);
+
+                                                }
+
+                                        },
+                                        */
 				]
             ],
         ],

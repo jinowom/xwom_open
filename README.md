@@ -51,7 +51,7 @@ xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开
 
 四、快速体验Experience
 ------------
-demo地址  http://xwom.womtech.cn    测试管理员账号： administrator  密码：123456 
+demo地址  http://xwom.womtech.cn    测试管理员账号：参见qq群 170794993 群内公告 
 
 友情提示：数据每天、每6小时，将还原更新一次，如果您提交操作数据，如果不见了，切勿诧异，您懂的。
 

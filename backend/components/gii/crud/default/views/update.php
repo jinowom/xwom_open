@@ -19,8 +19,6 @@ echo "<?php\n";
 ?>
 use yii\helpers\Html;
 use yii\helpers\Url;
-use backend\assets\AppAsset;
-AppAsset::register($this);
 
 /* @var $this yii\web\View */
 /* @var $model <?= ltrim($generator->modelClass, '\\') ?> */
@@ -29,6 +27,7 @@ $this->title = <?= $title ?>;
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString(Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass)))) ?>, 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model-><?= $generator->getNameAttribute() ?>, 'url' => ['view', <?= $urlParams ?>]];
 $this->params['breadcrumbs'][] = <?= $generator->generateString('Update') ?>;
+\yii\web\YiiAsset::register($this);
 ?>
 <div class="layui-card-body">
     <div class="update <?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-update">

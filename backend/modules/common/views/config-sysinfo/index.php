@@ -11,7 +11,7 @@ AppAsset::register($this);
 /* @var $searchModel common\models\config\ConfigSysinfoSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 $this->title = Yii::t('app', 'Config Sysinfos');
-//$this->params['breadcrumbs'][] = $this->title;//在backend\views\public\breadcrumb.php 已经写了
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>

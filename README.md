@@ -8,7 +8,7 @@ xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开
 
 一、更新记录Records
 ------------
-
+1.0.1beta  增加4个自定义CRUD 路由，参见/backend/config/main-lock_bak.php
 1.0.0beta1 开启xwom开发引擎beta1，预装常用扩展组件，对配置文件做细致的注释说明。
 
 二、帮助Help
@@ -76,7 +76,7 @@ demo地址  http://xwom.womtech.cn    测试管理员账号：参见qq群 170794
 ------------
 友情提示：建议php版本>=7.1
 
-1、composer install  or  composer install --ignore-platform-reqs
+1、composer install --ignore-platform-reqs  or   composer install 
 
 2、依次执行以下命令初始化yii2框架以及导入数据库
 ```php

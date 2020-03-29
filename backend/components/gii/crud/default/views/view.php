@@ -12,12 +12,14 @@ echo "<?php\n";
 ?>
 
 use yii\helpers\Html;
-use backend\widgets\DetailView;
+use kartik\detail\DetailView;
 use yii\helpers\Url;
-use backend\assets\AppAsset;<?php echo "\n";?>
-AppAsset::register($this);
-/* @var $this yii\web\View */
-/* @var $model <?= ltrim($generator->modelClass, '\\') ?> */
+use kartik\datecontrol\DateControl;
+
+/**
+ * @var yii\web\View $this
+ * @var <?= ltrim($generator->modelClass, '\\') ?> $model
+ */
 
 $this->title = $model-><?= $generator->getNameAttribute() ?>;
 $this->params['breadcrumbs'][] = ['label' => <?= $generator->generateString(Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass)))) ?>, 'url' => ['index']];

@@ -27,7 +27,7 @@ return [
         'common' => [
             'class' => 'backend\modules\common\Index',
         ],
-        /** ------ 加载migration数据库库迁移模块业务 ------ **/
+        /**------ 加载migration数据库库迁移模块业务 ------ **/
         'migration' => [
             'class' => 'migration\Module',
         ],
@@ -36,9 +36,17 @@ return [
             'class' => 'jinostart\workflow\manager\Module',
             'layout' => '//main',
         ],
-        /**------加载yii2-kartikgii 的模块-----**/
+        /**加载yii2-kartikgii 的模块**/
         'gridview' => [
             'class' => 'kartik\grid\Module',
+        ],
+        /**task任务管理模块业务**/
+        'task' => [
+            'class' => 'backend\modules\task\Module',
+        ],
+        /**yii2-round-switch-column扩展，实现字段的开关**/
+        'roundSwitch' => [
+            'class' => 'nickdenry\grid\toggle\Module',
         ],
         /**------ 加载xe子系统模块业务 ------ **/
 

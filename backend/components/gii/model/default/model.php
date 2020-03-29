@@ -150,6 +150,20 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
     		return false;
     	}
     }
+    /**
+    * @var array 开关变量字段示例，如果已经开启，需要把字段赋值以数组形式列出
+    */
+   //public $switchValues = [
+   //    'emphasis' => [
+   //        'on' => 1,
+   //        'off' => 0,
+   //    ],
+   //   //也可以是非 1，0 譬如，如下
+   //   'isRecommend' => [
+   //     'on' => 10,
+   //     'off' => 0,
+   //   ],
+   //];
     /*
     * afterSave 保存之后的事件  示例
     */

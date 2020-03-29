@@ -11,7 +11,7 @@ return [
     'Updated At' => '最后更新',
     'Action' => '操作',
     'View' => '查看',
-    'Update' => '保存修改',
+    'Update' => '修改',
     'Rupdate' => '再次修改',
     'Delete' => '删除',
     'Create' => '创建保存',
@@ -48,6 +48,7 @@ return [
     'No picture' => '无图',
     'Really to delete?' => '真的要删除吗？',
     'Are you sure you want to delete this item?' => '确认要删除此项吗？',
+    'Are you sure want to delete this item?' => '确认要删除这些吗？',
     '{attribute} cannot be blank.' => '{attribute}不能为空.',
     'Allowed not to be deleted, sub level exsited.' => '还有子项存在,不允许被删除',
     'Failed' => '失败',
@@ -84,6 +85,16 @@ return [
     'User Id' => '用户Id',
     'None' => '无',
     'Wom Plans' => '计划管理',
+    'new create' => '新增',
+    'Create new' => '新增',
+    'Reset Gride' => '刷新视图',
+    'Reset Grid' => '刷新视图',
+    'view' => '浏览查看',
+    'Delete all' => '批量删除',
+    'list' => '列表',
+    'rove task' => '接手任务',
+    'Are you sure you want to rove this item?' => '确认要接手此项吗？',
+    'Are you sure want to rove this item?' => '确认要接手这些吗？',
     /*Public*/
 
     /*Login*/
@@ -106,10 +117,10 @@ return [
     'Parent Menu Name' => '父分类菜单名称',
     'Url is not a correct json format' => '地址的json格式错误',
     /**workflow*/
-    'Create' => '保存新增',
-    'Update' => '保存修改',
-    'Delete' => '删除',
-    'Save' => '保存',
+    'Created' => '保存新增',
+    'Updated' => '保存修改',
+    'Deleted' => '删除',
+    'Saved' => '保存',
     'Cancel' => '取消',
     'Transitions' => '流程管理',
     'Start Status' => '开始状态',
@@ -122,18 +133,30 @@ return [
     'Workflow' => '工作流',
     'Metadata' => '元数据',
     'New Metadata' => '新增元数据',
-    'Are you sure?' => '您确定要删除吗？',
+    'Are you sure?' => '删除提示！',
+
     /*menu菜单*/
+    
+    /*models name 控制器名字*/
 
+    
     /*common功能配置*/
-
-    /*common功能配置*/
+    'Reg Softwares' => '应用注册',
+    'Reg Widgets' => '小物件注册',
+    'Reg Extensions' => '扩展注册',
+    'Create Reg Extension' => '添加扩展',
+    'Reg Modules' => '模块注册',
 
     /*xportal子业务模块*/
 
     /*xportal子业务模块*/
     
     /*xpaper子业务模块*/
+    'Xp News' => '新闻',
+    'XpNews' => '新闻',
+    'Xp Special' => '专题管理',
+    'XpSpecial' => '专题管理',
+    'Xp Specials' => '专题',
 
     /*xpaper子业务模块*/
 

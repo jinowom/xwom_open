@@ -78,6 +78,8 @@ demo地址  http://xwom.womtech.cn    测试管理员账号：参见qq群 170794
 
 1、composer install --ignore-platform-reqs  or   composer install 
 
+1.2、如果是由1.0.0beta1升级，请自行 composer update --ignore-platform-reqs 需要安装或升级的组件名  "版本号"   具体参见 composer.json 约定
+
 2、依次执行以下命令初始化yii2框架以及导入数据库
 ```php
 $ cd webApp

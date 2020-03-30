@@ -180,8 +180,8 @@ CrudAsset::register($this);
                             echo "               'mergeHeader' => true,\n";
                             echo "               'enableSorting' => false,\n";
                             echo "               'format' => 'raw',\n";
-                            echo "               'value' => function ($m) {\n";
-                            echo "                      return Html::a(Html::img($m-><?=$name ?>, ['alt' => '缩略图', 'width' => 120]), $m-><?=$name ?>);\n";
+                            echo "               'value' => function (".'$m'.") {\n";
+                            echo "                      return Html::a(Html::img(".'$m'."->$name, ['alt' => '缩略图', 'width' => 120]), ".'$m'."->$name);\n";
                             echo "               },\n";
                             echo "           ],\n";
                         } else if (in_array($name, $roundSwitchFields)) {

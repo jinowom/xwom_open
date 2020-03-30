@@ -45,7 +45,7 @@ if (YII_ENV_DEV) {//!YII_ENV_TEST  YII_ENV_DEV  在web/index.php 入口文件配
     $config['bootstrap'][] = 'debug';
     $config['modules']['debug'] = [
         'class' => yii\debug\Module::className(),
-        //'allowedIPs' => ['127.0.0.1'],
+        'allowedIPs' => ['127.0.0.1'],
     ];
      /**
       * 综合GII工具：加载 wodrowwajaxcrud 、wodrowmodel、 kartikgii-crud 、yii2 gii扩展包
@@ -57,6 +57,7 @@ if (YII_ENV_DEV) {//!YII_ENV_TEST  YII_ENV_DEV  在web/index.php 入口文件配
     $config['bootstrap'][] = 'gii';
     $config['modules']['gii'] = [
         'class' => 'yii\gii\Module',
+         'allowedIPs' => ['::1','127.0.0.1',], //只允许本地访问gii  用逗号隔开，添加自己的指定地址
     ];
     //这是kartikgii-crud。并自建一个templates：xwom_kartikgii
     $config['modules']['gii']['generators']['kartikgii-crud']= [
@@ -122,6 +123,7 @@ if (YII_ENV_DEV) {//!YII_ENV_TEST  YII_ENV_DEV  在web/index.php 入口文件配
         ]
     ];
     //这是wodrowwajaxcrud，并自建一个templates：xwom_johnitvn_ajaxcrud
+    //友情提示：此扩展，修改了Generator。如果报错，请自行拷贝 @backend/components/gii/johnitvn_ajaxcrud/Generator.php 覆盖vendor/johnitvn/yii2-ajaxcrud/src/generators/Generator.php
     $config['modules']['gii']['generators']['ajaxcrud'] = [
         'class' => johnitvn\ajaxcrud\generators\Generator::class,
         'showName' => "johnitvn_Ajax CRUD Generator",

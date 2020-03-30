@@ -1,15 +1,17 @@
 <?php
+
 use yii\helpers\Html;
 use kartik\form\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model common\models\reg\RegWidgets */
+/* @var $model common\models\reg\RegSoftware */
 /* @var $form \kartik\form\ActiveForm */
 ?>
+<div class="reg-software-test">
 
-<div class="reg-widgets-form">
+    <div class="reg-software-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+        <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
@@ -35,7 +37,9 @@ use kartik\form\ActiveForm;
 
     <?= $form->field($model, 'is_rule')->textInput() ?>
 
-    <?= $form->field($model, 'is_merchant_route_map')->textInput() ?>
+    <?= $form->field($model, 'parent_rule_name')->textInput(['maxlength' => true]) ?>
+
+    <?= $form->field($model, 'route_map')->textInput(['maxlength' => true]) ?>
 
     <?= $form->field($model, 'default_config')->textarea(['rows' => 6]) ?>
 
@@ -51,13 +55,17 @@ use kartik\form\ActiveForm;
 
     <?= $form->field($model, 'updated_id')->textInput() ?>
 
-  
-	<?php if (!Yii::$app->request->isAjax){ ?>
-	  	<div class="form-group">
-	        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-	    </div>
-	<?php } ?>
+    <?= $form->field($model, 'sortOrder')->textInput() ?>
 
-    <?php ActiveForm::end(); ?>
-    
+
+        <?php if (!Yii::$app->request->isAjax){ ?>
+        <div class="form-group">
+            <?= Html::submitButton("test", ['class' => 'btn btn-primary']) ?>
+        </div>
+        <?php } ?>
+
+        <?php ActiveForm::end(); ?>
+
+    </div>
+
 </div>

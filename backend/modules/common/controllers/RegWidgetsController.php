@@ -2,8 +2,9 @@
 /**
  * Class name  is RegWidgetsController * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-07 17:00 
+ * @DateTime 2020-03-30 09:58 
  */
+
 namespace backend\modules\common\controllers;
 
 use Yii;
@@ -12,14 +13,46 @@ use common\models\reg\RegWidgetsSearch;
 use backend\controllers\BaseController;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use \yii\web\Response;
+use yii\helpers\Html;
+use kartik\grid\EditableColumnAction;
+use wodrow\yii2wtools\enum\Status;
+use nickdenry\grid\toggle\actions\ToggleAction;//如果没有安装扩展，请composer require --prefer-dist nick-denry/yii2-round-switch-column
 
 /**
  * RegWidgetsController implements the CRUD actions for RegWidgets model.
  */
 class RegWidgetsController extends BaseController
 {
+    public function actions()
+    {
+        return [
+            'editable-edit' => [
+                'class' => EditableColumnAction::class,
+                'modelClass' => RegWidgetsSearch::class,                // the model for the record being edited
+                'scenario' => RegWidgetsSearch::SCENARIO_EDITABLE,
+                'outputValue' => function ($model, $attribute, $key, $index) {
+                    return (int)$model->$attribute / 100;      // return any custom output value if desired
+                },
+                'outputMessage' => function ($model, $attribute, $key, $index) {
+                    return '';                                  // any custom error to return after model save
+                },
+                'showModelErrors' => true,                        // show model validation errors after save
+                'errorOptions' => ['header' => ''],              // error summary HTML options
+                'postOnly' => true,
+                'ajaxOnly' => true,
+                // 'findModel' => function($id, $action) {},
+                // 'checkAccess' => function($action, $model) {}
+            ],
+            'toggle' => [
+                'class' => ToggleAction::class,
+                'modelClass' => RegWidgets::class, // Your model class
+            ],
+        ];
+    }
+
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function behaviors()
     {
@@ -27,7 +60,8 @@ class RegWidgetsController extends BaseController
             'verbs' => [
                 'class' => VerbFilter::className(),
                 'actions' => [
-                    'delete' => ['POST'],
+                    'delete' => ['post'],
+                    'bulkdelete' => ['post'],
                 ],
             ],
         ];
@@ -38,7 +72,7 @@ class RegWidgetsController extends BaseController
      * @return mixed
      */
     public function actionIndex()
-    {
+    {    
         $searchModel = new RegWidgetsSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -48,69 +82,251 @@ class RegWidgetsController extends BaseController
         ]);
     }
 
+
     /**
      * Displays a single RegWidgets model.
      * @param integer $id
      * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
+    {   
+        $request = Yii::$app->request;
+        if($request->isAjax){
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return [
+                    'title' => "RegWidgets #".$id,
+                    'content' => $this->renderAjax('view', [
+                        'model' => $this->findModel($id),
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a('编辑', ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+                ];    
+        }else{
+            return $this->render('view', [
+                'model' => $this->findModel($id),
+            ]);
+        }
     }
 
     /**
      * Creates a new RegWidgets model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
+     * For ajax request will return json object
+     * and for non-ajax request if creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
     public function actionCreate()
     {
-        $model = new RegWidgets();
+        $request = Yii::$app->request;
+        $model = new RegWidgets();  
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if($request->isAjax){
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            if($request->isGet){
+                return [
+                    'title' => "Create new RegWidgets",
+                    'content' => $this->renderAjax('create', [
+                        'model' => $model,
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+        
+                ];         
+            }else if($model->load($request->post()) && $model->save()){
+                return [
+                    'forceReload' => '#crud-datatable-pjax',
+                    'title' => "Create new RegWidgets",
+                    'content' => '<span class="text-success">Create RegWidgets success</span>',
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a('添加更多', ['create'], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+        
+                ];         
+            }else{           
+                return [
+                    'title' => "Create new RegWidgets",
+                    'content' => $this->renderAjax('create', [
+                        'model' => $model,
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+        
+                ];         
+            }
+        }else{
+            if ($model->load($request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('create', [
+                    'model' => $model,
+                ]);
+            }
         }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
     }
 
     /**
      * Updates an existing RegWidgets model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * For ajax request will return json object
+     * and for non-ajax request if update is successful, the browser will be redirected to the 'view' page.
      * @param integer $id
      * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
      */
     public function actionUpdate($id)
     {
-        $model = $this->findModel($id);
+        $request = Yii::$app->request;
+        $model = $this->findModel($id);       
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+        if($request->isAjax){
+            /*
+            *   Process for ajax request
+            */
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            if($request->isGet){
+                return [
+                    'title' => "Update RegWidgets #".$id,
+                    'content' => $this->renderAjax('update', [
+                        'model' => $model,
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                ];         
+            }else if($model->load($request->post()) && $model->save()){
+                return [
+                    'forceReload' => '#crud-datatable-pjax',
+                    'title' => "RegWidgets #".$id,
+                    'content' => $this->renderAjax('view', [
+                        'model' => $model,
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a('编辑修改', ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+                ];    
+            }else{
+                 return [
+                    'title' => "Update RegWidgets #".$id,
+                    'content' => $this->renderAjax('update', [
+                        'model' => $model,
+                    ]),
+                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                ];        
+            }
+        }else{
+            /*
+            *   Process for non-ajax request
+            */
+            if ($model->load($request->post()) && $model->save()) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('update', [
+                    'model' => $model,
+                ]);
+            }
         }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
     }
 
     /**
-     * Deletes an existing RegWidgets model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
+     * Delete an existing RegWidgets model.
+     * For ajax request will return json object
+     * and for non-ajax request if deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
      */
-    public function actionDelete($id)
+    public function actionDelete($id, $type = 'hard')
     {
-        $this->findModel($id)->delete();
+        $request = Yii::$app->request;
+        $model = $this->findModel($id);
+        switch($type){
+            case 'hard':
+                $model->delete();
+                break;
+            case 'soft':
+                $model->status = Status::STATUS_DEL;
+                $model->save();
+                break;
+            default:
+                break;
+        }
 
-        return $this->redirect(['index']);
+        if($request->isAjax){
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ['forceClose' => true,'forceReload' => '#crud-datatable-pjax'];
+        }else{
+            return $this->redirect(['index']);
+        }
+    }
+
+     /**
+     * Delete multiple existing RegWidgets model.
+     * For ajax request will return json object
+     * and for non-ajax request if deletion is successful, the browser will be redirected to the 'index' page.
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionBulkdelete($type = 'hard')
+    {        
+        $request = Yii::$app->request;
+        $pks = explode(',', $request->post( 'pks' )); // Array or selected records primary keys
+        foreach ( $pks as $pk ) {
+            $model = $this->findModel($pk);
+            switch($type){
+                case 'hard':
+                    $model->delete();
+                    break;
+                case 'soft':
+                    $model->status = Status::STATUS_DEL;
+                    $model->save();
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        if($request->isAjax){
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            return ['forceClose' => true,'forceReload' => '#crud-datatable-pjax'];
+        }else{
+            return $this->redirect(['index']);
+        }
+    }
+
+    public function actionTest($id)
+    {
+        $request = Yii::$app->request;
+        $model = $this->findModel($id);
+
+        if($request->isAjax){
+            Yii::$app->response->format = Response::FORMAT_JSON;
+            if($request->isGet){
+                return [
+                'title' => "test RegWidgets #".$id,
+                    'content' => $this->renderAjax('test', [
+                    'model' => $model,
+                ]),
+                'footer' =>
+                    Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                    Html::button('test', ['class' => 'btn btn-primary', 'type' => "submit"]),
+                ];
+            }elseif($model->load($request->post()) && $model->validate()){
+                # TO DO test
+                return ['forceClose' => true,'forceReload' => '#crud-datatable-pjax'];
+            }else{
+                return [
+                    'title' => "test RegWidgets #".$id,
+                    'content' => $this->renderAjax('test', [
+                    'model' => $model,
+                ]),
+                'footer' =>
+                    Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                    Html::button('test', ['class' => 'btn btn-primary', 'type' => "submit"]),
+                ];
+            }
+        }else{
+            if ($model->load($request->post())) {
+                return $this->redirect(['view', 'id' => $model->id]);
+            } else {
+                return $this->render('test', [
+                    'model' => $model,
+                ]);
+            }
+        }
     }
 
     /**
@@ -124,8 +340,8 @@ class RegWidgetsController extends BaseController
     {
         if (($model = RegWidgets::findOne($id)) !== null) {
             return $model;
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
         }
-
-        throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
     }
 }

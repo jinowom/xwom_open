@@ -24,6 +24,7 @@ use yii\web\Controller;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $showName = 'johnitvn Ajax CRUD Generator';
     public $modelClass;
     public $controllerClass;
     public $viewPath;
@@ -35,7 +36,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Ajax CRUD Generator';
+        //return 'Ajax CRUD Generator';
+        return $this->showName;
     }
 
     /**

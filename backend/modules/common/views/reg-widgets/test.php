@@ -1,4 +1,5 @@
 <?php
+
 use yii\helpers\Html;
 use kartik\form\ActiveForm;
 
@@ -6,10 +7,11 @@ use kartik\form\ActiveForm;
 /* @var $model common\models\reg\RegWidgets */
 /* @var $form \kartik\form\ActiveForm */
 ?>
+<div class="reg-widgets-test">
 
-<div class="reg-widgets-form">
+    <div class="reg-widgets-form">
 
-    <?php $form = ActiveForm::begin(); ?>
+        <?php $form = ActiveForm::begin(); ?>
 
     <?= $form->field($model, 'title')->textInput(['maxlength' => true]) ?>
 
@@ -51,13 +53,15 @@ use kartik\form\ActiveForm;
 
     <?= $form->field($model, 'updated_id')->textInput() ?>
 
-  
-	<?php if (!Yii::$app->request->isAjax){ ?>
-	  	<div class="form-group">
-	        <?= Html::submitButton($model->isNewRecord ? Yii::t('app', 'Create') : Yii::t('app', 'Update'), ['class' => $model->isNewRecord ? 'btn btn-success' : 'btn btn-primary']) ?>
-	    </div>
-	<?php } ?>
 
-    <?php ActiveForm::end(); ?>
-    
+        <?php if (!Yii::$app->request->isAjax){ ?>
+        <div class="form-group">
+            <?= Html::submitButton("test", ['class' => 'btn btn-primary']) ?>
+        </div>
+        <?php } ?>
+
+        <?php ActiveForm::end(); ?>
+
+    </div>
+
 </div>

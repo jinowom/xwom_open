@@ -154,6 +154,10 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
     * @var array 开关变量字段示例，如果已经开启，需要把字段赋值以数组形式列出
     */
    //public $switchValues = [
+   //    'status' => [
+   //        'on' => 1,
+   //        'off' => 0,
+   //    ],
    //    'emphasis' => [
    //        'on' => 1,
    //        'off' => 0,

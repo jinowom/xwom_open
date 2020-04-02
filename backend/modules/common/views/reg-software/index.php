@@ -2,7 +2,7 @@
 /**
  * This is the view;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-30 10:06
+ * @DateTime 2020-04-02 15:34
  */
 use kartik\grid\GridView;
 use kartik\grid\DataColumn;
@@ -28,7 +28,7 @@ use nickdenry\grid\toggle\components\RoundSwitchColumn;
 
 $this->title = Yii::t('app', 'Reg Softwares');
 //$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Xp Specials'), 'url' => ['/xpaper/xp-special/index']];//上级菜单示例
-$this->params['breadcrumbs'][] = $this->title;
+//$this->params['breadcrumbs'][] = $this->title;
 CrudAsset::register($this);
 
 ?>

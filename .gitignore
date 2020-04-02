@@ -63,3 +63,6 @@ phpunit.phar
 /api/config/test-local.php
 #img itself is not needed
 /img
+/backend/modules/xedit
+/backend/modules/xpaper
+/backend/modules/xportal

@@ -2,7 +2,7 @@
 /**
  * Class name is RegSoftwareSearch * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-30 10:06 
+ * @DateTime 2020-04-02 15:34 
  */
 
 namespace common\models\reg;
@@ -27,7 +27,7 @@ class RegSoftwareSearch extends RegSoftware
     public function scenarios()
     {
         return ArrayHelper::merge(parent::scenarios(), [
-            self::SCENARIO_EDITABLE => ['title','author','brief_introduction','description'],
+            self::SCENARIO_EDITABLE => ['title','brief_introduction','description','author'],
         ]);
     }
 

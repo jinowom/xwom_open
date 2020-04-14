@@ -50,8 +50,8 @@ $limitsJson = \Yii::$app->params['limitsJson'];
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
     <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
     {{#  } }}
-    <a class="layui-btn" onclick="xadmin.open('批量移入人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&type=-1&id={{d.name}}',850,600)">批量移入</a>
-    <a class="layui-btn" onclick="xadmin.open('批量移出人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&t=out&type=-1&id={{d.name}}',850,600)">批量移出</a>
+    <a class="layui-btn" onclick="xadmin.open('批量移入人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&type=-1&authName={{d.name}}',850,600)">批量移入</a>
+    <a class="layui-btn" onclick="xadmin.open('批量移出人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&t=out&type=-1&authName={{d.name}}',850,600)">批量移出</a>
 
 </script>
 <script>

@@ -18,8 +18,7 @@ echo "<?php\n";
  * @DateTime <?= date("Y-m-d H:i",time()) ?>
  */
 namespace <?= $generator->getControllerNamespace() ?>;
-//use backend\controllers\BaseController;
-//class <?= StringHelper::basename($generator->controllerClass) ?> extends BaseController
+
 class <?= StringHelper::basename($generator->controllerClass) ?> extends <?= '\\' . trim($generator->baseClass, '\\') . "\n" ?>
 {
 <?php foreach ($generator->getActionIDs() as $action): ?>

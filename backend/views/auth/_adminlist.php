@@ -36,7 +36,7 @@ $limitsJson = \Yii::$app->params['limitsJson'];
 
 </script>
 <?php
-$getAdminList = \yii\helpers\Url::toRoute(['get-select-admin']);
+$getAdminList = \yii\helpers\Url::toRoute(['auth/get-select-admin']);
 $add = \yii\helpers\Url::toRoute(['auth/select-admin']);
 $_csrfBackend = \Yii::$app->request->csrfToken;
 $tableJs = <<<JS
@@ -49,7 +49,7 @@ $tableJs = <<<JS
             toolbar:"#toolbar",
             url: '$getAdminList', //数据接口
             method:"POST", //
-            where:{_csrfBackend:'$_csrfBackend',type:"$type",id:"$id",t:"$t"},
+            where:{_csrfBackend:'$_csrfBackend',type:"$type",id:"$id",t:"$t",authName:"$authName"},
             page: true, //开启分页
             limit: $pageSize,
             limits: $limitsJson,
@@ -80,7 +80,7 @@ $tableJs = <<<JS
                             Cajax({
                                 type:"POST",
                                 url:"$add",
-                                data:{_csrfBackend:'$_csrfBackend',userId:userIds,id:"$id",type:"$type"}
+                                data:{_csrfBackend:'$_csrfBackend',userId:userIds,id:"$id",type:"$type",authName:"$authName"}
                             },function () {},function(JsonData){
                                 layer.msg(JsonData.msg,{icon:(JsonData.status) ? icon.ICON_OK : icon.ICON_ERROR});
                                 if(JsonData.status){
@@ -100,7 +100,7 @@ $tableJs = <<<JS
                             Cajax({
                                 type:"POST",
                                 url:"$add",
-                                data:{_csrfBackend:'$_csrfBackend',userId:userIds,id:"$id",type:"$type",t:"$t"}
+                                data:{_csrfBackend:'$_csrfBackend',userId:userIds,id:"$id",type:"$type",t:"$t",authName:"$authName"}
                             },function () {},function(JsonData){
                                 layer.msg(JsonData.msg,{icon:(JsonData.status) ? icon.ICON_OK : icon.ICON_ERROR});
                                 if(JsonData.status){
@@ -129,7 +129,7 @@ $tableJs = <<<JS
                     Cajax({
                         type:"POST",
                         url:"$add",
-                        data:{_csrfBackend:'$_csrfBackend',userId:userId,id:"$id",type:"$type"}
+                        data:{_csrfBackend:'$_csrfBackend',userId:userId,id:"$id",type:"$type",authName:"$authName"}
                     },function () {},function(JsonData){
                         layer.msg(JsonData.msg,{icon:(JsonData.status) ? icon.ICON_OK : icon.ICON_ERROR});
                         if(JsonData.status){
@@ -140,7 +140,7 @@ $tableJs = <<<JS
                     Cajax({
                         type:"POST",
                         url:"$add",
-                        data:{_csrfBackend:'$_csrfBackend',userId:userId,id:"$id",type:"$type",t:"$t"}
+                        data:{_csrfBackend:'$_csrfBackend',userId:userId,id:"$id",type:"$type",t:"$t",authName:"$authName"}
                     },function () {},function(JsonData){
                         layer.msg(JsonData.msg,{icon:(JsonData.status) ? icon.ICON_OK : icon.ICON_ERROR});
                         if(JsonData.status){

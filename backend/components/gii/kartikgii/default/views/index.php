@@ -37,7 +37,7 @@ AppAsset::register($this); <?php echo "\n";?>
 
 $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass)))) ?>;
 //$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Xp Specials'), 'url' => ['/xpaper/xp-special/index']];//上级菜单示例
-//$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $this->title;
 ?>
 <!-- 面包屑 -->
 <?php  echo "<?";?>
@@ -178,7 +178,7 @@ if (($tableSchema = $generator->getTableSchema()) === false) {
                     'update' => function ($url, $model) {
                         return Html::a('<span class="glyphicon glyphicon-pencil"></span>',
                             Yii::$app->urlManager->createUrl(['<?= (empty($generator->moduleID) ? '' : $generator->moduleID . '/') . $generator->controllerID?>/view', <?= $urlParams ?>, 'edit' => 't']),
-                            ['title' => Yii::t('yii', 'Edit'),]
+                            ['title' => Yii::t('app', 'Edit'),]
                         );
                     }
                 ],

@@ -123,15 +123,7 @@ $this->registerJs($tableJs,\yii\web\View::POS_END);
             , data: treeData
             ,showCheckbox: true
         });
-
-
-//        var json = <?//=!empty($hasPermission)? $hasPermission : []?>//;
-//       var json = ["NO","XadPatSystem"];
-//       tree.setChecked('authTree',json);
     });
-
-
-
     function gc(d){
         for (var i in d){
             c.push(d[i].id);

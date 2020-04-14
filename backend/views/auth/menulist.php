@@ -107,6 +107,8 @@ $js = <<<JS
                     if(JsonData.status){
                         obj.update({'authorityId':val,'authority':val});
                         layer.close(index);
+                    }else{
+                        obj.update({'authority':ids});
                     }
                 })
             },function(index){

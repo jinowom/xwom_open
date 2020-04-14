@@ -2,7 +2,7 @@
 
 /* @var $this yii\web\View */
 
-$this->title = '管理员列表';
+$this->title = $title;
 $pageSize = \Yii::$app->params['pageSize'];
 $limitsJson = \Yii::$app->params['limitsJson'];
 ?>
@@ -16,11 +16,11 @@ $limitsJson = \Yii::$app->params['limitsJson'];
                 <div class="layui-card-body">
                     <form class="layui-form layui-col-space5">
                         <div class="layui-inline layui-show-xs-block">
-                            <input class="layui-input" autocomplete="off" readonly placeholder="查询加入开始时间" name="start" id="start"></div>
+                            <input type="text" name="name" id="name" placeholder="请输入应用名称" autocomplete="off" class="layui-input">
+                        </div>
                         <div class="layui-inline layui-show-xs-block">
-                            <input class="layui-input" autocomplete="off" readonly placeholder="查询加入结束时间" name="end" id="end"></div>
-                        <div class="layui-inline layui-show-xs-block">
-                            <input type="text" name="bind_phone" id="bind_phone" placeholder="请输入手机号码" autocomplete="off" class="layui-input"></div>
+                            <input type="text" name="description" id="description" placeholder="请输入应用标识" autocomplete="off" class="layui-input">
+                        </div>
                         <div class="layui-inline layui-show-xs-block">
                             <button class="layui-btn" type="button" id="sreach" data-type="sreach" lay-filter="sreach">
                                 <i class="layui-icon">&#xe615;</i></button>
@@ -36,16 +36,14 @@ $limitsJson = \Yii::$app->params['limitsJson'];
 </div>
 <script type="text/html" id="toolbar">
     <div class = "layui-btn-container" >
-        <button class="layui-btn" onclick="xadmin.open('添加用户','<?=\yii\helpers\Url::toRoute(['auth/add-admin'])?>',500,550)"><i class="layui-icon"></i>添加</button>
         <button class="layui-btn layui-btn-sm" lay-event="refresh">刷新</button >
     </div >
 </script>
-<script type="text/html" id="checkboxTpl">
-    <input type="checkbox" name="lock" value="{{d.user_id}}" title="启用" lay-filter="lockDemo" {{ d.status == 10 ? 'checked' : '' }}>
-</script>
 <script type="text/html" id="barDemo">
-    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
-    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="edit">权限编辑</a>
+<!--    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>-->
+    <a class="layui-btn" onclick="xadmin.open('批量移入人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&authName={{d.route_map}}&id={{d.id}}',850,600)">批量移入</a>
+    <a class="layui-btn" onclick="xadmin.open('批量移出人员','<?=\yii\helpers\Url::toRoute(['auth/select-admin'])?>&t=out&authName={{d.route_map}}&&id={{d.id}}',850,600)">批量移出</a>
 </script>
 <script>
     $(function () {
@@ -64,10 +62,10 @@ $limitsJson = \Yii::$app->params['limitsJson'];
     })
 </script>
 <?php
-$getAdminList = \yii\helpers\Url::toRoute(['get-admin-list']);
+$getList = \yii\helpers\Url::toRoute(['get-subsystem']);
 $update = \yii\helpers\Url::toRoute(['auth/update-admin-status']);
-$delUrl = \yii\helpers\Url::toRoute(['auth/del-admin']);
-$addAdmin = \yii\helpers\Url::toRoute(['auth/add-admin']);
+$delUrl = \yii\helpers\Url::toRoute(['auth/subsystem-del']);
+$addApp = \yii\helpers\Url::toRoute(['auth/subsystem-edit']);
 $_csrfBackend = \Yii::$app->request->csrfToken;
 $tableJs = <<<JS
     function rowDel(obj,data,index) {
@@ -75,7 +73,7 @@ $tableJs = <<<JS
                 layer.msg('请选择要删除的数据', {icon: icon.ICON_WARING});
                 return false;
             }
-            var ids = (data.length > 1) ? getColumn(data,'user_id') : data.user_id;
+            var ids = (data.length > 1) ? getColumn(data,'id') : data.id;
             layer.confirm('真的删除吗？', function(index){
                 Cajax({
                     type:"POST",
@@ -97,23 +95,21 @@ $tableJs = <<<JS
             id:'adminList',
             elem:'#adminList',
             toolbar:"#toolbar",
-            url: '$getAdminList', //数据接口
+            url: '$getList', //数据接口
             method:"POST", //
             where:{_csrfBackend:'$_csrfBackend'},
             page: true, //开启分页
             limit: $pageSize,
             limits: $limitsJson,
             cols: [[
-                {field: 'user_id', checkbox:true,title: 'ID', width:80, sort: true, fixed: 'left'},
-                {field: 'real_name', title: '真实名称', minWidth:150, sort: true},
-                {field: 'username', title: '登录名',minWidth: 150,sort: true},
-                {field: 'phone', title: '手机', minWidth:150,sort: true},
-                {field: 'email', title: '邮箱', minWidth:150,sort: true},
-                {field: 'roleName', title: '角色', minWidth:100,sort: true},
-                {field: 'unit', title: '单位', minWidth:100,sort: true},
-                {field: 'status', title: '状态', templet: '#checkboxTpl',minWidth:120,sort: true,},
-                {field: 'created_at', title: '加入时间', minWidth:150,sort: true, },
-                {fixed: 'right', title:'操作', toolbar: '#barDemo', width:150}
+                {field: 'route_map', hide:true},
+                {field: 'id', checkbox:true,title: 'ID', width:80, sort: true, fixed: 'left'},
+                {field: 'title', title: '应用名称', minWidth:150, sort: false , align:'center'},
+                {field: 'name', title: '应用标识', minWidth:150, sort: false , align:'center'},
+                {field: 'description', title: '应用描述',minWidth: 50,sort: false, align:'center'},
+                {field: 'created_at', title: '创建时间', minWidth:100,sort: false, align:'center'},
+                {field: 'updated_at', title: '更新时间', minWidth:100,sort: false, align:'center'},
+                {fixed: 'right', title:'操作', toolbar: '#barDemo', width:400,align:'center'}
             ]]
         };
         table.render(renderOpt);
@@ -153,7 +149,7 @@ $tableJs = <<<JS
             if(obj.event === 'del'){
                 rowDel(obj,data);
             } else if(obj.event === 'edit'){
-                xadmin.open('修改用户','$addAdmin&userId='+data.user_id,500,550)
+                xadmin.open('编辑应用','$addApp&id='+data.id,500,500)
             } else if(obj.event === 'member_stop'){
                 member_stop(obj);
             }
@@ -175,17 +171,15 @@ $tableJs = <<<JS
         //搜索
          var $ = layui.$, active = {
             sreach: function(){
-                var start = $('#start');
-                var end = $('#end');
-                var bindPhone = $('#bind_phone');
+                var name = $('#name');
+                var description = $('#description');
                 //执行重载
-                table.reload('adminList', {
+                tReload(table,'adminList',{
                     page: { curr: 1 } ,where: {
-                        start: start.val(),
-                        end: end.val(),
-                        bindPhone: bindPhone.val()
+                        name: name.val(),
+                        description: description.val()
                     }
-                }, 'data');
+                });
             }
           };
           $('#sreach').on('click', function(){

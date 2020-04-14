@@ -249,7 +249,7 @@ CrudAsset::register($this);
              //   'vAlign' => GridView::ALIGN_MIDDLE,
              //   'format' => ['date', 'php:Y-m-d H:i'],
               //  'filter' => DateRangePicker::widget([
-                  //  'model' => ,
+                  //  'model' => $searchModel,
                   //  'attribute' => 'created_at',
                   //  'convertFormat' => true,
                    // 'pluginOptions' => [
@@ -273,7 +273,7 @@ CrudAsset::register($this);
              //   'vAlign' => GridView::ALIGN_MIDDLE,
              //   'format' => ['date', 'php:Y-m-d H:i'],
               //  'filter' => DateRangePicker::widget([
-                  //  'model' => ,
+                  //  'model' => $searchModel,
                   //  'attribute' => 'updated_at',
                   //  'convertFormat' => true,
                    // 'pluginOptions' => [

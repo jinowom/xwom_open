@@ -115,7 +115,7 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
     {
         $this->$attribute = trim($this->$attribute);
         switch($this->$attribute){
-            case \Yii::t('yii', '(not set)'):
+            case \Yii::t('app', '(not set)'):
                 $query->andFilterWhere(['IS', $attribute, new Expression('NULL')]);
                 break;
             case self::EMPTY_STRING:

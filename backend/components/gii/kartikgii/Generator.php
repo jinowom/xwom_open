@@ -6,6 +6,7 @@
  */
 
 namespace warrence\kartikgii\crud;
+//namespace backend\components\gii\kartikgii;
 
 use Yii;
 use yii\db\ActiveRecord;

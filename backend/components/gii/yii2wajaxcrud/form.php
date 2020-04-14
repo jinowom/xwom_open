@@ -13,7 +13,7 @@ echo $form->field($generator, 'editableFields');
 echo $form->field($generator, 'dateRangeFields');
 echo $form->field($generator, 'thumbImageFields');
 echo $form->field($generator, 'roundSwitchFields');
-echo $form->field($generator, 'statusField');
+echo $form->field($generator, 'statusFields');
 echo $form->field($generator, 'enableI18N')->checkbox();
 echo $form->field($generator, 'isDesc')->checkbox();
 echo $form->field($generator, 'messageCategory');

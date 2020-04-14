@@ -3,7 +3,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 /* @var $this yii\web\View */
 
-$this->title = Yii::$app->name.'管理控制台-会员';
+$this->title = Yii::$app->name.'管理控制台-会员管理';
 ?>
 <!-- 顶部菜单开始 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/top.php')?>

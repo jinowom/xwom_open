@@ -18,7 +18,7 @@ $editableFields = $generator->generateEditableFields();
 $dateRangeFields = $generator->generateDateRangeFields();
 $thumbImageFields = $generator->generateThumbImageFields();
 $roundSwitchFields = $generator->generateRoundSwitchFields();
-$statusField = $generator->statusField;
+$statusFields = $generator->statusFields;
 
 $urlParams = $generator->generateUrlParams();
 $nameAttribute = $generator->getNameAttribute();
@@ -54,7 +54,7 @@ use nickdenry\grid\toggle\components\RoundSwitchColumn;
 
 $this->title = <?= $generator->generateString(Inflector::pluralize(Inflector::camel2words(StringHelper::basename($generator->modelClass)))) ?>;
 //$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Xp Specials'), 'url' => ['/xpaper/xp-special/index']];//上级菜单示例
-//$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $this->title;
 CrudAsset::register($this);
 
 ?>
@@ -154,7 +154,7 @@ CrudAsset::register($this);
                             echo "               'vAlign' => GridView::ALIGN_MIDDLE,\n";
                             echo "               'format' => ['date', 'php:Y-m-d H:i'],\n";
                             echo "               'filter' => DateRangePicker::widget([\n";
-                            echo "                   'model' => $searchModel,\n";
+                            echo "                   'model' => ".'$searchModel'.",\n";
                             echo "                   'attribute' => '$name',\n";
                             echo "                   'convertFormat' => true,\n";
                             echo "                   'pluginOptions' => [\n";
@@ -237,7 +237,7 @@ CrudAsset::register($this);
                             echo "             //   'vAlign' => GridView::ALIGN_MIDDLE,\n";
                             echo "             //   'format' => ['date', 'php:Y-m-d H:i'],\n";
                             echo "              //  'filter' => DateRangePicker::widget([\n";
-                            echo "                  //  'model' => $searchModel,\n";
+                            echo "                  //  'model' => ".'$searchModel'.",\n";
                             echo "                  //  'attribute' => '$name',\n";
                             echo "                  //  'convertFormat' => true,\n";
                             echo "                   // 'pluginOptions' => [\n";
@@ -366,7 +366,7 @@ CrudAsset::register($this);
             'panel' => [
                 'type' => "primary", 
                 'heading' => '<h3 class="panel-title"><i class="glyphicon glyphicon-th-list"></i> '.Html::encode($this->title) . Yii::t('app', 'list') . '</h3>',
-                'before' => "<em>* 你可以拖动改变单列的宽度；筛选框输入<code>" . \Yii::t('yii', '(not set)'). "</code>会只搜索值为空的数据；筛选框输入<code>" . $searchModel::EMPTY_STRING . "</code>会只搜索值为空字符的数据；筛选框输入<code>" . $searchModel::NO_EMPTY . "</code>会只搜索非空数据。</em>",
+                'before' => "<em>* 你可以拖动改变单列的宽度；筛选框输入<code>" . \Yii::t('app', '(not set)'). "</code>会只搜索值为空的数据；筛选框输入<code>" . $searchModel::EMPTY_STRING . "</code>会只搜索值为空字符的数据；筛选框输入<code>" . $searchModel::NO_EMPTY . "</code>会只搜索非空数据。</em>",
                 'after' => BulkButtonWidget::widget([
                     'buttons' => Html::a('<i class="glyphicon glyphicon-trash"></i>  ' . Yii::t('app', '删除选择'), ["bulkdelete", 'type' => "soft"], [
                         "class" => "btn btn-danger btn-xs",

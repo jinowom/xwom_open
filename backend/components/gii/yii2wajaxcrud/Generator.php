@@ -36,7 +36,7 @@ class Generator extends \yii\gii\Generator
     public $thumbImageFields;
     public $roundSwitchFields;
     public $isDesc = true;
-    public $statusField = 'status';
+    public $statusFields = 'status';
 
     /**
      * @inheritdoc
@@ -61,7 +61,7 @@ class Generator extends \yii\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass', 'viewPath', 'editableFields', 'dateRangeFields', 'thumbImageFields', 'roundSwitchFields','statusField'], 'filter', 'filter' => 'trim'],
+            [['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass', 'viewPath', 'editableFields', 'dateRangeFields', 'thumbImageFields', 'roundSwitchFields','statusFields'], 'filter', 'filter' => 'trim'],
             [['modelClass', 'controllerClass', 'baseControllerClass'], 'required'],
             [['searchModelClass'], 'compare', 'compareAttribute' => 'modelClass', 'operator' => '!==', 'message' => 'Search Model Class must not be equal to Model Class.'],
             [['modelClass', 'controllerClass', 'baseControllerClass', 'searchModelClass'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
@@ -79,7 +79,7 @@ class Generator extends \yii\gii\Generator
             ['dateRangeFields', 'validateDateRangeFields'],
             ['thumbImageFields', 'validateThumbImageFields'],
             ['roundSwitchFields', 'validateRoundSwitchFields'],
-            ['statusField', 'validateStatusField'],
+            ['statusFields', 'validateStatusFields'],
         ]);
     }
 
@@ -98,7 +98,7 @@ class Generator extends \yii\gii\Generator
             'dateRangeFields' => 'Date Range Fields',
             'thumbIamgeFields' => 'Thumb Image Fields',
             'rroundSwitchFields' => 'Round Switch Fields',
-            'statusFields' => 'Status Field',
+            'statusFields' => 'Status Fields',
         ]);
     }
 
@@ -154,17 +154,17 @@ class Generator extends \yii\gii\Generator
         }
     }
 
-    public function validateStatusField()
+    public function validateStatusFields()
     {
         $class = $this->modelClass;
-        $field = $this->statusField;
+        $field = $this->statusFields;
         $field = trim($field);
         $pk = $class::primaryKey();
         if (in_array($field, $pk)) {
-            $this->addError('dateRangeFields', "primary key(s) can not be status");
+            $this->addError('statusFields', "primary key(s) can not be status");
         }
         if (!in_array($field, (new $class)->attributes())) {
-            $this->addError('dateRangeFields', "field '{$field}' not found!");
+            $this->addError('statusFields', "field '{$field}' not found!");
         }
     }
 
@@ -254,7 +254,7 @@ class Generator extends \yii\gii\Generator
         $b = $this->generateEditableFields();
         $c = $this->generateThumbImageFields();
         $d = $this->generateRoundSwitchFields();
-        $e = $this->statusField?[$this->statusField]:[];
+        $e = $this->statusFields?[$this->statusFields]:[];
         $x = array_merge(array_merge(array_merge(array_merge($a, $b), $c), $d), $e);
         $t1 = count($a) + count($b) + count($c) + count($d) + count($e);
         $t2 = count($x);

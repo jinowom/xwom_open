@@ -2,7 +2,7 @@
 
 /* @var $this yii\web\View */
 
-$this->title = $title;
+$this->title = '系统通知公告列表';
 $pageSize = \Yii::$app->params['pageSize'];
 $limitsJson = \Yii::$app->params['limitsJson'];
 ?>
@@ -14,27 +14,27 @@ $limitsJson = \Yii::$app->params['limitsJson'];
         <div class="layui-col-md12">
             <div class="layui-card">
                 <div class="layui-card-body ">
-                    <table class="layui-table" id="uintList" lay-filter="uintList"></table>
+                    <table class="layui-table" id="noticeList" lay-filter="noticeList"></table>
                 </div>
             </div>
         </div>
     </div>
 </div>
 </div>
-<input type="hidden" value="<?php echo $unitName;   ?>" id="unitName"/>
+<input type="hidden" value="<?php echo $noticeName;   ?>" id="noticeName"/>
 <script type="text/html" id="toolbar">
     <div class="layui-btn-container">
         <div class="layui-row layui-col-space10">
             <?php if($isSuper){  ?>
         <div class="layui-col-xs3 layui-col-sm2 layui-col-md1">
-           <button class="layui-btn" onclick="xadmin.open('添加单位','<?=\yii\helpers\Url::toRoute(['unit/unit-edit'])?>',500,260)"><i class="layui-icon"></i>添加</button>
+           <button class="layui-btn" onclick="xadmin.open('添加系统通知','<?=\yii\helpers\Url::toRoute(['notice/notice-edit'])?>',500,260)"><i class="layui-icon"></i>添加</button>
         </div>
             <?php  }  ?>
         <div class="layui-col-xs6 layui-col-sm6 layui-col-md6">
                 <form class="layui-form layui-row layui-col-space5">
                     <div class="layui-col-xs8 layui-col-sm8 layui-col-md10">
-                        <input type="text" name="unitName" id="unitName" placeholder="请输入单位名称" value="<?php echo $unitName;   ?>" autocomplete="off" class="layui-input"></div>
-                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md2"><button class="layui-btn" lay-submit="" lay-filter="sreach" id="searchUnit"><i class="layui-icon">&#xe615;</i></button></div>
+                        <input type="text" name="noticeName" id="noticeName" placeholder="请输入系统通知名称" value="<?php echo $noticeName;   ?>" autocomplete="off" class="layui-input"></div>
+                    <div class="layui-col-xs4 layui-col-sm4 layui-col-md2"><button class="layui-btn" lay-submit="" lay-filter="sreach" id="searchNotice"><i class="layui-icon">&#xe615;</i></button></div>
                 </form>
 
         </div>
@@ -48,7 +48,7 @@ $limitsJson = \Yii::$app->params['limitsJson'];
     </div>
 </script>
 <script type="text/html" id="checkboxTpl">
-    <input type="checkbox" name="lock" value="{{d.unitid}}" title="启用" lay-filter="lockDemo" {{ d.u_status == 10 ? 'checked' : '' }}>
+    <input type="checkbox" name="lock" value="{{d.noticeid}}" title="启用" lay-filter="lockDemo">
 </script>
 <script type="text/html" id="barDemo">
     <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
@@ -71,11 +71,11 @@ $limitsJson = \Yii::$app->params['limitsJson'];
     })
 </script>
 <?php
-$getUnitList = \yii\helpers\Url::toRoute(['get-unit-list']);
-$update = \yii\helpers\Url::toRoute(['unit/update-unit-status']);
-$delUrl = \yii\helpers\Url::toRoute(['unit/del-unit']);
-$addUnit = \yii\helpers\Url::toRoute(['unit/add-unit']);
-$unitSearch = \yii\helpers\Url::toRoute(['unit/unit-list']);
+$getNoticeList = \yii\helpers\Url::toRoute(['get-notice-list']);
+$update = \yii\helpers\Url::toRoute(['notice/update-notice-status']);
+$delUrl = \yii\helpers\Url::toRoute(['notice/del-notice']);
+$addNotice = \yii\helpers\Url::toRoute(['notice/add-notice']);
+$noticeSearch = \yii\helpers\Url::toRoute(['notice/notice-list']);
 $_csrfBackend = \Yii::$app->request->csrfToken;
 $tableJs = <<<JS
     function rowDel(obj,data,index) {
@@ -83,7 +83,7 @@ $tableJs = <<<JS
                 layer.msg('请选择要删除的数据', {icon: icon.ICON_WARING});
                 return false;
             }
-            var ids = (data.length > 1) ? getColumn(data,'unitid') : data.unitid;
+            var ids = (data.length > 1) ? getColumn(data,'noticeid') : data.id;
             layer.confirm('真的删除吗？', function(index){
                 Cajax({
                     type:"POST",
@@ -101,24 +101,23 @@ $tableJs = <<<JS
     layui.use('table',function() {
             var table = layui.table,
                 form = layui.form,
-                unitName= $('#unitName').val();
+                noticeName= $('#noticeName').val();
             var renderOpt = {
-                id:'uintList',
-                elem:'#uintList',
+                id:'noticeList',
+                elem:'#noticeList',
                 toolbar:"#toolbar",
-                url: '$getUnitList', //数据接口
+                url: '$getNoticeList', //数据接口
                 method:"POST", //
-                where:{_csrfBackend:'$_csrfBackend',unitName:unitName},
+                where:{_csrfBackend:'$_csrfBackend',noticeName:noticeName},
                 page: true, //开启分页
                 limit: $pageSize,
                 limits: $limitsJson,
                 cols: [[
-                    {field: 'unitid', checkbox:true,title: 'ID', width:100, sort: true, fixed: 'left'},
-                    {field: 'name', title: '单位名称', minWidth:100, sort: true},
-                    {field: 'description', title: '单位描述', minWidth:250, sort: true},
+                    {field: 'id', checkbox:true,title: 'ID', width:100, sort: true, fixed: 'left'},
+                    {field: 'title', title: '标题', minWidth:100, sort: true},
+                    {field: 'content', title: '内容', minWidth:250, sort: true},
                     {field: 'created_at', title: '创建时间', width:150, sort: true},
                     {field: 'updated_at', title: '更新时间', width:150, sort: true},
-                    {field: 'u_status', title: '状态', templet: '#checkboxTpl',width:120,sort: true},
                     {fixed: 'right', title:'操作', toolbar: '#barDemo', width:130}
                 ]]
             };
@@ -170,7 +169,7 @@ $tableJs = <<<JS
                 if(obj.event === 'del'){
                     rowDel(obj,data);
                 } else if(obj.event === 'edit'){
-                    xadmin.open('修改单位信息','$addUnit&ids='+data.unitid,500,260);
+                    xadmin.open('修改通知信息','$addNotice&ids='+data.id,500,260);
                 } else if(obj.event === 'member_stop'){
                     member_stop(obj);
                 }
@@ -186,17 +185,17 @@ $tableJs = <<<JS
                 })
             });
             $(function(){
-               $('body').on('click','#searchUnit',function(){
-                   var unitName = $('#unitName').val();
-                   /*if(unitName ==''){
+               $('body').on('click','#searchNotice',function(){
+                   var noticeName = $('#noticeName').val();
+                   /*if(noticeName ==''){
                        layer.msg('请输入要查询的单位名称');return false;
                    }*/
-                      table.reload('uintList', {
+                      table.reload('noticeList', {
                                 page: {
                                     curr: 1 //重新从第 1 页开始
                                 },
                                 where:{
-                                    unitName:unitName
+                                    noticeName:noticeName
                                 }
                             }, 'data');
                    return false;

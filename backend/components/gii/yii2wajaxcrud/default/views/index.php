@@ -368,7 +368,9 @@ CrudAsset::register($this);
                 'heading' => '<h3 class="panel-title"><i class="glyphicon glyphicon-th-list"></i> '.Html::encode($this->title) . Yii::t('app', 'list') . '</h3>',
                 'before' => "<em>* 你可以拖动改变单列的宽度；筛选框输入<code>" . \Yii::t('app', '(not set)'). "</code>会只搜索值为空的数据；筛选框输入<code>" . $searchModel::EMPTY_STRING . "</code>会只搜索值为空字符的数据；筛选框输入<code>" . $searchModel::NO_EMPTY . "</code>会只搜索非空数据。</em>",
                 'after' => BulkButtonWidget::widget([
-                    'buttons' => Html::a('<i class="glyphicon glyphicon-trash"></i>  ' . Yii::t('app', '删除选择'), ["bulkdelete", 'type' => "soft"], [
+                    'buttons' => Html::a('<i class="glyphicon glyphicon-trash"></i>  ' . Yii::t('app', 'Delete All'), 
+                        ["bulkdelete"], 
+                        [
                         "class" => "btn btn-danger btn-xs",
                         'role' => "modal-remote-bulk",
                         'data-confirm' => false, 'data-method' => false,// for overide yii data api

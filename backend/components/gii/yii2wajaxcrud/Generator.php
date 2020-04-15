@@ -97,7 +97,7 @@ class Generator extends \yii\gii\Generator
             'editableFields' => 'Editable Fields',
             'dateRangeFields' => 'Date Range Fields',
             'thumbIamgeFields' => 'Thumb Image Fields',
-            'rroundSwitchFields' => 'Round Switch Fields',
+            'roundSwitchFields' => 'Round Switch Fields',
             'statusFields' => 'Status Fields',
         ]);
     }

@@ -184,7 +184,10 @@ backend/main.php
 
 ```php
 backend/main-local.php
+
+//Gii 集成自定义多个GURD扩展，美哒哒，可以嗷嗷的快速开发生成了……
 //具体参见 git仓库中 /backend/config/main-local_bak.php 示例，可以直接拷贝修改后使用。
+
 if (YII_ENV_DEV) {//!YII_ENV_TEST  YII_ENV_DEV  在web/index.php 入口文件配置启动
     // configuration adjustments for 'dev' environment
     $config['bootstrap'][] = 'debug';

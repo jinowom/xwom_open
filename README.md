@@ -184,48 +184,101 @@ backend/main.php
 
 ```php
 backend/main-local.php
-
-    //加载 kartikgii扩展组件，并集成自定义Gii，美哒哒 
-      $config['modules']['gii']['class'] = 'yii\gii\Module';
-      $config['modules']['gii']['allowedIPs'] = ['127.0.0.1','::1'];//只允许本地访问gii  用逗号隔开，添加自己的指定地址
-      $config['modules']['gii']['generators'] = [
-              'kartikgii-crud' => ['class' => 'warrence\kartikgii\crud\Generator'],
-            /*重新定义gii model & crud的生成模板*/
-             'model'=> [
-                 'class' => 'yii\gii\generators\model\Generator',
-                 'baseClass'=> 'base\BaseActiveRecord',
+//具体参见 git仓库中 /backend/config/main-local_bak.php 示例，可以直接拷贝修改后使用。
+if (YII_ENV_DEV) {//!YII_ENV_TEST  YII_ENV_DEV  在web/index.php 入口文件配置启动
+    // configuration adjustments for 'dev' environment
+    $config['bootstrap'][] = 'debug';
+    $config['modules']['debug'] = [
+        'class' => yii\debug\Module::className(),
+        'allowedIPs' => ['::1','127.0.0.1'], //只允许本地访问gii  多个请用逗号隔开，添加自己的指定地址
+    ];
+     /**
+      * 综合GII工具：加载 wodrowwajaxcrud 、wodrowmodel、 kartikgii-crud 、yii2 gii扩展包
+      * 以下各个gii扩展工具，都有不同的特点，适合不同场景下使用。
+      * 使用时可以自定义修改 templates 重定义。
+      * 
+    **/
+    
+    $config['bootstrap'][] = 'gii';
+    $config['modules']['gii'] = [
+        'class' => 'yii\gii\Module',
+    ];
+    //这是kartikgii-crud。并自建一个templates：xwom_kartikgii
+    $config['modules']['gii']['generators']['kartikgii-crud']= [
+            'class' => \warrence\kartikgii\crud\Generator::class,
                  'templates'=> [
-                     'xwom'=>'@backend/components/gii/model/default',
+                     'xwom_kartikgii' => '@backend/components/gii/kartikgii/default',//自定义修改后的模板路径
+                     'default' => '@vendor/warrence/yii2-kartikgii/crud/default',//这是yii2-kartikgii默认的模板路径
                  ]
-             ],
-             'module'=> [
-                 'class' => 'yii\gii\generators\module\Generator',
-                 'templates'=> [
-                     'xwom'=>'@backend/components/gii/module/default',
-                 ]
-             ],
-             'crud' => [
-                 'class' => \backend\components\gii\crud\Generator::class,//'class' => \backend\components\gii\crud\Generator::className(),
-                 'templates' => [
-                     'xwom' => '@backend/components/gii/crud/default',
-                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/crud/default',//这是yii 自己自带的
-                 ]
-             ],
-             'controller' => [
-                 'class' => \backend\components\gii\controller\Generator::class,
-                 'templates' => [
-                     'xwom' => '@backend/components/gii/controller/default',
-                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的
-                 ]
-             ],
-             'extension' => [
-                 'class' => \backend\components\gii\extension\Generator::class,
-                 'templates' => [
-                     'xwom' => '@backend/components/gii/extension/default',
-                     'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的
-                 ]
-             ],
-          ];
+        ];
+    //这是yii2 自己自带的，并自建xwom、xwom_paper两个模板
+    $config['modules']['gii']['generators']['crud']= [
+            'class' => \backend\components\gii\crud\Generator::class,
+            'templates' => [
+                'xwom' => '@backend/components/gii/crud/default',//自定义修改后的xwom模板路径
+                'xwom_paper' => '@backend/components/gii/crud2/default',//自定义修改后的xwom_paper模板路径
+                'default' => '@vendor/yiisoft/yii2-gii/src/generators/crud/default',//这是yii 自己自带的默认的模板路径
+            ]
+        ];
+    //这是yii controller
+    $config['modules']['gii']['generators']['controller']= [
+            'class' => \backend\components\gii\controller\Generator::class,
+            'templates' => [
+                'xwom' => '@backend/components/gii/controller/default',
+                'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的模板路径
+            ]
+        ];
+    //这是yii model
+    $config['modules']['gii']['generators']['model']= [
+            'class' => 'yii\gii\generators\model\Generator',
+            'baseClass'=> 'base\BaseActiveRecord',
+            'templates'=> [
+                'xwom'=>'@backend/components/gii/model/default',
+            ]
+        ];
+    //这是yii form
+    $config['modules']['gii']['generators']['form']= [
+            'class' => 'yii\gii\generators\form\Generator',
+            'templates'=> [
+                'xwom'=>'@backend/components/gii/form/default',
+            ]
+        ];
+    //这是yii extension
+    $config['modules']['gii']['generators']['extension']= [
+            'class' => \backend\components\gii\extension\Generator::class,
+            'templates' => [
+                'xwom' => '@backend/components/gii/extension/default',//自定义修改后的xwom的模板路径
+                'default' => '@vendor/yiisoft/yii2-gii/src/generators/controller/default',//这是yii 自己自带的模板路径
+            ]
+        ];
+    //这是wodrowmodel
+    $config['modules']['gii']['generators']['wodrowmodel'] = [
+        'class' => \wodrow\wajaxcrud\generators\model\Generator::class,
+        'showName' => "YOUR MODEL Generator",
+    ];
+    //这是wodrowwajaxcrud，并自建一个templates：xwom_wajaxcrud
+    $config['modules']['gii']['generators']['wodrowwajaxcrud'] = [
+//        'class' => \wodrow\wajaxcrud\generators\crud\Generator::class,
+        'class' => \backend\components\gii\yii2wajaxcrud\Generator::class,
+        'showName' => "YOUR AJAX CRUD Generator",
+        'templates'=> [
+            'xwom_wajaxcrud' => '@backend/components/gii/yii2wajaxcrud/default',//自定义修改后的模板路径
+            'default' => '@vendor/wodrow/yii2wajaxcrud/src/generators/crud/default',//这是wodrowwajaxcrud默认的模板路径
+        ]
+    ];
+    //这是wodrowwajaxcrud，并自建一个templates：xwom_johnitvn_ajaxcrud
+    //友情提示：此扩展，修改了Generator。如果报错，请自行拷贝 @backend/components/gii/johnitvn_ajaxcrud/Generator.php 覆盖vendor/johnitvn/yii2-ajaxcrud/src/generators/Generator.php
+    $config['modules']['gii']['generators']['ajaxcrud'] = [
+        'class' => johnitvn\ajaxcrud\generators\Generator::class,
+        'showName' => "johnitvn_Ajax CRUD Generator",
+        'templates'=> [
+            'xwom_johnitvn_ajaxcrud' => '@backend/components/gii/johnitvn_ajaxcrud/default',//自定义修改后的模板路径
+            'default' => '@vendor/johnitvn/yii2-ajaxcrud/src/generators/default',//这是wodrowwajaxcrud默认的模板路径
+        ]
+    ];
+    
+ 
+}
 
 ```
 

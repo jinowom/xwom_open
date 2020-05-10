@@ -1,0 +1,43 @@
+{
+	"name" : "raoul2000/yii2-workflow",
+	"description" : "A simple workflow engine for Yii2",
+	"keywords" : [
+		"yii2",
+		"workflow"
+	],
+	"homepage" : "http://raoul2000.github.io/yii2-workflow/guide-README.html",
+	"type" : "yii2-extension",
+	"license" : "BSD-3-Clause",
+	"support" : {
+		"issues" : "https://github.com/raoul2000/yii2-workflow/issues",
+		"source" : "https://github.com/raoul2000/yii2-workflow",
+		"email" : "raoul.boulard@gmail.com"
+	},
+	"minimum-stability" : "stable",
+	"require" : {
+		"php" : ">=5.4.0",
+		"yiisoft/yii2" : "~2.0.13"
+	},
+	"require-dev" : {
+		"codeception/codeception" : ">= 2.0.9",
+		"myclabs/deep-copy" : ">= 1.3.1",
+		"codeception/specify" : "*",
+		"codeception/verify" : "*",
+		"yiisoft/yii2-codeception" : "*",
+		"codeception/assert-throws": "^1.0"
+	},
+	"config" : {
+		"process-timeout" : 1800
+	},
+	"autoload" : {
+		"psr-4" : {
+			"raoul2000\\workflow\\" : "src/"
+		}
+	},
+	"authors" : [{
+			"name" : "Raoul",
+			"email" : "raoul.boulard@gmail.com",
+			"homepage" : "https://github.com/raoul2000/yii2-workflow"
+		}
+	]
+}

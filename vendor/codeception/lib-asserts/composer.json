@@ -1,0 +1,30 @@
+{
+    "name":"codeception/lib-asserts",
+    "description":"Assertion methods used by Codeception core and Asserts module",
+    "keywords":["codeception"],
+    "homepage":"http://codeception.com/",
+    "type":"library",
+    "license":"MIT",
+    "authors":[
+        {
+            "name":"Michael Bodnarchuk",
+            "email":"davert@mail.ua",
+            "homepage":"http://codegyre.com"
+        },
+        {
+            "name":"Gintautas Miselis"
+        }
+    ],
+    "minimum-stability": "RC",
+
+    "require": {
+        "php": ">=7.2.0 <8.0",
+        "phpunit/phpunit": "^8.4"
+    },
+    "autoload":{
+        "classmap": ["src/"]
+    },
+    "config": {
+        "classmap-authoritative": true
+    }
+}

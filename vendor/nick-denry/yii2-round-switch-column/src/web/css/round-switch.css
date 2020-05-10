@@ -1,0 +1,85 @@
+/**
+ * @author Nick Denry
+ * @project yii2-round-switch-column
+ * Created on: 14.03.2018, 0:01:41
+ */
+
+.yii2-round-switch {
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 26px;
+}
+
+.yii2-round-switch input {display:none;}
+
+.yii2-round-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.yii2-round-switch.left .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 23px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.yii2-round-switch.right .slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.yii2-round-switch input:checked + .slider {
+  background-color: #5cb85c;
+}
+
+.yii2-round-switch input:focus + .slider {
+  box-shadow: 0 0 1px #5cb85c;
+}
+
+.yii2-round-switch.left input:checked + .slider:before {
+  -webkit-transform: translateX(-19px);
+  -ms-transform: translateX(-19px);
+  transform: translateX(-19px);
+}
+
+.yii2-round-switch.right input:checked + .slider:before {
+  -webkit-transform: translateX(19px);
+  -ms-transform: translateX(19px);
+  transform: translateX(19px);
+}
+
+.yii2-round-switch .slider.round {
+  border-radius: 34px;
+}
+
+.yii2-round-switch .slider.round:before {
+  border-radius: 50%;
+}
+
+.yii2-round-switch.error .slider {
+    box-shadow: 0px 0px 3px #f00;
+}
+.yii2-round-switch.error .slider:before {
+    box-shadow: 0px 0px 5px #f00;
+}

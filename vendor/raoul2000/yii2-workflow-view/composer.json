@@ -1,0 +1,39 @@
+{
+	"name" : "raoul2000/yii2-workflow-view",
+	"description" : "A simple widget to display your workflows",
+	"keywords" : [
+		"yii2",
+		"workflow",
+		"view",
+		"widget"
+	],
+	"homepage" : "http://www.yiiframework.com/",
+	"type" : "yii2-extension",
+	"license" : "BSD-3-Clause",
+	"support" : {
+		"issues" : "https://github.com/raoul2000/yii2-workflow-view/issues",
+		"source" : "https://github.com/raoul2000/yii2-workflow-view",
+		"email" : "raoul.boulard@gmail.com"
+	},
+	"minimum-stability" : "stable",
+	"require" : {
+		"php" : ">=5.4.0",
+		"yiisoft/yii2" : "*",
+		"raoul2000/yii2-workflow" : ">=0.0.18",
+		"bower-asset/vis" : "*"
+	},
+	"config" : {
+		"process-timeout" : 1800
+	},
+	"autoload" : {
+		"psr-4" : {
+			"raoul2000\\workflow\\view\\" : "src/"
+		}
+	},
+	"authors" : [{
+			"name" : "Raoul",
+			"email" : "raoul.boulard@gmail.com",
+			"homepage" : "https://github.com/raoul2000/yii2-workflow-view"
+		}
+	]
+}

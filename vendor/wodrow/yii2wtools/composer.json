@@ -1,0 +1,30 @@
+{
+    "name": "wodrow/yii2wtools",
+    "description": "tools and rewrite",
+    "keywords": [
+        "tools",
+        "helps",
+        "rewrite"
+    ],
+    "type": "yii2-extension",
+    "require": {
+        "php": ">=7.1",
+        "yiisoft/yii2": "^2.0.28",
+        "guzzlehttp/guzzle": "^6.4.1",
+        "league/flysystem-sftp": "^1.0.22",
+        "creocoder/yii2-flysystem": "^0.9.3"
+    },
+    "authors": [
+        {
+            "name": "wodrow",
+            "email": "wodrow451611cv@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "wodrow\\yii2wtools\\": "src/"
+        }
+    }
+}

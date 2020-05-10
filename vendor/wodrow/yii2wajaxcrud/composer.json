@@ -1,0 +1,47 @@
+{
+  "name": "wodrow/yii2wajaxcrud",
+  "description": "Gii CRUD template for Single Page Ajax Administration for yii2",
+  "type": "yii2-extension",
+  "keywords": [
+    "yii2",
+    "extension",
+    "ajax",
+    "crud",
+    "gii",
+    "template",
+    "database"
+  ],
+  "license": "Apache-2.0",
+  "authors": [
+    {
+      "name": "wodrow",
+      "email": "wodrow451611cv@gmail.com",
+      "homepage": "https://github.com/wodrow?tab=repositories"
+    }
+  ],
+  "support": {
+    "issues": "https://github.com/wodrow/yii2wajaxcrud/issues?state=open",
+    "source": "https://github.com/wodrow/yii2wajaxcrud"
+  },
+  "require": {
+    "yiisoft/yii2": "^2.0.17",
+    "yiisoft/yii2-gii": "^2.1",
+    "yiisoft/yii2-bootstrap": "^2.0",
+    "kartik-v/yii2-krajee-base": "^2.0",
+    "kartik-v/yii2-grid": "^3.3",
+    "kartik-v/yii2-detail-view": "^1.8",
+    "kartik-v/yii2-date-range": "^1.7",
+    "kartik-v/yii2-mpdf": "^1.0",
+    "kartik-v/yii2-editable": "^1.7",
+    "kartik-v/yii2-widget-activeform": "^1.5",
+    "wodrow/yii2wtools": "^0.1.15"
+  },
+  "autoload": {
+    "psr-4": {
+      "wodrow\\wajaxcrud\\": "src/"
+    }
+  },
+  "extra": {
+    "bootstrap": "wodrow\\wajaxcrud\\Bootstrap"
+  }
+}

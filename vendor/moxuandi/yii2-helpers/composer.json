@@ -1,0 +1,21 @@
+{
+    "name": "moxuandi/yii2-helpers",
+    "description": "助手类,通用上传类,helper,uploader,upload",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","助手类","通用上传类","helper","uploader","upload"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "moxuandi",
+            "email": "1104984259@qq.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.24"
+    },
+    "autoload": {
+        "psr-4": {
+            "moxuandi\\helpers\\": ""
+        }
+    }
+}

@@ -1,0 +1,25 @@
+{
+    "name": "oonne/yii2-sortable-grid-view",
+    "description": "Yii2 GridView widget base on jQuery UI sortable widget",
+    "keywords": ["yii2", "extension", "sortable", "gridview", "widget"],
+    "type": "yii2-extension",
+    "license": "MIT",
+    "support": {
+        "source": "https://github.com/oonne/yii2-sortable-grid-view",
+        "issues": "https://github.com/oonne/yii2-sortable-grid-view/issues"
+    },
+    "authors": [
+        {
+            "name": "JAY",
+            "email": "JAY@oonne.com",
+            "homepage": "https://www.oonne.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*",
+        "yiisoft/yii2-jui": "*"
+    },
+    "autoload": {
+        "psr-4": {"oonne\\sortablegrid\\": ""}
+    }
+}

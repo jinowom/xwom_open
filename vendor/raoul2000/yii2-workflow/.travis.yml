@@ -1,0 +1,14 @@
+language: php
+php:
+  - 7.2.5
+install:
+  - composer self-update
+  - composer install --prefer-dist --no-interaction
+  - composer info
+before_script:
+  - mysql -e 'create database yii2_workflow_test;'
+  - cd tests
+  - php ./codeception/bin/yii  migrate/up --interactive=0
+  - ../vendor/bin/codecept build
+
+script: ../vendor/bin/codecept run unit

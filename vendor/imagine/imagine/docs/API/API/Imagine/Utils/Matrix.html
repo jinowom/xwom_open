@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="index, follow, all" />
+    <title>Imagine\Utils\Matrix | Imagine API v1.2.3</title>
+
+            <link rel="stylesheet" type="text/css" href="../../css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="../../css/bootstrap-theme.min.css">
+        <link rel="stylesheet" type="text/css" href="../../css/sami.css">
+        <script src="../../js/jquery-1.11.1.min.js"></script>
+        <script src="../../js/bootstrap.min.js"></script>
+        <script src="../../js/typeahead.min.js"></script>
+        <script src="../../sami.js"></script>
+        <meta name="MobileOptimized" content="width">
+        <meta name="HandheldFriendly" content="true">
+        <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+    
+    
+    </head>
+
+    <body id="class" data-name="class:Imagine_Utils_Matrix" data-root-path="../../">
+            <div id="content">
+        <div id="left-column">
+                <div id="control-panel">
+                <script>
+            $('option[data-version="'+window.projectVersion+'"]').prop('selected', true);
+        </script>
+        <form id="search-form" action="../../search.html" method="GET">
+            <span class="glyphicon glyphicon-search"></span>
+            <input name="search"
+                   class="typeahead form-control"
+                   type="search"
+                   placeholder="Search">
+        </form>
+    </div>
+
+                <div id="api-tree"></div>
+
+        </div>
+        <div id="right-column">
+                <nav id="site-nav" class="navbar navbar-default" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar-elements">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="../../index.html">Imagine API v1.2.3</a>
+            </div>
+            <div class="collapse navbar-collapse" id="navbar-elements">
+                <ul class="nav navbar-nav">
+                    <li><a href="../../classes.html">Classes</a></li>
+                                            <li><a href="../../namespaces.html">Namespaces</a></li>
+                                        <li><a href="../../interfaces.html">Interfaces</a></li>
+                    <li><a href="../../traits.html">Traits</a></li>
+                    <li><a href="../../doc-index.html">Index</a></li>
+                    <li><a href="../../search.html">Search</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+                        <div class="namespace-breadcrumbs">
+            <ol class="breadcrumb">
+                <li><span class="label label-default">class</span></li>
+                        <li><a href="../../Imagine.html">Imagine</a></li><li class="backslash">\</li><li><a href="../../Imagine/Utils.html">Utils</a></li><li class="backslash">\</li><li>Matrix</li>
+            </ol>
+        </div>
+                <div id="page-content">
+                
+    <div class="page-header">
+        <h1>
+            Matrix
+                
+        </h1>
+    </div>
+
+    <p>    class
+    <strong>Matrix</strong>
+</p>
+
+        
+    
+
+    
+    
+    
+            <h2>Properties</h2>
+
+            <table class="table table-condensed">
+                    <tr>
+                <td class="type" id="property_elements">
+                                        protected                                        int[]|float[]
+                </td>
+                <td>$elements</td>
+                <td class="last">The array of elements.</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td class="type" id="property_width">
+                                        protected                                        int
+                </td>
+                <td>$width</td>
+                <td class="last">The matrix width.</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td class="type" id="property_height">
+                                        protected                                        int
+                </td>
+                <td>$height</td>
+                <td class="last">The matrix height.</td>
+                <td></td>
+            </tr>
+            </table>
+
+    
+            <h2>Methods</h2>
+
+            <div class="container-fluid underlined">
+                    <div class="row">
+                <div class="col-md-2 type">
+                    
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method___construct">__construct</a>(int $width, int $height, int[]|float[] $elements = array())
+        
+                                            <p>The given $elements get arranged as follows: The elements will be set from left to right in a row until the
+row is full. Then, the next line begins alike and so on.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_getWidth">getWidth</a>()
+        
+                                            <p>Get the matrix width.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_getHeight">getHeight</a>()
+        
+                                            <p>Get the matrix height.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_setElementAt">setElementAt</a>(int $x, int $y, int|float $value)
+        
+                                            <p>Set the value of a cell.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int|float
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_getElementAt">getElementAt</a>(int $x, int $y)
+        
+                                            <p>Get the value of a cell.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int[]|float[]
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_getValueList">getValueList</a>()
+        
+                                            <p>Return all the matrix values, as a monodimensional array.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int[]|float[]
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_getMatrix">getMatrix</a>()
+        
+                                            <p>Return all the matrix values, as a bidimensional array (every array item contains the values of a row).</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    <a href="../../Imagine/Utils/Matrix.html"><abbr title="Imagine\Utils\Matrix">Matrix</abbr></a>
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_normalize">normalize</a>()
+        
+                                            <p>Returns a new Matrix instance, representing the normalized value of this matrix.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+                    <div class="row">
+                <div class="col-md-2 type">
+                    int
+                </div>
+                <div class="col-md-8 type">
+                    <a href="#method_calculatePosition">calculatePosition</a>(int $x, int $y)
+        
+                                            <p>Calculate the offset position of a cell.</p>                </div>
+                <div class="col-md-2"></div>
+            </div>
+            </div>
+
+
+        <h2>Details</h2>
+
+            <div id="method-details">
+                    <div class="method-item">
+                    <h3 id="method___construct">
+        <div class="location">at         line 50</div>
+        <code>                    
+    <strong>__construct</strong>(int $width, int $height, int[]|float[] $elements = array())
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>The given $elements get arranged as follows: The elements will be set from left to right in a row until the
+row is full. Then, the next line begins alike and so on.</p>                                                </div>
+                <div class="tags">
+                            <h4>Parameters</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td>int</td>
+                <td>$width</td>
+                <td>the matrix width</td>
+            </tr>
+                    <tr>
+                <td>int</td>
+                <td>$height</td>
+                <td>he matrix height</td>
+            </tr>
+                    <tr>
+                <td>int[]|float[]</td>
+                <td>$elements</td>
+                <td>the matrix elements</td>
+            </tr>
+            </table>
+
+            
+            
+                            <h4>Exceptions</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td><a href="../../Imagine/Exception/InvalidArgumentException.html"><abbr title="Imagine\Exception\InvalidArgumentException">InvalidArgumentException</abbr></a></td>
+                <td></td>
+            </tr>
+            </table>
+
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_getWidth">
+        <div class="location">at         line 79</div>
+        <code>                    int
+    <strong>getWidth</strong>()
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Get the matrix width.</p>                                                </div>
+                <div class="tags">
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_getHeight">
+        <div class="location">at         line 89</div>
+        <code>                    int
+    <strong>getHeight</strong>()
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Get the matrix height.</p>                                                </div>
+                <div class="tags">
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_setElementAt">
+        <div class="location">at         line 101</div>
+        <code>                    
+    <strong>setElementAt</strong>(int $x, int $y, int|float $value)
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Set the value of a cell.</p>                                                </div>
+                <div class="tags">
+                            <h4>Parameters</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td>int</td>
+                <td>$x</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td>int</td>
+                <td>$y</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td>int|float</td>
+                <td>$value</td>
+                <td></td>
+            </tr>
+            </table>
+
+            
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_getElementAt">
+        <div class="location">at         line 114</div>
+        <code>                    int|float
+    <strong>getElementAt</strong>(int $x, int $y)
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Get the value of a cell.</p>                                                </div>
+                <div class="tags">
+                            <h4>Parameters</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td>int</td>
+                <td>$x</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td>int</td>
+                <td>$y</td>
+                <td></td>
+            </tr>
+            </table>
+
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int|float</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_getValueList">
+        <div class="location">at         line 124</div>
+        <code>                    int[]|float[]
+    <strong>getValueList</strong>()
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Return all the matrix values, as a monodimensional array.</p>                                                </div>
+                <div class="tags">
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int[]|float[]</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_getMatrix">
+        <div class="location">at         line 134</div>
+        <code>                    int[]|float[]
+    <strong>getMatrix</strong>()
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Return all the matrix values, as a bidimensional array (every array item contains the values of a row).</p>                                                </div>
+                <div class="tags">
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int[]|float[]</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_normalize">
+        <div class="location">at         line 144</div>
+        <code>                    <a href="../../Imagine/Utils/Matrix.html"><abbr title="Imagine\Utils\Matrix">Matrix</abbr></a>
+    <strong>normalize</strong>()
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Returns a new Matrix instance, representing the normalized value of this matrix.</p>                                                </div>
+                <div class="tags">
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td><a href="../../Imagine/Utils/Matrix.html"><abbr title="Imagine\Utils\Matrix">Matrix</abbr></a></td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+            
+                    </div>
+    </div>
+
+            </div>
+                    <div class="method-item">
+                    <h3 id="method_calculatePosition">
+        <div class="location">at         line 169</div>
+        <code>            protected        int
+    <strong>calculatePosition</strong>(int $x, int $y)
+        </code>
+    </h3>
+    <div class="details">
+            
+    
+
+                    <div class="method-description">
+                                    <p>Calculate the offset position of a cell.</p>                                                </div>
+                <div class="tags">
+                            <h4>Parameters</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td>int</td>
+                <td>$x</td>
+                <td></td>
+            </tr>
+                    <tr>
+                <td>int</td>
+                <td>$y</td>
+                <td></td>
+            </tr>
+            </table>
+
+            
+                            <h4>Return Value</h4>
+
+                    <table class="table table-condensed">
+        <tr>
+            <td>int</td>
+            <td></td>
+        </tr>
+    </table>
+
+            
+                            <h4>Exceptions</h4>
+
+                    <table class="table table-condensed">
+                    <tr>
+                <td><a href="../../Imagine/Exception/OutOfBoundsException.html"><abbr title="Imagine\Exception\OutOfBoundsException">OutOfBoundsException</abbr></a></td>
+                <td></td>
+            </tr>
+            </table>
+
+            
+                    </div>
+    </div>
+
+            </div>
+            </div>
+
+    
+            </div>
+                <div id="footer">
+        Generated by <a href="http://sami.sensiolabs.org/">Sami, the API Documentation Generator</a>.
+    </div>
+
+        </div>
+    </div>
+    </body>
+
+</html>

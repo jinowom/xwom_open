@@ -1,0 +1,21 @@
+{
+    "name": "moxuandi/yii2-kindeditor",
+    "description": "KindEditor 是一套开源的在线HTML编辑器，主要用于让用户在网站上获得所见即所得编辑效果，开发人员可以用 KindEditor 把传统的多行文本输入框(textarea)替换为可视化的富文本输入框。",
+    "type": "yii2-extension",
+    "keywords": ["yii2","extension","KindEditor","在线编辑器","html编辑器","富文本编辑器"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "moxuandi",
+            "email": "1104984259@qq.com"
+        }
+    ],
+    "require": {
+        "moxuandi/yii2-helpers": "~2.2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "moxuandi\\kindeditor\\": ""
+        }
+    }
+}

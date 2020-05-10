@@ -1,0 +1,55 @@
+# phpstorm project files IDE
+/.idea
+
+# netbeans project files IDE
+/nbproject
+
+# zend studio for eclipse project files IDE
+/.buildpath
+/.project
+/.settings
+
+# code lob ster IDE
+/*.clpprj
+/*.csprj
+
+# KDevelop IDE
+/*.kdev4
+
+# windows thumbnail cache
+Thumbs.db
+
+# composer vendor dir
+/vendor
+/composer.lock
+
+# composer itself is not needed
+/composer.phar
+
+# Mac DS_Store Files IDE
+/.DS_Store
+
+# phpunit itself is not needed
+/phpunit.phar
+# local phpunit config
+/phpunit.xml
+
+# vagrant runtime
+/.vagrant
+
+# logs
+/*.log
+
+# windows thumbnail cache
+/Thumbs.db
+/*.ini
+
+# ctags
+/.tags
+/.tags_sorted_by_file
+
+# c9 sdk IDE
+/.c9
+
+# cache
+*~

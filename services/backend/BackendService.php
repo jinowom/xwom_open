@@ -3,7 +3,7 @@
 namespace services\backend;
 
 use Yii;
-use common\enums\AppEnum;
+//use common\enums\AppEnum;
 use common\components\Service;
 
 /**

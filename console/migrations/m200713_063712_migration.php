@@ -2,7 +2,7 @@
 
 use yii\db\Migration;
 
-class m200316_100943_migration extends Migration
+class m200713_063712_migration extends Migration
 {
     public function up()
     {
@@ -447,6 +447,12 @@ $this->createTable('{{%config_variable}}', [
 	'PRIMARY KEY (`id`)'
 ], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
  
+$this->createTable('{{%migration}}', [
+	'version' => 'VARCHAR(180) NOT NULL',
+	'apply_time' => 'INT(11) NULL',
+	'PRIMARY KEY (`version`)'
+], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
+ 
 $this->createTable('{{%reg_extension}}', [
 	'id' => 'INT(11) NOT NULL AUTO_INCREMENT',
 	'title' => 'VARCHAR(20) NOT NULL',
@@ -505,7 +511,7 @@ $this->createIndex('update','{{%reg_module}}','updated_at',0);
  
 $this->createTable('{{%reg_software}}', [
 	'id' => 'INT(11) NOT NULL AUTO_INCREMENT',
-	'title' => 'VARCHAR(20) NOT NULL',
+	'title' => 'VARCHAR(80) NOT NULL',
 	'name' => 'VARCHAR(100) NOT NULL',
 	'title_initial' => 'VARCHAR(50) NOT NULL',
 	'bootstrap' => 'VARCHAR(200) NULL',
@@ -513,11 +519,12 @@ $this->createTable('{{%reg_software}}', [
 	'cover' => 'VARCHAR(200) NULL',
 	'brief_introduction' => 'VARCHAR(140) NULL',
 	'description' => 'VARCHAR(1000) NULL',
-	'author' => 'VARCHAR(40) NULL',
+	'author' => 'VARCHAR(80) NULL',
 	'version' => 'VARCHAR(20) NULL',
 	'is_setting' => 'TINYINT(1) NULL DEFAULT \'-1\'',
 	'is_rule' => 'TINYINT(4) NULL DEFAULT \'0\'',
-	'is_merchant_route_map' => 'TINYINT(1) NULL DEFAULT \'0\'',
+	'parent_rule_name' => 'VARCHAR(255) NULL',
+	'route_map' => 'VARCHAR(100) NULL',
 	'default_config' => 'LONGTEXT NULL',
 	'console' => 'LONGTEXT NULL',
 	'status' => 'TINYINT(4) NULL DEFAULT \'1\'',
@@ -525,6 +532,8 @@ $this->createTable('{{%reg_software}}', [
 	'updated_at' => 'INT(10) UNSIGNED NULL DEFAULT \'0\'',
 	'created_id' => 'INT(11) NULL',
 	'updated_id' => 'INT(11) NULL',
+	'sortOrder' => 'INT(11) NULL',
+	'is_del' => 'TINYINT(1) NULL',
 	'PRIMARY KEY (`id`)'
 ], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
  
@@ -662,9 +671,9 @@ $this->createTable('{{%wom_plantime_status}}', [
 	'PRIMARY KEY (`id`)'
 ], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
  
-$this->addForeignKey('FK_admindep_status', '{{%admin_dep}}', 'd_status', '{{%admin_dep_status}}', 'id', 'CASCADE', 'RESTRICT' );
-$this->addForeignKey('FK_adminteam_status', '{{%admin_team}}', 't_status', '{{%admin_team_status}}', 'id', 'CASCADE', 'RESTRICT' );
-$this->addForeignKey('FK_adminunit_status', '{{%admin_unit}}', 'u_status', '{{%admin_unit_status}}', 'id', 'CASCADE', 'RESTRICT' );
+$this->addForeignKey('FK_admindep_status', '{{%admin_dep}}', 'd_status', '{{%admin_dep_status}}', 'id', 'CASCADE', 'NO ACTION' );
+$this->addForeignKey('FK_adminteam_status', '{{%admin_team}}', 't_status', '{{%admin_team_status}}', 'id', 'CASCADE', 'NO ACTION' );
+$this->addForeignKey('FK_adminunit_status', '{{%admin_unit}}', 'u_status', '{{%admin_unit_status}}', 'id', 'CASCADE', 'NO ACTION' );
 $this->addForeignKey('auth_assignment_ibfk_1', '{{%auth_assignment}}', 'item_name', '{{%auth_item}}', 'name', 'CASCADE', 'CASCADE' );
 $this->addForeignKey('auth_item_ibfk_1', '{{%auth_item}}', 'rule_name', '{{%auth_rule}}', 'name', 'SET NULL', 'CASCADE' );
 $this->addForeignKey('auth_item_child_ibfk_1', '{{%auth_item_child}}', 'parent', '{{%auth_item}}', 'name', 'CASCADE', 'CASCADE' );
@@ -755,7 +764,8 @@ $this->batchInsert('{{%admin_team_status}}',['id','name','position'],[['10','停
  
 /* Table admin_unit */
 $this->batchInsert('{{%admin_unit}}',['unitid','name','description','u_status','siteid','sort_id','app_id','created_at','updated_at','is_del','auth_item_id'],[['1009','单位2','单位2描述，这里是描述性文字','10','1','2','3','1572248902','1584169787','0','Team_1009'],
-['1010','单位1','这里是单位1的描述性文字，可以多写一些','10','0','0','0','1572249105','1584169822','0','Unit_1010'],
+['1010','单位1','这里是单位1的描述性文字，可以多写一些','11','0','0','0','1572249105','1584169822','0','Unit_1010'],
+['1011','fff','fff','10','0','0','0','1585445900','1585445900','0','Unit_1011'],
 ]);
  
 /* Table admin_unit_status */
@@ -1213,7 +1223,10 @@ $this->batchInsert('{{%reg_extension}}',['id','title','name','title_initial','bo
 $this->batchInsert('{{%reg_module}}',['id','title','name','title_initial','bootstrap','service','cover','brief_introduction','description','author','version','is_setting','is_rule','is_merchant_route_map','default_config','console','status','created_at','updated_at','created_id','updated_id'],[]);
  
 /* Table reg_software */
-$this->batchInsert('{{%reg_software}}',['id','title','name','title_initial','bootstrap','service','cover','brief_introduction','description','author','version','is_setting','is_rule','is_merchant_route_map','default_config','console','status','created_at','updated_at','created_id','updated_id'],[]);
+$this->batchInsert('{{%reg_software}}',['id','title','name','title_initial','bootstrap','service','cover','brief_introduction','description','author','version','is_setting','is_rule','parent_rule_name','route_map','default_config','console','status','created_at','updated_at','created_id','updated_id','sortOrder','is_del'],[['1','xp system系统','XpSystem','xp','xp','\'xpaper\' => [\'class\' => \'backend\modules\xpaper\Index\',],','','Xp系统简单介绍','Xp系统应用描述','charleslee','1.0',null,null,'','XwomSystem','','[]','1','1584430309','1585466707','100007','100007','1','0'],
+['2','xe system系统','XeSystem','xe','xe',' \'xedit\' => [ \'class\' => \'backend\modules\xedit\xedit\',],','','xe system  简单介绍','xe system  应用描述','charleslee','1.0',null,null,null,'XeditSystem','','[]','1','1584502630','1584503188','100007','100007','2','0'],
+['3','xpo system系统','xposystem','xpo','xpo','\'xportal\' => [\'class\' => \'backend\modules\xportal\Xportal\',],','','xpo system 简单介绍','xportal system 应用描述','charleslee','1.0',null,null,'','XportalSystem','','[]','0','1584502769','1584503202','100007','100007','3','0'],
+]);
  
 /* Table reg_widgets */
 $this->batchInsert('{{%reg_widgets}}',['id','title','name','title_initial','bootstrap','service','cover','brief_introduction','description','author','version','is_setting','is_rule','is_merchant_route_map','default_config','console','status','created_at','updated_at','created_id','updated_id'],[]);
@@ -1346,6 +1359,7 @@ $this->execute('SET foreign_key_checks = 1;');    }
     {
     
     	        $this->execute('SET foreign_key_checks = 0');
+$this->dropTable('{{%wom_plantime_status}}');
 $this->dropTable('{{%wom_plantime_status}}');
 $this->dropTable('{{%wom_plantime_status}}');
 $this->dropTable('{{%wom_plantime_status}}');

@@ -36,7 +36,7 @@ $this->title = Yii::$app->name.'管理控制台';
     </ul>
     <ul class="layui-nav right" lay-filter="">
         <li class="layui-nav-item">
-            <a href="javascript:;"><?=\Yii::$app->getUser()->getIdentity()->real_name;?></a>
+            <a href="javascript:;"><?=@\Yii::$app->getUser()->getIdentity()->real_name;?></a>
             <dl class="layui-nav-child">
                 <!-- 二级菜单 -->
                 <dd>

@@ -35,6 +35,7 @@ class IndexController extends BaseController
         $permissions = ArrayHelper::toArray($permissions);
         $permissions = ToolUtil::arrToTree($permissions,null);
         $permissions = ToolUtil::menuListHtml($permissions);
+        //print_r(\Yii::$app->getUser()->getIdentity()->real_name);exit;
         return $this->render('index',[
             'permissions' => $permissions
         ]);

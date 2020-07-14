@@ -193,7 +193,7 @@ CrudAsset::register($this);
                             echo "               //'hAlign' => GridView::ALIGN_CENTER,\n";
                             echo "               //'vAlign' => GridView::ALIGN_MIDDLE,\n";
                             echo "           ],\n";
-                        } else if ($name == $statusField) {
+                        } else if ($name == $statusFields) {
                             echo "           [\n";
                             echo "               'class' => EnumColumn::class,\n";
                             echo "               'attribute' => '$name',\n";
@@ -276,7 +276,7 @@ CrudAsset::register($this);
                             echo "               //'hAlign' => GridView::ALIGN_CENTER,\n";
                             echo "               //'vAlign' => GridView::ALIGN_MIDDLE,\n";
                             echo "           ],\n";
-                        } else if ($name == $statusField) {
+                        } else if ($name == $statusFields) {
                             echo "           // [\n";
                             echo "               // 'class' => EnumColumn::class,\n";
                             echo "               // 'attribute' => '$name',\n";

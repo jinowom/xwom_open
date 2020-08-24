@@ -447,11 +447,6 @@ $this->createTable('{{%config_variable}}', [
 	'PRIMARY KEY (`id`)'
 ], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
  
-$this->createTable('{{%migration}}', [
-	'version' => 'VARCHAR(180) NOT NULL',
-	'apply_time' => 'INT(11) NULL',
-	'PRIMARY KEY (`version`)'
-], "CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB");
  
 $this->createTable('{{%reg_extension}}', [
 	'id' => 'INT(11) NOT NULL AUTO_INCREMENT',

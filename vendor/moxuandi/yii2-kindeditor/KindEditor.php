@@ -6,6 +6,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
+use yii\web\View;
 use yii\widgets\InputWidget;
 
 /**
@@ -327,6 +328,6 @@ EOT;
                 $script = "KindEditor.ready(function(K){K.create('#{$this->id}', " . Json::encode($this->editorOptions) . ")});";
                 break;
         }
-        $this->view->registerJs($script);
+        $this->view->registerJs($script,View::POS_END);
     }
 }

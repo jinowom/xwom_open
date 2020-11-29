@@ -22,6 +22,8 @@ xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开
 
 （3）如有纰漏或不足，勿吐槽，欢迎提出建议，直接Issues 或 Email。
 
+（4） 【码云】 同步地址 https://gitee.com/jinostart/xwom_open
+
 三、功能
 ------------
  * 多语言

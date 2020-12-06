@@ -10,7 +10,6 @@ use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\web\IdentityInterface;
 
-
 /**
  * User model
  *
@@ -29,6 +28,7 @@ use yii\web\IdentityInterface;
 class User extends BaseModel implements IdentityInterface
 {
     use \common\traits\MapTrait;
+    
     const STATUS_DELETED = 0;
     const STATUS_INACTIVE = 11;
     const STATUS_ACTIVE = 10;
@@ -467,5 +467,19 @@ class User extends BaseModel implements IdentityInterface
         }else{
             return ToolUtil::returnAjaxMsg(false,$this->getModelError());
         }
+    }
+
+
+    /**
+     * 根据用户id，获取用户详情
+     * @param $userId int 用户id
+     * @return mixed
+     * @author rjl
+     */
+    public function getAdminInfo($userId)
+    {
+        $adminInfo = self::findValueByWhere(['user_id' => $userId],[],'user_id DESC');
+
+        return $adminInfo;
     }
 }

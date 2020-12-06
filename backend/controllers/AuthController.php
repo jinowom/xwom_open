@@ -9,11 +9,14 @@
 namespace backend\controllers;
 
 
+use common\models\AdminApp;
 use common\models\AdminUnit;
 use common\models\auth\AdminAuthRelation;
 use common\models\auth\AuthItem;
 use common\models\auth\AuthPermission;
+use common\models\reg\RegSoftware;
 use common\models\User;
+use common\utils\LogUtil;
 use common\utils\ToolUtil;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
@@ -21,6 +24,7 @@ use yii\helpers\Json;
 class AuthController extends BaseController
 {
     protected $except = ['auth/select-admin'];
+    protected $roleContrast = ['admin','PHPadmin'];
 
     /**
      * @Function 菜单视图
@@ -37,7 +41,40 @@ class AuthController extends BaseController
             }
             return $this->asJson($return);
         }
-        return $this->render('menulist');
+
+        //根据用户id，获取用户详情
+        $userModel = new User();
+        $getAdminInfo = $userModel->getAdminInfo($this->user_id);
+
+        if (empty($getAdminInfo)){
+            return ToolUtil::returnAjaxMsg(false,'未找到管理员！！');
+        }
+
+        if (empty($getAdminInfo['role_id'])){
+            return ToolUtil::returnAjaxMsg(false,'未找到管理员权限！！');
+        }
+        $role = $getAdminInfo['role_id'];
+        $roleList = explode(',',$role);
+
+        $roleMark = 0;
+        foreach ($roleList as $v){
+            if (in_array($v,$this->roleContrast)){
+                $roleMark = 1;
+                break;
+            }
+        }
+
+        return $this->render('menulist',['roleMark' => $roleMark]);
+    }
+
+    /**
+     * 添加顶级菜单页面方法
+     * @return string
+     * @author rjl
+     */
+    public function actionAddParentMenu()
+    {
+        return $this->render('parentmenuadd');
     }
 
     /**
@@ -362,29 +399,28 @@ class AuthController extends BaseController
     public function actionSelectAdmin(){
         $request = \Yii::$app->request;
         if($request->isPost){
-            $type = $this->post('type');
-            $id = $this->post('id');
             $userIds = $this->post('userId');
             $t = $this->post('t');
+            $authName = $this->post('authName');
+            $type = AuthItem::findValueByWhere(['name' => $authName],'type',['created_at'=>SORT_ASC]); //查询类型
             if($t){
-                if(AuthItem::delRoleByUserId($userIds,$id,$type)){
+                if(AuthItem::delRoleByUserId($userIds,$authName,$type)){
                     return ToolUtil::returnAjaxMsg(true,'操作成功');
                 }
                 return ToolUtil::returnAjaxMsg(false,'操作失败');
             }else{
-                if(AuthItem::addRoleByUserId($userIds,$id,$type)){
+                if(AuthItem::addRoleByUserId($userIds,$authName,$type)){
                     return ToolUtil::returnAjaxMsg(true,'操作成功');
                 }
                 return ToolUtil::returnAjaxMsg(true,'操作失败');
             }
         }
-        $type = $this->get('type'); //查询类型
         $id = $this->get('id'); //标识
         $t = $this->get('t'); //移入或者移除
+        $authName = $this->get('authName');
+        $type = AuthItem::findValueByWhere(['name' => $authName],'type',['created_at'=>SORT_ASC]); //查询类型
         return $this->render('_adminlist',[
-            'type' => $type,
-            'id' => $id,
-            't' => $t
+            'type' => $type, 'id' => $id, 't' => $t, 'authName' => $authName
         ]);
     }
 
@@ -393,32 +429,33 @@ class AuthController extends BaseController
      * @Author Weihuaadmin@163.com
      */
     public function actionGetSelectAdmin(){
-        $type = $this->post('type'); //查询类型
-        $id = $this->post('id'); //标识
-        $t = $this->post('t'); //标识
+        $id = $this->post('id');
+        $authName = $this->post('authName'); //权限标识
+        $t = $this->post('t');
         $this->sidx = 'created_at';
         $this->sord = ' DESC';
         $query = User::find()->select(['user_id','username','real_name','phone','created_at'])
             ->filterWhere(['AND',['status' => User::STATUS_ACTIVE],['!=','real_name','admin']]);
+        $type = AuthItem::findValueByWhere(['name'=>$authName],'type',['created_at'=>SORT_DESC]);
         if($t){
             //移出
-            if($type >= 0){
+            if($type > 2){
                 $key = ToolUtil::getSelectType(AdminAuthRelation::getKey(),$type);
                 $adminIds = AdminAuthRelation::findAllByWhere([$key => $id],'adminid');
                 $adminIds = ArrayHelper::getColumn($adminIds,'adminid');
                 $query->andWhere(['user_id' => $adminIds]);
             }else{
-                $query->andWhere(['like','role_id',$id]);
+                $query->andWhere(['like','role_id',$authName]);
             }
         }else{
             //移入
-            if($type >= 0){
+            if($type > 2){
                 $key = ToolUtil::getSelectType(AdminAuthRelation::getKey(),$type);
                 $adminIds = AdminAuthRelation::findAllByWhere([$key => $id],'adminid');
                 $adminIds = ArrayHelper::getColumn($adminIds,'adminid');
                 $query->andWhere(['not in','user_id',$adminIds]);
             }else{
-                $query->andWhere(['not like','role_id',$id]);
+                $query->andWhere(['not like','role_id',$authName]);
             }
         }
         $dealFuntion = function ($lists){
@@ -442,14 +479,122 @@ class AuthController extends BaseController
     public function actionUpdateMenu(){
         $menuId = $this->post('ids');
         $newName = $this->post('name');
+        $isExist = AuthItem::findValueByWhere(['name' => $newName],["name"],["name"=>$newName]);
+        if($isExist){
+            return ToolUtil::returnAjaxMsg(false,'抱歉该标识已经存在！');
+        }
         $menuInfo = AuthItem::findOne($menuId);
         if($menuInfo){
-            $updateRes = AuthItem::updateAll(['updated_at' => time(), 'name' => $newName],"name =:name",[":name"=>$menuId]);
-            if($updateRes){
-                return ToolUtil::returnAjaxMsg(true,'操作成功');
+            $transaction = \Yii::$app->db->beginTransaction();
+            try{
+                $updateRes = AuthItem::updateAll(['updated_at' => time(), 'name' => $newName],"name =:name",[":name"=>$menuId]);
+                AuthItem::updateAll(['updated_at' => time(),'parent_name' => $newName],"parent_name=:parent_name",[":parent_name"=>$menuId]);
+                if($updateRes){
+                    $transaction->commit();
+                    return ToolUtil::returnAjaxMsg(true,'操作成功');
+                }
+                $transaction->rollBack();
+                return ToolUtil::returnAjaxMsg(false,'操作失败');
+            }catch (\Exception $e){
+                $transaction->rollBack();
+                LogUtil::setExceptionLog('update Menu',$e);
+                return ToolUtil::returnAjaxMsg(false,'操作失败');
             }
         }
         return ToolUtil::returnAjaxMsg(false,'操作失败');
 
     }
+
+    /**
+     * @Function 子应用管理
+     * @Author Weihuaadmin@163.com
+     * @return string
+     */
+    public function actionSubsystem(){
+        $title = self::getMenuName();
+        return $this->render('subsystem',[
+            'title' => $title
+        ]);
+    }
+
+    /**
+     * @Function 获取子应用数据
+     * @Author Weihuaadmin@163.com
+     */
+    public function actionGetSubsystem(){
+        $name = $this ->post('name');
+        $description = $this ->post('description');
+        $query = RegSoftware::find()->filterWhere(['AND',
+            ['is_del' => 0],
+            ['like','name',$name],
+            ['like','description',$description],
+        ]);
+        $this->sidx = 'created_at';
+        $this->sord = 'DESC';
+        $dealFunction = function($lists){
+            foreach ($lists as $key => $list){
+                $list['created_at'] = ToolUtil::getDate($list['created_at'],"Y-m-d H:i:s");
+                $list['updated_at'] = ToolUtil::getDate($list['updated_at'],"Y-m-d H:i:s");
+                $lists[$key] = $list;
+            }
+            return $lists;
+        };
+        return $this->getJqTableData($query,$dealFunction);
+    }
+
+    /**
+     * @Function 应用编辑
+     * @Author Weihuaadmin@163.com
+     * @return string|\yii\web\Response
+     */
+    public function actionSubsystemEdit(){
+        $title = '添加应用';
+        $id = $this->get('id');
+        $model = new RegSoftware();
+        if($id){
+            $model = RegSoftware::findOne($id);
+        }
+        $request = \Yii::$app->request;
+        if($request->isPost){
+            $postData = $this->post();
+            $routeMap = RegSoftware::findValueByWhere(['id'=>$postData['id']],'route_map');
+            return $this->asJson(AuthItem::addChild($routeMap,$postData['roles']));
+        }
+        $authManager = \Yii::$app->getAuthManager();
+        $hasPermission = $authManager->getPermissionsByRole($model['route_map']);
+        $hasPermission = array_keys($hasPermission);
+        $permissions = $authManager->getPermissionsByUser($this->user_id);
+        $permissions = ArrayHelper::toArray($permissions);
+        $treeData = [];
+        foreach ($permissions as $permission){
+            $data['checked'] = AuthItem::getItemCheckedByLayuiTree($permission,$permissions,$hasPermission);
+            $data['title'] = $permission['description'];
+            $data['title'] = $permission['description'];
+            $data['id'] = $permission['name'];
+            $data['parentName'] = $permission['parentName'];
+            $data['name'] = $permission['name'];
+            $data['isMenu'] = 1;
+            $treeData[] = $data;
+        }
+        $permissions = Json::encode(ToolUtil::arrToTree($treeData,null));
+        return $this->render('_subsystemadd',[
+            'title' => $title,
+            'model' => $model,
+            'permissions' => $permissions,
+        ]);
+    }
+
+    /**
+     * @Function 删除应用
+     * @Author Weihuaadmin@163.com
+     */
+    public function actionSubsystemDel(){
+        $ids = $this->post('ids');
+        $res = AdminApp::updateAll(['is_del' => 1,'updated_at'=>time()],"appid=:appid",[":appid" => $ids]);
+        if($res){
+            return ToolUtil::returnAjaxMsg(true);
+        }
+        return ToolUtil::returnAjaxMsg(false);
+    }
+
 }

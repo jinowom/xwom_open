@@ -491,7 +491,7 @@ table th, table td {
     font-size: 12px;
 }
 .x-admin-sm  .layui-breadcrumb>*{
-   font-size: 12px; 
+   font-size: 12px;
 }
 .x-admin-sm  .layui-btn,.x-admin-sm .layui-btn-xs,.x-admin-sm .layui-btn-sm{
     font-size: 12px;
@@ -545,3 +545,5 @@ table th, table td {
 
 /*定义初始化mylayui-from select 默认显示*/
  .mylayui-from select{display:block}
+.xadmin-layui-fluid{ padding: 0px !important;}
+.xadmin-select{ display: block !important; }

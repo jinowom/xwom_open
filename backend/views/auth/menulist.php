@@ -6,12 +6,18 @@ $this->title = '菜单管理';
 ?>
 <!-- 顶部菜单开始 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>
+
 <!-- 顶部菜单结束 -->
 <div class="layui-fluid">
     <div class="layui-row layui-col-space15">
         <div class="layui-col-sm12 layui-col-md12">
             <div class="layui-card">
                 <div class="layui-card-body ">
+                    <?php if($roleMark==1):?>
+                    <div class="layui-btn-group">
+                        <button class="layui-btn" onclick="xadmin.open('添加栏目','<?=\yii\helpers\Url::toRoute(['auth/add-parent-menu'])?>',500,500)"><i class="layui-icon"></i>添加</button>
+                    </div>
+                    <?php endif;?>
                     <table id="authTable" class="layui-table" lay-filter="table"></table>
                 </div>
             </div>
@@ -21,11 +27,13 @@ $this->title = '菜单管理';
 <!-- 操作列 -->
 <script type="text/html" id="auth_state">
     <a class="layui-btn layui-btn-warm layui-btn-xs" lay-event="addChild">添加子菜单</a>
-    {{#  if(d.isMenu == 1 && d.parentId ==0){ }}
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
+    <!--{{#  if(d.isMenu == 1 && d.parentId ==0){ }}
     {{#  } else { }}
         <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
         <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除</a>
-    {{#  } }}
+    {{#  } }}-->
 </script>
 <?php
 $url = \yii\helpers\Url::toRoute(['auth/get-menu-list']);

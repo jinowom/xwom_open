@@ -15,6 +15,9 @@ $this->registerCssFile('@web/css/login.css');
         <hr class="hr15">
         <input name="password" lay-verify="required" placeholder="密码"  type="password" class="layui-input">
         <hr class="hr15">
+        <input name="verifyCode" maxlength="6" lay-verify="required" lay-reqtext="请填写验证码！"  placeholder="验证码"  type="text" class="layui-input" style="width: 50%; display: inline-block" />
+        <?php echo \yii\captcha\Captcha::widget(['name'=>'verifyCode','captchaAction'=>'captcha','imageOptions'=>['id'=>'captchaimg', 'title'=>'换一个', 'alt'=>'换一个', 'style'=>'cursor:pointer;'],'template'=>'{image}']); ?>
+        <hr class="hr15">
         <input value="登录" lay-submit lay-filter="login" style="width:100%;" type="submit">
         <hr class="hr20" >
     </form>

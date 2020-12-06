@@ -2,7 +2,9 @@
 namespace backend\controllers;
 
 use common\models\User;
+use common\models\wechat\OuterMp;
 use common\utils\ToolUtil;
+use common\utils\WechatUtil;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
@@ -26,7 +28,7 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['login', 'error','test','mp4'],
+                        'actions' => ['login', 'error','captcha','entr'],
                         'allow' => true,
                     ],
                     [
@@ -42,6 +44,26 @@ class SiteController extends Controller
                     'logout' => ['post','get'],
                 ],
             ],
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function actions()
+    {
+        return [
+            'captcha' => [
+                'class' => 'yii\captcha\CaptchaAction',
+                'backColor'=>0x000000,//背景颜色
+                'maxLength' => 6, //最大显示个数
+                'minLength' => 6,//最少显示个数
+                'padding' => 5,//间距
+                'height'=> 50,//高度
+                'width' => 150,  //宽度
+                'foreColor'=>0xffffff,     //字体颜色
+                'offset' => 6,
+            ]
         ];
     }
 
@@ -77,7 +99,7 @@ class SiteController extends Controller
      */
     public function actionLogin()
     {
-        $this->layout = 'main';
+        $this->layout = 'layouts';
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
         }
@@ -98,7 +120,8 @@ class SiteController extends Controller
             ]);
         } else {
             $modelError = $model->getFirstErrors();
-            return ToolUtil::returnAjaxMsg(false,ToolUtil::getSelectType($modelError,'password',''));
+            $modelError = end($modelError);
+            return ToolUtil::returnAjaxMsg(false,$modelError);
         }
     }
 
@@ -112,5 +135,43 @@ class SiteController extends Controller
         Yii::$app->user->logout();
 
         return $this->goHome();
+    }
+
+
+
+    /**
+     * @Function 验证公众号
+     * @Author Weihuaadmin@163.com
+     */
+    public function actionEntr(){
+        $request = \Yii::$app->request;
+        $mid = $request -> get('id');
+        $echostr = $request -> get('echostr');
+        $signature = $request -> get('signature');
+        $nonce = $request -> get('nonce');
+        if(empty($echostr) && empty($signature) && empty ($nonce)){
+            return ToolUtil::returnAjaxMsg(false,'Access denied');
+        }
+        if(empty($mid)){
+            return ToolUtil::returnAjaxMsg(false,'Access denied');
+        }
+        $mpInfo = OuterMp::findValueByWhere(['id' => $mid],[],[]);
+        $options = [
+            'appid' => $mpInfo['appid'],
+            'appsecret' => $mpInfo['appsecret'],
+            'token' => $mpInfo['valid_token'],
+            'encodingaeskey' => $mpInfo['encodingaeskey']
+        ];
+        if (!empty($_GET['echostr']) && !empty($_GET["signature"])) {
+            $weObj = new WechatUtil($options);
+            $return = $weObj ->valid(true);
+            if($return){
+                if ($mpInfo['valid_status'] == 0) {
+                    OuterMp::updateAll(['valid_status' => 1],"id=:id",[":id" => $mid]);
+                }
+                echo $echostr;
+            }
+            exit;
+        }
     }
 }

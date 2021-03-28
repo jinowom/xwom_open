@@ -83,6 +83,17 @@ return [
         
         /** ------ CDN支持 七牛 腾讯云 阿里云 网易云 ------ **/
         
+        
+        /** ------ 注册阿里云短信SDK ------ **/
+        
+        
+        /** ------ 阿里云OSS ------ **/
+        
+        
+        /** ------ 注册xunsearch全文检索sdk------ **/
+        
+        
+        
         /*
          * 国际化语言配置使用，这里的设置的关键在于两个语言设置，即 sourceLanguage（源语言） 和 language（目标语言） 的设置，
          * 该翻译服务就是将网站从源语言翻译成目标语言的实现，其中目标语言是可以随时更改的    
@@ -98,7 +109,7 @@ return [
                         'app' => 'workflow.php',
                     ],
                 ],
-                'app' => [
+                'app*' => [
                     'class' => yii\i18n\PhpMessageSource::className(),
                     'basePath' => '@backend/messages',//定义目标语言类的路径
                     'sourceLanguage' => 'en-US',//zh-CN en-US

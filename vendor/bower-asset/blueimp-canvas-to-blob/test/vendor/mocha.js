@@ -55,6 +55,17 @@ process.removeListener = function(e, fn) {
 };
 
 /**
+ * Implements listenerCount for 'uncaughtException'.
+ */
+
+process.listenerCount = function(name) {
+  if (name === 'uncaughtException') {
+    return uncaughtExceptionHandlers.length;
+  }
+  return 0;
+};
+
+/**
  * Implements uncaughtException listener.
  */
 
@@ -62,7 +73,7 @@ process.on = function(e, fn) {
   if (e === 'uncaughtException') {
     global.onerror = function(err, url, line) {
       fn(new Error(err + ' (' + url + ':' + line + ')'));
-      return !mocha.allowUncaught;
+      return !mocha.options.allowUncaught;
     };
     uncaughtExceptionHandlers.push(fn);
   }
@@ -131,7 +142,7 @@ mocha.setup = function(opts) {
     opts = {ui: opts};
   }
   for (var opt in opts) {
-    if (opts.hasOwnProperty(opt)) {
+    if (Object.prototype.hasOwnProperty.call(opts, opt)) {
       this[opt](opts[opt]);
     }
   }
@@ -193,8 +204,8 @@ global.mocha = mocha;
 module.exports = global;
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./lib/mocha":14,"_process":69,"browser-stdout":41}],2:[function(require,module,exports){
-(function (process,global){
+},{"./lib/mocha":14,"_process":67,"browser-stdout":41}],2:[function(require,module,exports){
+(function (global){
 'use strict';
 
 /**
@@ -208,6 +219,7 @@ module.exports = global;
 var Date = global.Date;
 var setTimeout = global.setTimeout;
 var EVENT_RUN_END = require('../runner').constants.EVENT_RUN_END;
+var isBrowser = require('../utils').isBrowser;
 
 /**
  * Checks if browser notification support exists.
@@ -222,7 +234,7 @@ var EVENT_RUN_END = require('../runner').constants.EVENT_RUN_END;
 exports.isCapable = function() {
   var hasNotificationSupport = 'Notification' in window;
   var hasPromiseSupport = typeof Promise === 'function';
-  return process.browser && hasNotificationSupport && hasPromiseSupport;
+  return isBrowser() && hasNotificationSupport && hasPromiseSupport;
 };
 
 /**
@@ -364,8 +376,8 @@ function notPermitted(err) {
   console.error('notification error:', err.message);
 }
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../../package":90,"../runner":34,"_process":69}],3:[function(require,module,exports){
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../../package":90,"../runner":34,"../utils":38}],3:[function(require,module,exports){
 'use strict';
 
 /**
@@ -552,21 +564,6 @@ Context.prototype.timeout = function(ms) {
 };
 
 /**
- * Set test timeout `enabled`.
- *
- * @private
- * @param {boolean} enabled
- * @return {Context} self
- */
-Context.prototype.enableTimeouts = function(enabled) {
-  if (!arguments.length) {
-    return this.runnable().enableTimeouts();
-  }
-  this.runnable().enableTimeouts(enabled);
-  return this;
-};
-
-/**
  * Set or get test slowness threshold `ms`.
  *
  * @private
@@ -608,12 +605,80 @@ Context.prototype.retries = function(n) {
 
 },{}],6:[function(require,module,exports){
 'use strict';
-/**
- * @module Errors
- */
+
+var format = require('util').format;
+
 /**
  * Factory functions to create throwable error objects
+ * @module Errors
  */
+
+/**
+ * When Mocha throw exceptions (or otherwise errors), it attempts to assign a
+ * `code` property to the `Error` object, for easier handling.  These are the
+ * potential values of `code`.
+ */
+var constants = {
+  /**
+   * An unrecoverable error.
+   */
+  FATAL: 'ERR_MOCHA_FATAL',
+
+  /**
+   * The type of an argument to a function call is invalid
+   */
+  INVALID_ARG_TYPE: 'ERR_MOCHA_INVALID_ARG_TYPE',
+
+  /**
+   * The value of an argument to a function call is invalid
+   */
+  INVALID_ARG_VALUE: 'ERR_MOCHA_INVALID_ARG_VALUE',
+
+  /**
+   * Something was thrown, but it wasn't an `Error`
+   */
+  INVALID_EXCEPTION: 'ERR_MOCHA_INVALID_EXCEPTION',
+
+  /**
+   * An interface (e.g., `Mocha.interfaces`) is unknown or invalid
+   */
+  INVALID_INTERFACE: 'ERR_MOCHA_INVALID_INTERFACE',
+
+  /**
+   * A reporter (.e.g, `Mocha.reporters`) is unknown or invalid
+   */
+  INVALID_REPORTER: 'ERR_MOCHA_INVALID_REPORTER',
+
+  /**
+   * `done()` was called twice in a `Test` or `Hook` callback
+   */
+  MULTIPLE_DONE: 'ERR_MOCHA_MULTIPLE_DONE',
+
+  /**
+   * No files matched the pattern provided by the user
+   */
+  NO_FILES_MATCH_PATTERN: 'ERR_MOCHA_NO_FILES_MATCH_PATTERN',
+
+  /**
+   * Known, but unsupported behavior of some kind
+   */
+  UNSUPPORTED: 'ERR_MOCHA_UNSUPPORTED',
+
+  /**
+   * Invalid state transition occuring in `Mocha` instance
+   */
+  INSTANCE_ALREADY_RUNNING: 'ERR_MOCHA_INSTANCE_ALREADY_RUNNING',
+
+  /**
+   * Invalid state transition occuring in `Mocha` instance
+   */
+  INSTANCE_ALREADY_DISPOSED: 'ERR_MOCHA_INSTANCE_ALREADY_DISPOSED',
+
+  /**
+   * Use of `only()` w/ `--forbid-only` results in this error.
+   */
+  FORBIDDEN_EXCLUSIVITY: 'ERR_MOCHA_FORBIDDEN_EXCLUSIVITY'
+};
 
 /**
  * Creates an error object to be thrown when no files to be tested could be found using specified pattern.
@@ -625,7 +690,7 @@ Context.prototype.retries = function(n) {
  */
 function createNoFilesMatchPatternError(message, pattern) {
   var err = new Error(message);
-  err.code = 'ERR_MOCHA_NO_FILES_MATCH_PATTERN';
+  err.code = constants.NO_FILES_MATCH_PATTERN;
   err.pattern = pattern;
   return err;
 }
@@ -640,7 +705,7 @@ function createNoFilesMatchPatternError(message, pattern) {
  */
 function createInvalidReporterError(message, reporter) {
   var err = new TypeError(message);
-  err.code = 'ERR_MOCHA_INVALID_REPORTER';
+  err.code = constants.INVALID_REPORTER;
   err.reporter = reporter;
   return err;
 }
@@ -655,7 +720,7 @@ function createInvalidReporterError(message, reporter) {
  */
 function createInvalidInterfaceError(message, ui) {
   var err = new Error(message);
-  err.code = 'ERR_MOCHA_INVALID_INTERFACE';
+  err.code = constants.INVALID_INTERFACE;
   err.interface = ui;
   return err;
 }
@@ -669,7 +734,7 @@ function createInvalidInterfaceError(message, ui) {
  */
 function createUnsupportedError(message) {
   var err = new Error(message);
-  err.code = 'ERR_MOCHA_UNSUPPORTED';
+  err.code = constants.UNSUPPORTED;
   return err;
 }
 
@@ -697,7 +762,7 @@ function createMissingArgumentError(message, argument, expected) {
  */
 function createInvalidArgumentTypeError(message, argument, expected) {
   var err = new TypeError(message);
-  err.code = 'ERR_MOCHA_INVALID_ARG_TYPE';
+  err.code = constants.INVALID_ARG_TYPE;
   err.argument = argument;
   err.expected = expected;
   err.actual = typeof argument;
@@ -716,7 +781,7 @@ function createInvalidArgumentTypeError(message, argument, expected) {
  */
 function createInvalidArgumentValueError(message, argument, value, reason) {
   var err = new TypeError(message);
-  err.code = 'ERR_MOCHA_INVALID_ARG_VALUE';
+  err.code = constants.INVALID_ARG_VALUE;
   err.argument = argument;
   err.value = value;
   err.reason = typeof reason !== 'undefined' ? reason : 'is invalid';
@@ -732,9 +797,127 @@ function createInvalidArgumentValueError(message, argument, value, reason) {
  */
 function createInvalidExceptionError(message, value) {
   var err = new Error(message);
-  err.code = 'ERR_MOCHA_INVALID_EXCEPTION';
+  err.code = constants.INVALID_EXCEPTION;
   err.valueType = typeof value;
   err.value = value;
+  return err;
+}
+
+/**
+ * Creates an error object to be thrown when an unrecoverable error occurs.
+ *
+ * @public
+ * @param {string} message - Error message to be displayed.
+ * @returns {Error} instance detailing the error condition
+ */
+function createFatalError(message, value) {
+  var err = new Error(message);
+  err.code = constants.FATAL;
+  err.valueType = typeof value;
+  err.value = value;
+  return err;
+}
+
+/**
+ * Dynamically creates a plugin-type-specific error based on plugin type
+ * @param {string} message - Error message
+ * @param {"reporter"|"interface"} pluginType - Plugin type. Future: expand as needed
+ * @param {string} [pluginId] - Name/path of plugin, if any
+ * @throws When `pluginType` is not known
+ * @public
+ * @returns {Error}
+ */
+function createInvalidPluginError(message, pluginType, pluginId) {
+  switch (pluginType) {
+    case 'reporter':
+      return createInvalidReporterError(message, pluginId);
+    case 'interface':
+      return createInvalidInterfaceError(message, pluginId);
+    default:
+      throw new Error('unknown pluginType "' + pluginType + '"');
+  }
+}
+
+/**
+ * Creates an error object to be thrown when a mocha object's `run` method is executed while it is already disposed.
+ * @param {string} message The error message to be displayed.
+ * @param {boolean} cleanReferencesAfterRun the value of `cleanReferencesAfterRun`
+ * @param {Mocha} instance the mocha instance that throw this error
+ */
+function createMochaInstanceAlreadyDisposedError(
+  message,
+  cleanReferencesAfterRun,
+  instance
+) {
+  var err = new Error(message);
+  err.code = constants.INSTANCE_ALREADY_DISPOSED;
+  err.cleanReferencesAfterRun = cleanReferencesAfterRun;
+  err.instance = instance;
+  return err;
+}
+
+/**
+ * Creates an error object to be thrown when a mocha object's `run` method is called while a test run is in progress.
+ * @param {string} message The error message to be displayed.
+ */
+function createMochaInstanceAlreadyRunningError(message, instance) {
+  var err = new Error(message);
+  err.code = constants.INSTANCE_ALREADY_RUNNING;
+  err.instance = instance;
+  return err;
+}
+
+/*
+ * Creates an error object to be thrown when done() is called multiple times in a test
+ *
+ * @public
+ * @param {Runnable} runnable - Original runnable
+ * @param {Error} [originalErr] - Original error, if any
+ * @returns {Error} instance detailing the error condition
+ */
+function createMultipleDoneError(runnable, originalErr) {
+  var title;
+  try {
+    title = format('<%s>', runnable.fullTitle());
+    if (runnable.parent.root) {
+      title += ' (of root suite)';
+    }
+  } catch (ignored) {
+    title = format('<%s> (of unknown suite)', runnable.title);
+  }
+  var message = format(
+    'done() called multiple times in %s %s',
+    runnable.type ? runnable.type : 'unknown runnable',
+    title
+  );
+  if (runnable.file) {
+    message += format(' of file %s', runnable.file);
+  }
+  if (originalErr) {
+    message += format('; in addition, done() received error: %s', originalErr);
+  }
+
+  var err = new Error(message);
+  err.code = constants.MULTIPLE_DONE;
+  err.valueType = typeof originalErr;
+  err.value = originalErr;
+  return err;
+}
+
+/**
+ * Creates an error object to be thrown when `.only()` is used with
+ * `--forbid-only`.
+ * @public
+ * @param {Mocha} mocha - Mocha instance
+ * @returns {Error} Error with code {@link constants.FORBIDDEN_EXCLUSIVITY}
+ */
+function createForbiddenExclusivityError(mocha) {
+  var err = new Error(
+    mocha.isWorker
+      ? '`.only` is not supported in parallel mode'
+      : '`.only` forbidden by --forbid-only'
+  );
+  err.code = constants.FORBIDDEN_EXCLUSIVITY;
   return err;
 }
 
@@ -746,10 +929,17 @@ module.exports = {
   createInvalidReporterError: createInvalidReporterError,
   createMissingArgumentError: createMissingArgumentError,
   createNoFilesMatchPatternError: createNoFilesMatchPatternError,
-  createUnsupportedError: createUnsupportedError
+  createUnsupportedError: createUnsupportedError,
+  createInvalidPluginError: createInvalidPluginError,
+  createMochaInstanceAlreadyDisposedError: createMochaInstanceAlreadyDisposedError,
+  createMochaInstanceAlreadyRunningError: createMochaInstanceAlreadyRunningError,
+  createFatalError: createFatalError,
+  createMultipleDoneError: createMultipleDoneError,
+  createForbiddenExclusivityError: createForbiddenExclusivityError,
+  constants: constants
 };
 
-},{}],7:[function(require,module,exports){
+},{"util":89}],7:[function(require,module,exports){
 'use strict';
 
 var Runnable = require('./runnable');
@@ -780,6 +970,14 @@ function Hook(title, fn) {
 inherits(Hook, Runnable);
 
 /**
+ * Resets the state for a next run.
+ */
+Hook.prototype.reset = function() {
+  Runnable.prototype.reset.call(this);
+  delete this._error;
+};
+
+/**
  * Get or set the test `err`.
  *
  * @memberof Hook
@@ -795,6 +993,30 @@ Hook.prototype.error = function(err) {
   }
 
   this._error = err;
+};
+
+/**
+ * Returns an object suitable for IPC.
+ * Functions are represented by keys beginning with `$$`.
+ * @private
+ * @returns {Object}
+ */
+Hook.prototype.serialize = function serialize() {
+  return {
+    $$isPending: this.isPending(),
+    $$titlePath: this.titlePath(),
+    ctx: {
+      currentTest: {
+        title: this.ctx && this.ctx.currentTest && this.ctx.currentTest.title
+      }
+    },
+    parent: {
+      root: this.parent.root,
+      title: this.parent.title
+    },
+    title: this.title,
+    type: this.type
+  };
 };
 
 },{"./runnable":33,"./utils":38}],8:[function(require,module,exports){
@@ -923,6 +1145,8 @@ module.exports.description = 'BDD or RSpec style [default]';
 var Suite = require('../suite');
 var errors = require('../errors');
 var createMissingArgumentError = errors.createMissingArgumentError;
+var createUnsupportedError = errors.createUnsupportedError;
+var createForbiddenExclusivityError = errors.createForbiddenExclusivityError;
 
 /**
  * Functions common to more than one interface.
@@ -1012,6 +1236,9 @@ module.exports = function(suites, context, mocha) {
        * @returns {Suite}
        */
       only: function only(opts) {
+        if (mocha.options.forbidOnly) {
+          throw createForbiddenExclusivityError(mocha);
+        }
         opts.isOnly = true;
         return this.create(opts);
       },
@@ -1045,16 +1272,14 @@ module.exports = function(suites, context, mocha) {
         suite.file = opts.file;
         suites.unshift(suite);
         if (opts.isOnly) {
-          if (mocha.options.forbidOnly && shouldBeTested(suite)) {
-            throw new Error('`.only` forbidden');
-          }
-
-          suite.parent.appendOnlySuite(suite);
+          suite.markOnly();
         }
-        if (suite.pending) {
-          if (mocha.options.forbidPending && shouldBeTested(suite)) {
-            throw new Error('Pending test forbidden');
-          }
+        if (
+          suite.pending &&
+          mocha.options.forbidPending &&
+          shouldBeTested(suite)
+        ) {
+          throw createUnsupportedError('Pending test forbidden');
         }
         if (typeof opts.fn === 'function') {
           opts.fn.call(suite);
@@ -1085,7 +1310,10 @@ module.exports = function(suites, context, mocha) {
        * @returns {*}
        */
       only: function(mocha, test) {
-        test.parent.appendOnlyTest(test);
+        if (mocha.options.forbidOnly) {
+          throw createForbiddenExclusivityError(mocha);
+        }
+        test.markOnly();
         return test;
       },
 
@@ -1391,7 +1619,7 @@ module.exports.description =
   'traditional "suite"/"test" instead of BDD\'s "describe"/"it"';
 
 },{"../suite":36,"../test":37,"./common":9}],14:[function(require,module,exports){
-(function (process,global){
+(function (global){
 'use strict';
 
 /*!
@@ -1403,27 +1631,59 @@ module.exports.description =
 var escapeRe = require('escape-string-regexp');
 var path = require('path');
 var builtinReporters = require('./reporters');
-var growl = require('./growl');
+var growl = require('./nodejs/growl');
 var utils = require('./utils');
 var mocharc = require('./mocharc.json');
 var errors = require('./errors');
 var Suite = require('./suite');
+var esmUtils = utils.supportsEsModules(true)
+  ? require('./esm-utils')
+  : undefined;
 var createStatsCollector = require('./stats-collector');
 var createInvalidReporterError = errors.createInvalidReporterError;
 var createInvalidInterfaceError = errors.createInvalidInterfaceError;
+var createMochaInstanceAlreadyDisposedError =
+  errors.createMochaInstanceAlreadyDisposedError;
+var createMochaInstanceAlreadyRunningError =
+  errors.createMochaInstanceAlreadyRunningError;
 var EVENT_FILE_PRE_REQUIRE = Suite.constants.EVENT_FILE_PRE_REQUIRE;
 var EVENT_FILE_POST_REQUIRE = Suite.constants.EVENT_FILE_POST_REQUIRE;
 var EVENT_FILE_REQUIRE = Suite.constants.EVENT_FILE_REQUIRE;
 var sQuote = utils.sQuote;
+var debug = require('debug')('mocha:mocha');
 
 exports = module.exports = Mocha;
+
+/**
+ * A Mocha instance is a finite state machine.
+ * These are the states it can be in.
+ */
+var mochaStates = utils.defineConstants({
+  /**
+   * Initial state of the mocha instance
+   */
+  INIT: 'init',
+  /**
+   * Mocha instance is running tests
+   */
+  RUNNING: 'running',
+  /**
+   * Mocha instance is done running tests and references to test functions and hooks are cleaned.
+   * You can reset this state by unloading the test files.
+   */
+  REFERENCES_CLEANED: 'referencesCleaned',
+  /**
+   * Mocha instance is disposed and can no longer be used.
+   */
+  DISPOSED: 'disposed'
+});
 
 /**
  * To require local UIs and reporters when running in node.
  */
 
-if (!process.browser) {
-  var cwd = process.cwd();
+if (!utils.isBrowser() && typeof module.paths !== 'undefined') {
+  var cwd = utils.cwd();
   module.paths.push(cwd, path.join(cwd, 'node_modules'));
 }
 
@@ -1431,11 +1691,6 @@ if (!process.browser) {
  * Expose internals.
  */
 
-/**
- * @public
- * @class utils
- * @memberof Mocha
- */
 exports.utils = utils;
 exports.interfaces = require('./interfaces');
 /**
@@ -1463,28 +1718,31 @@ exports.Test = require('./test');
  * @param {boolean} [options.allowUncaught] - Propagate uncaught errors?
  * @param {boolean} [options.asyncOnly] - Force `done` callback or promise?
  * @param {boolean} [options.bail] - Bail after first test failure?
- * @param {boolean} [options.checkLeaks] - If true, check leaks.
+ * @param {boolean} [options.checkLeaks] - Check for global variable leaks?
+ * @param {boolean} [options.color] - Color TTY output from reporter?
  * @param {boolean} [options.delay] - Delay root suite execution?
- * @param {boolean} [options.enableTimeouts] - Enable timeouts?
+ * @param {boolean} [options.diff] - Show diff on failure?
  * @param {string} [options.fgrep] - Test filter given string.
  * @param {boolean} [options.forbidOnly] - Tests marked `only` fail the suite?
  * @param {boolean} [options.forbidPending] - Pending tests fail the suite?
- * @param {boolean} [options.fullStackTrace] - Full stacktrace upon failure?
+ * @param {boolean} [options.fullTrace] - Full stacktrace upon failure?
  * @param {string[]} [options.global] - Variables expected in global scope.
  * @param {RegExp|string} [options.grep] - Test filter given regular expression.
  * @param {boolean} [options.growl] - Enable desktop notifications?
- * @param {boolean} [options.hideDiff] - Suppress diffs from failures?
- * @param {boolean} [options.ignoreLeaks] - Ignore global leaks?
+ * @param {boolean} [options.inlineDiffs] - Display inline diffs?
  * @param {boolean} [options.invert] - Invert test filter matches?
  * @param {boolean} [options.noHighlighting] - Disable syntax highlighting?
- * @param {string} [options.reporter] - Reporter name.
+ * @param {string|constructor} [options.reporter] - Reporter name or constructor.
  * @param {Object} [options.reporterOption] - Reporter settings object.
  * @param {number} [options.retries] - Number of times to retry failed tests.
  * @param {number} [options.slow] - Slow threshold value.
  * @param {number|string} [options.timeout] - Timeout threshold value.
  * @param {string} [options.ui] - Interface name.
- * @param {boolean} [options.color] - Color TTY output from reporter?
- * @param {boolean} [options.useInlineDiffs] - Use inline diffs?
+ * @param {boolean} [options.parallel] - Run jobs in parallel
+ * @param {number} [options.jobs] - Max number of worker processes for parallel runs
+ * @param {MochaRootHookObject} [options.rootHooks] - Hooks to bootstrap the root
+ * suite with
+ * @param {boolean} [options.isWorker] - Should be `true` if `Mocha` process is running in a worker process.
  */
 function Mocha(options) {
   options = utils.assign({}, mocharc, options || {});
@@ -1492,32 +1750,18 @@ function Mocha(options) {
   this.options = options;
   // root suite
   this.suite = new exports.Suite('', new exports.Context(), true);
-
-  if ('useColors' in options) {
-    utils.deprecate(
-      'useColors is DEPRECATED and will be removed from a future version of Mocha. Instead, use the "color" option'
-    );
-    options.color = 'color' in options ? options.color : options.useColors;
-  }
+  this._cleanReferencesAfterRun = true;
+  this._state = mochaStates.INIT;
 
   this.grep(options.grep)
     .fgrep(options.fgrep)
     .ui(options.ui)
-    .bail(options.bail)
-    .reporter(options.reporter, options.reporterOptions)
-    .useColors(options.color)
+    .reporter(
+      options.reporter,
+      options.reporterOption || options.reporterOptions // reporterOptions was previously the only way to specify options to reporter
+    )
     .slow(options.slow)
-    .useInlineDiffs(options.inlineDiffs)
-    .globals(options.globals);
-
-  if ('enableTimeouts' in options) {
-    utils.deprecate(
-      'enableTimeouts is DEPRECATED and will be removed from a future version of Mocha. Instead, use "timeout: false" to disable timeouts.'
-    );
-    if (options.enableTimeouts === false) {
-      this.timeout(0);
-    }
-  }
+    .global(options.global);
 
   // this guard exists because Suite#timeout does not consider `undefined` to be valid input
   if (typeof options.timeout !== 'undefined') {
@@ -1528,41 +1772,75 @@ function Mocha(options) {
     this.retries(options.retries);
   }
 
-  if ('diff' in options) {
-    this.hideDiff(!options.diff);
-  }
-
   [
     'allowUncaught',
     'asyncOnly',
+    'bail',
     'checkLeaks',
+    'color',
     'delay',
+    'diff',
     'forbidOnly',
     'forbidPending',
     'fullTrace',
     'growl',
+    'inlineDiffs',
     'invert'
   ].forEach(function(opt) {
     if (options[opt]) {
       this[opt]();
     }
   }, this);
+
+  if (options.rootHooks) {
+    this.rootHooks(options.rootHooks);
+  }
+
+  /**
+   * The class which we'll instantiate in {@link Mocha#run}.  Defaults to
+   * {@link Runner} in serial mode; changes in parallel mode.
+   * @memberof Mocha
+   * @private
+   */
+  this._runnerClass = exports.Runner;
+
+  /**
+   * Whether or not to call {@link Mocha#loadFiles} implicitly when calling
+   * {@link Mocha#run}.  If this is `true`, then it's up to the consumer to call
+   * {@link Mocha#loadFiles} _or_ {@link Mocha#loadFilesAsync}.
+   * @private
+   * @memberof Mocha
+   */
+  this._lazyLoadFiles = false;
+
+  /**
+   * It's useful for a Mocha instance to know if it's running in a worker process.
+   * We could derive this via other means, but it's helpful to have a flag to refer to.
+   * @memberof Mocha
+   * @private
+   */
+  this.isWorker = Boolean(options.isWorker);
+
+  if (
+    options.parallel &&
+    (typeof options.jobs === 'undefined' || options.jobs > 1)
+  ) {
+    debug('attempting to enable parallel mode');
+    this.parallelMode(true);
+  }
 }
 
 /**
  * Enables or disables bailing on the first failure.
  *
  * @public
- * @see {@link https://mochajs.org/#-b---bail|CLI option}
+ * @see [CLI option](../#-bail-b)
  * @param {boolean} [bail=true] - Whether to bail on first error.
  * @returns {Mocha} this
  * @chainable
  */
 Mocha.prototype.bail = function(bail) {
-  if (!arguments.length) {
-    bail = true;
-  }
-  this.suite.bail(bail);
+  this.suite.bail(bail !== false);
   return this;
 };
 
@@ -1574,7 +1852,7 @@ Mocha.prototype.bail = function(bail) {
  * Useful for generic setup code that must be included within test suite.
  *
  * @public
- * @see {@link https://mochajs.org/#--file-file|CLI option}
+ * @see [CLI option](../#-file-filedirectoryglob)
  * @param {string} file - Pathname of file to be loaded.
  * @returns {Mocha} this
  * @chainable
@@ -1588,8 +1866,8 @@ Mocha.prototype.addFile = function(file) {
  * Sets reporter to `reporter`, defaults to "spec".
  *
  * @public
- * @see {@link https://mochajs.org/#-r---reporter-name|CLI option}
- * @see {@link https://mochajs.org/#reporters|Reporters}
+ * @see [CLI option](../#-reporter-name-r-name)
+ * @see [Reporters](../#reporters)
  * @param {String|Function} reporter - Reporter name or constructor.
  * @param {Object} [reporterOptions] - Options used to configure the reporter.
  * @returns {Mocha} this
@@ -1600,53 +1878,55 @@ Mocha.prototype.addFile = function(file) {
  * // Use XUnit reporter and direct its output to file
  * mocha.reporter('xunit', { output: '/path/to/testspec.xunit.xml' });
  */
-Mocha.prototype.reporter = function(reporter, reporterOptions) {
-  if (typeof reporter === 'function') {
-    this._reporter = reporter;
+Mocha.prototype.reporter = function(reporterName, reporterOptions) {
+  if (typeof reporterName === 'function') {
+    this._reporter = reporterName;
   } else {
-    reporter = reporter || 'spec';
-    var _reporter;
+    reporterName = reporterName || 'spec';
+    var reporter;
     // Try to load a built-in reporter.
-    if (builtinReporters[reporter]) {
-      _reporter = builtinReporters[reporter];
+    if (builtinReporters[reporterName]) {
+      reporter = builtinReporters[reporterName];
     }
     // Try to load reporters from process.cwd() and node_modules
-    if (!_reporter) {
+    if (!reporter) {
       try {
-        _reporter = require(reporter);
+        reporter = require(reporterName);
       } catch (err) {
         if (
-          err.code !== 'MODULE_NOT_FOUND' ||
-          err.message.indexOf('Cannot find module') !== -1
+          err.code === 'MODULE_NOT_FOUND' ||
+          err.message.indexOf('Cannot find module') >= 0
         ) {
           // Try to load reporters from a path (absolute or relative)
           try {
-            _reporter = require(path.resolve(process.cwd(), reporter));
+            reporter = require(path.resolve(utils.cwd(), reporterName));
           } catch (_err) {
-            _err.code !== 'MODULE_NOT_FOUND' ||
-            _err.message.indexOf('Cannot find module') !== -1
-              ? console.warn(sQuote(reporter) + ' reporter not found')
-              : console.warn(
-                  sQuote(reporter) +
+            _err.code === 'MODULE_NOT_FOUND' ||
+            _err.message.indexOf('Cannot find module') >= 0
+              ? utils.warn(sQuote(reporterName) + ' reporter not found')
+              : utils.warn(
+                  sQuote(reporterName) +
                     ' reporter blew up with error:\n' +
                     err.stack
                 );
           }
         } else {
-          console.warn(
-            sQuote(reporter) + ' reporter blew up with error:\n' + err.stack
+          utils.warn(
+            sQuote(reporterName) + ' reporter blew up with error:\n' + err.stack
           );
         }
       }
     }
-    if (!_reporter) {
+    if (!reporter) {
       throw createInvalidReporterError(
-        'invalid reporter ' + sQuote(reporter),
-        reporter
+        'invalid reporter ' + sQuote(reporterName),
+        reporterName
       );
     }
-    this._reporter = _reporter;
+    this._reporter = reporter;
   }
+  this.options.reporterOption = reporterOptions;
+  // alias option name is used in public reporters xunit/tap/progress
   this.options.reporterOptions = reporterOptions;
   return this;
 };
@@ -1655,8 +1935,8 @@ Mocha.prototype.reporter = function(reporter, reporterOptions) {
  * Sets test UI `name`, defaults to "bdd".
  *
  * @public
- * @see {@link https://mochajs.org/#-u---ui-name|CLI option}
- * @see {@link https://mochajs.org/#interfaces|Interface DSLs}
+ * @see [CLI option](../#-ui-name-u-name)
+ * @see [Interface DSLs](../#interfaces)
  * @param {string|Function} [ui=bdd] - Interface name or class.
  * @returns {Mocha} this
  * @chainable
@@ -1703,16 +1983,18 @@ Mocha.prototype.ui = function(ui) {
 };
 
 /**
- * Loads `files` prior to execution.
+ * Loads `files` prior to execution. Does not support ES Modules.
  *
  * @description
  * The implementation relies on Node's `require` to execute
  * the test interface functions and will be subject to its cache.
+ * Supports only CommonJS modules. To load ES modules, use Mocha#loadFilesAsync.
  *
  * @private
  * @see {@link Mocha#addFile}
  * @see {@link Mocha#run}
  * @see {@link Mocha#unloadFiles}
+ * @see {@link Mocha#loadFilesAsync}
  * @param {Function} [fn] - Callback invoked upon completion.
  */
 Mocha.prototype.loadFiles = function(fn) {
@@ -1725,6 +2007,49 @@ Mocha.prototype.loadFiles = function(fn) {
     suite.emit(EVENT_FILE_POST_REQUIRE, global, file, self);
   });
   fn && fn();
+};
+
+/**
+ * Loads `files` prior to execution. Supports Node ES Modules.
+ *
+ * @description
+ * The implementation relies on Node's `require` and `import` to execute
+ * the test interface functions and will be subject to its cache.
+ * Supports both CJS and ESM modules.
+ *
+ * @public
+ * @see {@link Mocha#addFile}
+ * @see {@link Mocha#run}
+ * @see {@link Mocha#unloadFiles}
+ * @returns {Promise}
+ * @example
+ *
+ * // loads ESM (and CJS) test files asynchronously, then runs root suite
+ * mocha.loadFilesAsync()
+ *   .then(() => mocha.run(failures => process.exitCode = failures ? 1 : 0))
+ *   .catch(() => process.exitCode = 1);
+ */
+Mocha.prototype.loadFilesAsync = function() {
+  var self = this;
+  var suite = this.suite;
+  this.lazyLoadFiles(true);
+
+  if (!esmUtils) {
+    return new Promise(function(resolve) {
+      self.loadFiles(resolve);
+    });
+  }
+
+  return esmUtils.loadFilesAsync(
+    this.files,
+    function(file) {
+      suite.emit(EVENT_FILE_PRE_REQUIRE, global, file, self);
+    },
+    function(file, resultModule) {
+      suite.emit(EVENT_FILE_REQUIRE, resultModule, file, self);
+      suite.emit(EVENT_FILE_POST_REQUIRE, global, file, self);
+    }
+  );
 };
 
 /**
@@ -1743,20 +2068,30 @@ Mocha.unloadFile = function(file) {
  * Unloads `files` from Node's `require` cache.
  *
  * @description
- * This allows files to be "freshly" reloaded, providing the ability
+ * This allows required files to be "freshly" reloaded, providing the ability
  * to reuse a Mocha instance programmatically.
+ * Note: does not clear ESM module files from the cache
  *
  * <strong>Intended for consumers &mdash; not used internally</strong>
  *
  * @public
- * @see {@link Mocha.unloadFile}
- * @see {@link Mocha#loadFiles}
  * @see {@link Mocha#run}
  * @returns {Mocha} this
  * @chainable
  */
 Mocha.prototype.unloadFiles = function() {
-  this.files.forEach(Mocha.unloadFile);
+  if (this._state === mochaStates.DISPOSED) {
+    throw createMochaInstanceAlreadyDisposedError(
+      'Mocha instance is already disposed, it cannot be used again.',
+      this._cleanReferencesAfterRun,
+      this
+    );
+  }
+
+  this.files.forEach(function(file) {
+    Mocha.unloadFile(file);
+  });
+  this._state = mochaStates.INIT;
   return this;
 };
 
@@ -1794,7 +2129,7 @@ Mocha.prototype.fgrep = function(str) {
  * <strong>Previous filter value will be overwritten on each call!</strong>
  *
  * @public
- * @see {@link https://mochajs.org/#-g---grep-pattern|CLI option}
+ * @see [CLI option](../#-grep-regexp-g-regexp)
  * @see {@link Mocha#fgrep}
  * @see {@link Mocha#invert}
  * @param {RegExp|String} re - Regular expression used to select tests.
@@ -1843,46 +2178,62 @@ Mocha.prototype.invert = function() {
 };
 
 /**
- * Enables or disables ignoring global leaks.
+ * Enables or disables checking for global variables leaked while running tests.
  *
  * @public
- * @see {@link Mocha#checkLeaks}
- * @param {boolean} ignoreLeaks - Whether to ignore global leaks.
+ * @see [CLI option](../#-check-leaks)
+ * @param {boolean} [checkLeaks=true] - Whether to check for global variable leaks.
  * @return {Mocha} this
  * @chainable
- * @example
- *
- * // Ignore global leaks
- * mocha.ignoreLeaks(true);
  */
-Mocha.prototype.ignoreLeaks = function(ignoreLeaks) {
-  this.options.ignoreLeaks = Boolean(ignoreLeaks);
+Mocha.prototype.checkLeaks = function(checkLeaks) {
+  this.options.checkLeaks = checkLeaks !== false;
   return this;
 };
 
 /**
- * Enables checking for global variables leaked while running tests.
- *
+ * Enables or disables whether or not to dispose after each test run.
+ * Disable this to ensure you can run the test suite multiple times.
+ * If disabled, be sure to dispose mocha when you're done to prevent memory leaks.
  * @public
- * @see {@link https://mochajs.org/#--check-leaks|CLI option}
- * @see {@link Mocha#ignoreLeaks}
+ * @see {@link Mocha#dispose}
+ * @param {boolean} cleanReferencesAfterRun
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.checkLeaks = function() {
-  this.options.ignoreLeaks = false;
+Mocha.prototype.cleanReferencesAfterRun = function(cleanReferencesAfterRun) {
+  this._cleanReferencesAfterRun = cleanReferencesAfterRun !== false;
   return this;
+};
+
+/**
+ * Manually dispose this mocha instance. Mark this instance as `disposed` and unable to run more tests.
+ * It also removes function references to tests functions and hooks, so variables trapped in closures can be cleaned by the garbage collector.
+ * @public
+ */
+Mocha.prototype.dispose = function() {
+  if (this._state === mochaStates.RUNNING) {
+    throw createMochaInstanceAlreadyRunningError(
+      'Cannot dispose while the mocha instance is still running tests.'
+    );
+  }
+  this.unloadFiles();
+  this._previousRunner && this._previousRunner.dispose();
+  this.suite.dispose();
+  this._state = mochaStates.DISPOSED;
 };
 
 /**
  * Displays full stack trace upon test failure.
  *
  * @public
+ * @see [CLI option](../#-full-trace)
+ * @param {boolean} [fullTrace=true] - Whether to print full stacktrace upon failure.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.fullTrace = function() {
-  this.options.fullStackTrace = true;
+Mocha.prototype.fullTrace = function(fullTrace) {
+  this.options.fullTrace = fullTrace !== false;
   return this;
 };
 
@@ -1890,15 +2241,14 @@ Mocha.prototype.fullTrace = function() {
  * Enables desktop notification support if prerequisite software installed.
  *
  * @public
- * @see {@link Mocha#isGrowlCapable}
- * @see {@link Mocha#_growl}
+ * @see [CLI option](../#-growl-g)
  * @return {Mocha} this
  * @chainable
  */
 Mocha.prototype.growl = function() {
   this.options.growl = this.isGrowlCapable();
   if (!this.options.growl) {
-    var detail = process.browser
+    var detail = utils.isBrowser()
       ? 'notification support not available in this browser...'
       : 'notification support prerequisites not installed...';
     console.error(detail + ' cannot enable!');
@@ -1934,62 +2284,68 @@ Mocha.prototype._growl = growl.notify;
  * Specifies whitelist of variable names to be expected in global scope.
  *
  * @public
- * @see {@link https://mochajs.org/#--globals-names|CLI option}
+ * @see [CLI option](../#-global-variable-name)
  * @see {@link Mocha#checkLeaks}
- * @param {String[]|String} globals - Accepted global variable name(s).
+ * @param {String[]|String} global - Accepted global variable name(s).
  * @return {Mocha} this
  * @chainable
  * @example
  *
  * // Specify variables to be expected in global scope
- * mocha.globals(['jQuery', 'MyLib']);
+ * mocha.global(['jQuery', 'MyLib']);
  */
-Mocha.prototype.globals = function(globals) {
-  this.options.globals = (this.options.globals || [])
-    .concat(globals)
-    .filter(Boolean);
+Mocha.prototype.global = function(global) {
+  this.options.global = (this.options.global || [])
+    .concat(global)
+    .filter(Boolean)
+    .filter(function(elt, idx, arr) {
+      return arr.indexOf(elt) === idx;
+    });
   return this;
 };
+// for backwards compability, 'globals' is an alias of 'global'
+Mocha.prototype.globals = Mocha.prototype.global;
 
 /**
  * Enables or disables TTY color output by screen-oriented reporters.
  *
  * @public
- * @param {boolean} colors - Whether to enable color output.
+ * @see [CLI option](../#-color-c-colors)
+ * @param {boolean} [color=true] - Whether to enable color output.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.useColors = function(colors) {
-  if (colors !== undefined) {
-    this.options.useColors = colors;
-  }
+Mocha.prototype.color = function(color) {
+  this.options.color = color !== false;
   return this;
 };
 
 /**
- * Determines if reporter should use inline diffs (rather than +/-)
+ * Enables or disables reporter to use inline diffs (rather than +/-)
  * in test failure output.
  *
  * @public
- * @param {boolean} inlineDiffs - Whether to use inline diffs.
+ * @see [CLI option](../#-inline-diffs)
+ * @param {boolean} [inlineDiffs=true] - Whether to use inline diffs.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.useInlineDiffs = function(inlineDiffs) {
-  this.options.useInlineDiffs = inlineDiffs !== undefined && inlineDiffs;
+Mocha.prototype.inlineDiffs = function(inlineDiffs) {
+  this.options.inlineDiffs = inlineDiffs !== false;
   return this;
 };
 
 /**
- * Determines if reporter should include diffs in test failure output.
+ * Enables or disables reporter to include diff in test failure output.
  *
  * @public
- * @param {boolean} hideDiff - Whether to hide diffs.
+ * @see [CLI option](../#-diff)
+ * @param {boolean} [diff=true] - Whether to show diff on failure.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.hideDiff = function(hideDiff) {
-  this.options.hideDiff = hideDiff !== undefined && hideDiff;
+Mocha.prototype.diff = function(diff) {
+  this.options.diff = diff !== false;
   return this;
 };
 
@@ -2002,10 +2358,8 @@ Mocha.prototype.hideDiff = function(hideDiff) {
  * If the value is `0`, timeouts will be disabled.
  *
  * @public
- * @see {@link https://mochajs.org/#-t---timeout-ms|CLI option}
- * @see {@link https://mochajs.org/#--no-timeouts|CLI option}
- * @see {@link https://mochajs.org/#timeouts|Timeouts}
- * @see {@link Mocha#enableTimeouts}
+ * @see [CLI option](../#-timeout-ms-t-ms)
+ * @see [Timeouts](../#timeouts)
  * @param {number|string} msecs - Timeout threshold value.
  * @return {Mocha} this
  * @chainable
@@ -2027,7 +2381,8 @@ Mocha.prototype.timeout = function(msecs) {
  * Sets the number of times to retry failed tests.
  *
  * @public
- * @see {@link https://mochajs.org/#retry-tests|Retry Tests}
+ * @see [CLI option](../#-retries-n)
+ * @see [Retry Tests](../#retry-tests)
  * @param {number} retry - Number of times to retry failed tests.
  * @return {Mocha} this
  * @chainable
@@ -2045,7 +2400,7 @@ Mocha.prototype.retries = function(n) {
  * Sets slowness threshold value.
  *
  * @public
- * @see {@link https://mochajs.org/#-s---slow-ms|CLI option}
+ * @see [CLI option](../#-slow-ms-s-ms)
  * @param {number} msecs - Slowness threshold value.
  * @return {Mocha} this
  * @chainable
@@ -2064,31 +2419,16 @@ Mocha.prototype.slow = function(msecs) {
 };
 
 /**
- * Enables or disables timeouts.
- *
- * @public
- * @see {@link https://mochajs.org/#-t---timeout-ms|CLI option}
- * @see {@link https://mochajs.org/#--no-timeouts|CLI option}
- * @param {boolean} enableTimeouts - Whether to enable timeouts.
- * @return {Mocha} this
- * @chainable
- */
-Mocha.prototype.enableTimeouts = function(enableTimeouts) {
-  this.suite.enableTimeouts(
-    arguments.length && enableTimeouts !== undefined ? enableTimeouts : true
-  );
-  return this;
-};
-
-/**
  * Forces all tests to either accept a `done` callback or return a promise.
  *
  * @public
+ * @see [CLI option](../#-async-only-a)
+ * @param {boolean} [asyncOnly=true] - Wether to force `done` callback or promise.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.asyncOnly = function() {
-  this.options.asyncOnly = true;
+Mocha.prototype.asyncOnly = function(asyncOnly) {
+  this.options.asyncOnly = asyncOnly !== false;
   return this;
 };
 
@@ -2105,14 +2445,16 @@ Mocha.prototype.noHighlighting = function() {
 };
 
 /**
- * Enables uncaught errors to propagate (in browser).
+ * Enables or disables uncaught errors to propagate.
  *
  * @public
+ * @see [CLI option](../#-allow-uncaught)
+ * @param {boolean} [allowUncaught=true] - Whether to propagate uncaught errors.
  * @return {Mocha} this
  * @chainable
  */
-Mocha.prototype.allowUncaught = function() {
-  this.options.allowUncaught = true;
+Mocha.prototype.allowUncaught = function(allowUncaught) {
+  this.options.allowUncaught = allowUncaught !== false;
   return this;
 };
 
@@ -2124,7 +2466,7 @@ Mocha.prototype.allowUncaught = function() {
  * Used to perform asynch operations before any suites are run.
  *
  * @public
- * @see {@link https://mochajs.org/#delayed-root-suite|delayed root suite}
+ * @see [delayed root suite](../#delayed-root-suite)
  * @returns {Mocha} this
  * @chainable
  */
@@ -2137,11 +2479,13 @@ Mocha.prototype.delay = function delay() {
  * Causes tests marked `only` to fail the suite.
  *
  * @public
+ * @see [CLI option](../#-forbid-only)
+ * @param {boolean} [forbidOnly=true] - Whether tests marked `only` fail the suite.
  * @returns {Mocha} this
  * @chainable
  */
-Mocha.prototype.forbidOnly = function() {
-  this.options.forbidOnly = true;
+Mocha.prototype.forbidOnly = function(forbidOnly) {
+  this.options.forbidOnly = forbidOnly !== false;
   return this;
 };
 
@@ -2149,12 +2493,37 @@ Mocha.prototype.forbidOnly = function() {
  * Causes pending tests and tests marked `skip` to fail the suite.
  *
  * @public
+ * @see [CLI option](../#-forbid-pending)
+ * @param {boolean} [forbidPending=true] - Whether pending tests fail the suite.
  * @returns {Mocha} this
  * @chainable
  */
-Mocha.prototype.forbidPending = function() {
-  this.options.forbidPending = true;
+Mocha.prototype.forbidPending = function(forbidPending) {
+  this.options.forbidPending = forbidPending !== false;
   return this;
+};
+
+/**
+ * Throws an error if mocha is in the wrong state to be able to transition to a "running" state.
+ * @private
+ */
+Mocha.prototype._guardRunningStateTransition = function() {
+  if (this._state === mochaStates.RUNNING) {
+    throw createMochaInstanceAlreadyRunningError(
+      'Mocha instance is currently running tests, cannot start a next test run until this one is done',
+      this
+    );
+  }
+  if (
+    this._state === mochaStates.DISPOSED ||
+    this._state === mochaStates.REFERENCES_CLEANED
+  ) {
+    throw createMochaInstanceAlreadyDisposedError(
+      'Mocha instance is already disposed, cannot start a new test run. Please create a new mocha instance. Be sure to set disable `cleanReferencesAfterRun` when you want to reuse the same mocha instance for multiple test runs.',
+      this._cleanReferencesAfterRun,
+      this
+    );
+  }
 };
 
 /**
@@ -2187,24 +2556,37 @@ Object.defineProperty(Mocha.prototype, 'version', {
  * the cache first!
  *
  * @public
- * @see {@link Mocha#loadFiles}
  * @see {@link Mocha#unloadFiles}
  * @see {@link Runner#run}
  * @param {DoneCB} [fn] - Callback invoked when test execution completed.
- * @return {Runner} runner instance
+ * @returns {Runner} runner instance
+ * @example
+ *
+ * // exit with non-zero status if there were test failures
+ * mocha.run(failures => process.exitCode = failures ? 1 : 0);
  */
 Mocha.prototype.run = function(fn) {
-  if (this.files.length) {
+  this._guardRunningStateTransition();
+  this._state = mochaStates.RUNNING;
+  if (this._previousRunner) {
+    this._previousRunner.dispose();
+    this.suite.reset();
+  }
+  if (this.files.length && !this._lazyLoadFiles) {
     this.loadFiles();
   }
+  var self = this;
   var suite = this.suite;
   var options = this.options;
   options.files = this.files;
-  var runner = new exports.Runner(suite, options.delay);
+  var runner = new this._runnerClass(suite, {
+    delay: options.delay,
+    cleanReferencesAfterRun: this._cleanReferencesAfterRun
+  });
   createStatsCollector(runner);
   var reporter = new this._reporter(runner, options);
-  runner.ignoreLeaks = options.ignoreLeaks !== false;
-  runner.fullStackTrace = options.fullStackTrace;
+  runner.checkLeaks = options.checkLeaks === true;
+  runner.fullStackTrace = options.fullTrace;
   runner.asyncOnly = options.asyncOnly;
   runner.allowUncaught = options.allowUncaught;
   runner.forbidOnly = options.forbidOnly;
@@ -2212,19 +2594,25 @@ Mocha.prototype.run = function(fn) {
   if (options.grep) {
     runner.grep(options.grep, options.invert);
   }
-  if (options.globals) {
-    runner.globals(options.globals);
+  if (options.global) {
+    runner.globals(options.global);
   }
   if (options.growl) {
     this._growl(runner);
   }
-  if (options.useColors !== undefined) {
-    exports.reporters.Base.useColors = options.useColors;
+  if (options.color !== undefined) {
+    exports.reporters.Base.useColors = options.color;
   }
-  exports.reporters.Base.inlineDiffs = options.useInlineDiffs;
-  exports.reporters.Base.hideDiff = options.hideDiff;
+  exports.reporters.Base.inlineDiffs = options.inlineDiffs;
+  exports.reporters.Base.hideDiff = !options.diff;
 
   function done(failures) {
+    self._previousRunner = runner;
+    if (self._cleanReferencesAfterRun) {
+      self._state = mochaStates.REFERENCES_CLEANED;
+    } else {
+      self._state = mochaStates.INIT;
+    }
     fn = fn || utils.noop;
     if (reporter.done) {
       reporter.done(failures, fn);
@@ -2233,20 +2621,122 @@ Mocha.prototype.run = function(fn) {
     }
   }
 
-  return runner.run(done);
+  return runner.run(done, {files: this.files, options: options});
 };
 
-}).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../package.json":90,"./context":5,"./errors":6,"./growl":2,"./hook":7,"./interfaces":11,"./mocharc.json":15,"./reporters":21,"./runnable":33,"./runner":34,"./stats-collector":35,"./suite":36,"./test":37,"./utils":38,"_process":69,"escape-string-regexp":49,"path":42}],15:[function(require,module,exports){
+/**
+ * Assigns hooks to the root suite
+ * @param {MochaRootHookObject} [hooks] - Hooks to assign to root suite
+ * @chainable
+ */
+Mocha.prototype.rootHooks = function rootHooks(hooks) {
+  if (utils.type(hooks) === 'object') {
+    var beforeAll = [].concat(hooks.beforeAll || []);
+    var beforeEach = [].concat(hooks.beforeEach || []);
+    var afterAll = [].concat(hooks.afterAll || []);
+    var afterEach = [].concat(hooks.afterEach || []);
+    var rootSuite = this.suite;
+    beforeAll.forEach(function(hook) {
+      rootSuite.beforeAll(hook);
+    });
+    beforeEach.forEach(function(hook) {
+      rootSuite.beforeEach(hook);
+    });
+    afterAll.forEach(function(hook) {
+      rootSuite.afterAll(hook);
+    });
+    afterEach.forEach(function(hook) {
+      rootSuite.afterEach(hook);
+    });
+  }
+  return this;
+};
+
+/**
+ * Toggles parallel mode.
+ *
+ * Must be run before calling {@link Mocha#run}. Changes the `Runner` class to
+ * use; also enables lazy file loading if not already done so.
+ * @param {boolean} [enable] - If `true`, enable; otherwise disable.
+ * @throws If run in browser
+ * @throws If Mocha not in "INIT" state
+ * @returns {Mocha}
+ * @chainable
+ * @public
+ */
+Mocha.prototype.parallelMode = function parallelMode(enable) {
+  if (utils.isBrowser()) {
+    throw errors.createUnsupportedError(
+      'parallel mode is only supported in Node.js'
+    );
+  }
+  var parallel = enable === true;
+  if (
+    parallel === this.options.parallel &&
+    this._lazyLoadFiles &&
+    this._runnerClass !== exports.Runner
+  ) {
+    return this;
+  }
+  if (this._state !== mochaStates.INIT) {
+    throw errors.createUnsupportedError(
+      'cannot change parallel mode after having called run()'
+    );
+  }
+  this.options.parallel = parallel;
+
+  // swap Runner class
+  this._runnerClass = parallel
+    ? require('./nodejs/parallel-buffered-runner')
+    : exports.Runner;
+
+  // lazyLoadFiles may have been set `true` otherwise (for ESM loading),
+  // so keep `true` if so.
+  return this.lazyLoadFiles(this._lazyLoadFiles || parallel);
+};
+
+/**
+ * Disables implicit call to {@link Mocha#loadFiles} in {@link Mocha#run}. This
+ * setting is used by watch mode, parallel mode, and for loading ESM files.
+ * @todo This should throw if we've already loaded files; such behavior
+ * necessitates adding a new state.
+ * @param {boolean} [enable] - If `true`, disable eager loading of files in
+ * {@link Mocha#run}
+ * @chainable
+ * @public
+ */
+Mocha.prototype.lazyLoadFiles = function lazyLoadFiles(enable) {
+  this._lazyLoadFiles = enable === true;
+  debug('set lazy load to %s', enable);
+  return this;
+};
+
+/**
+ * An alternative way to define root hooks that works with parallel runs.
+ * @typedef {Object} MochaRootHookObject
+ * @property {Function|Function[]} [beforeAll] - "Before all" hook(s)
+ * @property {Function|Function[]} [beforeEach] - "Before each" hook(s)
+ * @property {Function|Function[]} [afterAll] - "After all" hook(s)
+ * @property {Function|Function[]} [afterEach] - "After each" hook(s)
+ */
+
+/**
+ * An function that returns a {@link MochaRootHookObject}, either sync or async.
+ * @callback MochaRootHookFunction
+ * @returns {MochaRootHookObject|Promise<MochaRootHookObject>}
+ */
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"../package.json":90,"./context":5,"./errors":6,"./esm-utils":42,"./hook":7,"./interfaces":11,"./mocharc.json":15,"./nodejs/growl":2,"./nodejs/parallel-buffered-runner":40,"./reporters":21,"./runnable":33,"./runner":34,"./stats-collector":35,"./suite":36,"./test":37,"./utils":38,"debug":45,"escape-string-regexp":49,"path":42}],15:[function(require,module,exports){
 module.exports={
   "diff": true,
-  "extension": ["js"],
-  "opts": "./test/mocha.opts",
+  "extension": ["js", "cjs", "mjs"],
   "package": "./package.json",
   "reporter": "spec",
   "slow": 75,
   "timeout": 2000,
-  "ui": "bdd"
+  "ui": "bdd",
+  "watch-ignore": ["node_modules", ".git"]
 }
 
 },{}],16:[function(require,module,exports){
@@ -2277,7 +2767,7 @@ var tty = require('tty');
 var diff = require('diff');
 var milliseconds = require('ms');
 var utils = require('../utils');
-var supportsColor = process.browser ? null : require('supports-color');
+var supportsColor = utils.isBrowser() ? null : require('supports-color');
 var constants = require('../runner').constants;
 var EVENT_TEST_PASS = constants.EVENT_TEST_PASS;
 var EVENT_TEST_FAIL = constants.EVENT_TEST_FAIL;
@@ -2292,14 +2782,19 @@ exports = module.exports = Base;
  * Check if both stdio streams are associated with a tty.
  */
 
-var isatty = tty.isatty(1) && tty.isatty(2);
+var isatty = process.stdout.isTTY && process.stderr.isTTY;
+
+/**
+ * Save log references to avoid tests interfering (see GH-3604).
+ */
+var consoleLog = console.log;
 
 /**
  * Enable coloring by default, except in the browser interface.
  */
 
 exports.useColors =
-  !process.browser &&
+  !utils.isBrowser() &&
   (supportsColor.stdout || process.env.MOCHA_COLORS !== undefined);
 
 /**
@@ -2416,14 +2911,14 @@ exports.cursor = {
   }
 };
 
-function showDiff(err) {
+var showDiff = (exports.showDiff = function(err) {
   return (
     err &&
     err.showDiff !== false &&
     sameType(err.actual, err.expected) &&
     err.expected !== undefined
   );
-}
+});
 
 function stringifyDiffObjs(err) {
   if (!utils.isString(err.actual) || !utils.isString(err.expected)) {
@@ -2444,9 +2939,19 @@ function stringifyDiffObjs(err) {
  * @return {string} Diff
  */
 var generateDiff = (exports.generateDiff = function(actual, expected) {
-  return exports.inlineDiffs
-    ? inlineDiff(actual, expected)
-    : unifiedDiff(actual, expected);
+  try {
+    return exports.inlineDiffs
+      ? inlineDiff(actual, expected)
+      : unifiedDiff(actual, expected);
+  } catch (err) {
+    var msg =
+      '\n      ' +
+      color('diff added', '+ expected') +
+      ' ' +
+      color('diff removed', '- actual:  failed to generate Mocha diff') +
+      '\n';
+    return msg;
+  }
 });
 
 /**
@@ -2459,7 +2964,8 @@ var generateDiff = (exports.generateDiff = function(actual, expected) {
  *     Error property
  */
 exports.list = function(failures) {
-  console.log();
+  var multipleErr, multipleTest;
+  Base.consoleLog();
   failures.forEach(function(test, i) {
     // format
     var fmt =
@@ -2469,7 +2975,16 @@ exports.list = function(failures) {
 
     // msg
     var msg;
-    var err = test.err;
+    var err;
+    if (test.err && test.err.multiple) {
+      if (multipleTest !== test) {
+        multipleTest = test;
+        multipleErr = [test.err].concat(test.err.multiple);
+      }
+      err = multipleErr.shift();
+    } else {
+      err = test.err;
+    }
     var message;
     if (err.message && typeof err.message.toString === 'function') {
       message = err.message + '';
@@ -2520,7 +3035,7 @@ exports.list = function(failures) {
       testTitle += str;
     });
 
-    console.log(fmt, i + 1, testTitle, msg, stack);
+    Base.consoleLog(fmt, i + 1, testTitle, msg, stack);
   });
 };
 
@@ -2560,7 +3075,12 @@ function Base(runner, options) {
     if (showDiff(err)) {
       stringifyDiffObjs(err);
     }
-    test.err = err;
+    // more than one error per test
+    if (test.err && err instanceof Error) {
+      test.err.multiple = (test.err.multiple || []).concat(err);
+    } else {
+      test.err = err;
+    }
     failures.push(test);
   });
 }
@@ -2569,13 +3089,13 @@ function Base(runner, options) {
  * Outputs common epilogue used by many of the bundled reporters.
  *
  * @public
- * @memberof Mocha.reporters.Base
+ * @memberof Mocha.reporters
  */
 Base.prototype.epilogue = function() {
   var stats = this.stats;
   var fmt;
 
-  console.log();
+  Base.consoleLog();
 
   // passes
   fmt =
@@ -2583,26 +3103,26 @@ Base.prototype.epilogue = function() {
     color('green', ' %d passing') +
     color('light', ' (%s)');
 
-  console.log(fmt, stats.passes || 0, milliseconds(stats.duration));
+  Base.consoleLog(fmt, stats.passes || 0, milliseconds(stats.duration));
 
   // pending
   if (stats.pending) {
     fmt = color('pending', ' ') + color('pending', ' %d pending');
 
-    console.log(fmt, stats.pending);
+    Base.consoleLog(fmt, stats.pending);
   }
 
   // failures
   if (stats.failures) {
     fmt = color('fail', '  %d failing');
 
-    console.log(fmt, stats.failures);
+    Base.consoleLog(fmt, stats.failures);
 
     Base.list(this.failures);
-    console.log();
+    Base.consoleLog();
   }
 
-  console.log();
+  Base.consoleLog();
 };
 
 /**
@@ -2755,10 +3275,12 @@ function sameType(a, b) {
   return objToString.call(a) === objToString.call(b);
 }
 
+Base.consoleLog = consoleLog;
+
 Base.abstract = true;
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"_process":69,"diff":48,"ms":60,"supports-color":42,"tty":4}],18:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"_process":67,"diff":48,"ms":58,"supports-color":42,"tty":4}],18:[function(require,module,exports){
 'use strict';
 /**
  * @module Doc
@@ -2805,41 +3327,51 @@ function Doc(runner, options) {
       return;
     }
     ++indents;
-    console.log('%s<section class="suite">', indent());
+    Base.consoleLog('%s<section class="suite">', indent());
     ++indents;
-    console.log('%s<h1>%s</h1>', indent(), utils.escape(suite.title));
-    console.log('%s<dl>', indent());
+    Base.consoleLog('%s<h1>%s</h1>', indent(), utils.escape(suite.title));
+    Base.consoleLog('%s<dl>', indent());
   });
 
   runner.on(EVENT_SUITE_END, function(suite) {
     if (suite.root) {
       return;
     }
-    console.log('%s</dl>', indent());
+    Base.consoleLog('%s</dl>', indent());
     --indents;
-    console.log('%s</section>', indent());
+    Base.consoleLog('%s</section>', indent());
     --indents;
   });
 
   runner.on(EVENT_TEST_PASS, function(test) {
-    console.log('%s  <dt>%s</dt>', indent(), utils.escape(test.title));
+    Base.consoleLog('%s  <dt>%s</dt>', indent(), utils.escape(test.title));
+    Base.consoleLog('%s  <dt>%s</dt>', indent(), utils.escape(test.file));
     var code = utils.escape(utils.clean(test.body));
-    console.log('%s  <dd><pre><code>%s</code></pre></dd>', indent(), code);
+    Base.consoleLog('%s  <dd><pre><code>%s</code></pre></dd>', indent(), code);
   });
 
   runner.on(EVENT_TEST_FAIL, function(test, err) {
-    console.log(
+    Base.consoleLog(
       '%s  <dt class="error">%s</dt>',
       indent(),
       utils.escape(test.title)
     );
+    Base.consoleLog(
+      '%s  <dt class="error">%s</dt>',
+      indent(),
+      utils.escape(test.file)
+    );
     var code = utils.escape(utils.clean(test.body));
-    console.log(
+    Base.consoleLog(
       '%s  <dd class="error"><pre><code>%s</code></pre></dd>',
       indent(),
       code
     );
-    console.log('%s  <dd class="error">%s</dd>', indent(), utils.escape(err));
+    Base.consoleLog(
+      '%s  <dd class="error">%s</dd>',
+      indent(),
+      utils.escape(err)
+    );
   });
 }
 
@@ -2917,7 +3449,7 @@ function Dot(runner, options) {
   });
 
   runner.once(EVENT_RUN_END, function() {
-    console.log();
+    process.stdout.write('\n');
     self.epilogue();
   });
 }
@@ -2930,7 +3462,7 @@ inherits(Dot, Base);
 Dot.description = 'dot matrix representation';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],20:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],20:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -3291,8 +3823,8 @@ function hideSuitesWithout(classname) {
  */
 function unhide() {
   var els = document.getElementsByClassName('suite hidden');
-  for (var i = 0; i < els.length; ++i) {
-    els[i].className = els[i].className.replace('suite hidden', 'suite');
+  while (els.length > 0) {
+    els[0].className = els[0].className.replace('suite hidden', 'suite');
   }
 }
 
@@ -3431,6 +3963,7 @@ function clean(test) {
   return {
     title: test.title,
     fullTitle: test.fullTitle(),
+    file: test.file,
     duration: test.duration,
     currentRetry: test.currentRetry()
   };
@@ -3439,7 +3972,7 @@ function clean(test) {
 JSONStream.description = 'newline delimited JSON events';
 
 }).call(this,require('_process'))
-},{"../runner":34,"./base":17,"_process":69}],23:[function(require,module,exports){
+},{"../runner":34,"./base":17,"_process":67}],23:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -3530,6 +4063,7 @@ function clean(test) {
   return {
     title: test.title,
     fullTitle: test.fullTitle(),
+    file: test.file,
     duration: test.duration,
     currentRetry: test.currentRetry(),
     err: cleanCycles(err)
@@ -3578,7 +4112,7 @@ function errorJSON(err) {
 JSONReporter.description = 'single JSON object';
 
 }).call(this,require('_process'))
-},{"../runner":34,"./base":17,"_process":69}],24:[function(require,module,exports){
+},{"../runner":34,"./base":17,"_process":67}],24:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -3638,11 +4172,12 @@ function Landing(runner, options) {
 
   var self = this;
   var width = (Base.window.width * 0.75) | 0;
-  var total = runner.total;
   var stream = process.stdout;
+
   var plane = color('plane', '✈');
   var crashed = -1;
   var n = 0;
+  var total = 0;
 
   function runway() {
     var buf = Array(width).join('-');
@@ -3656,8 +4191,7 @@ function Landing(runner, options) {
 
   runner.on(EVENT_TEST_END, function(test) {
     // check if the plane crashed
-    var col = crashed === -1 ? ((width * ++n) / total) | 0 : crashed;
-
+    var col = crashed === -1 ? ((width * ++n) / ++total) | 0 : crashed;
     // show the crash
     if (test.state === STATE_FAILED) {
       plane = color('plane crash', '✈');
@@ -3677,8 +4211,16 @@ function Landing(runner, options) {
 
   runner.once(EVENT_RUN_END, function() {
     cursor.show();
-    console.log();
+    process.stdout.write('\n');
     self.epilogue();
+  });
+
+  // if cursor is hidden when we ctrl-C, then it will remain hidden unless...
+  process.once('SIGINT', function() {
+    cursor.show();
+    process.nextTick(function() {
+      process.kill(process.pid, 'SIGINT');
+    });
   });
 }
 
@@ -3690,7 +4232,7 @@ inherits(Landing, Base);
 Landing.description = 'Unicode landing strip';
 
 }).call(this,require('_process'))
-},{"../runnable":33,"../runner":34,"../utils":38,"./base":17,"_process":69}],25:[function(require,module,exports){
+},{"../runnable":33,"../runner":34,"../utils":38,"./base":17,"_process":67}],25:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -3735,7 +4277,7 @@ function List(runner, options) {
   var n = 0;
 
   runner.on(EVENT_RUN_BEGIN, function() {
-    console.log();
+    Base.consoleLog();
   });
 
   runner.on(EVENT_TEST_BEGIN, function(test) {
@@ -3744,7 +4286,7 @@ function List(runner, options) {
 
   runner.on(EVENT_TEST_PENDING, function(test) {
     var fmt = color('checkmark', '  -') + color('pending', ' %s');
-    console.log(fmt, test.fullTitle());
+    Base.consoleLog(fmt, test.fullTitle());
   });
 
   runner.on(EVENT_TEST_PASS, function(test) {
@@ -3753,12 +4295,12 @@ function List(runner, options) {
       color('pass', ' %s: ') +
       color(test.speed, '%dms');
     cursor.CR();
-    console.log(fmt, test.fullTitle(), test.duration);
+    Base.consoleLog(fmt, test.fullTitle(), test.duration);
   });
 
   runner.on(EVENT_TEST_FAIL, function(test) {
     cursor.CR();
-    console.log(color('fail', '  %d) %s'), ++n, test.fullTitle());
+    Base.consoleLog(color('fail', '  %d) %s'), ++n, test.fullTitle());
   });
 
   runner.once(EVENT_RUN_END, self.epilogue.bind(self));
@@ -3772,7 +4314,7 @@ inherits(List, Base);
 List.description = 'like "spec" reporter but flat';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],26:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],26:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -3888,7 +4430,7 @@ function Markdown(runner, options) {
 Markdown.description = 'GitHub Flavored Markdown';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],27:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],27:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -3944,7 +4486,7 @@ inherits(Min, Base);
 Min.description = 'essentially just a summary';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],28:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],28:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -4224,7 +4766,7 @@ function write(string) {
 NyanCat.description = '"nyan cat"';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],29:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],29:[function(require,module,exports){
 (function (process){
 'use strict';
 /**
@@ -4286,7 +4828,7 @@ function Progress(runner, options) {
 
   // tests started
   runner.on(EVENT_RUN_BEGIN, function() {
-    console.log();
+    process.stdout.write('\n');
     cursor.hide();
   });
 
@@ -4319,7 +4861,7 @@ function Progress(runner, options) {
   // and the failures if any
   runner.once(EVENT_RUN_END, function() {
     cursor.show();
-    console.log();
+    process.stdout.write('\n');
     self.epilogue();
   });
 }
@@ -4332,7 +4874,7 @@ inherits(Progress, Base);
 Progress.description = 'a progress bar';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69}],30:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67}],30:[function(require,module,exports){
 'use strict';
 /**
  * @module Spec
@@ -4381,24 +4923,24 @@ function Spec(runner, options) {
   }
 
   runner.on(EVENT_RUN_BEGIN, function() {
-    console.log();
+    Base.consoleLog();
   });
 
   runner.on(EVENT_SUITE_BEGIN, function(suite) {
     ++indents;
-    console.log(color('suite', '%s%s'), indent(), suite.title);
+    Base.consoleLog(color('suite', '%s%s'), indent(), suite.title);
   });
 
   runner.on(EVENT_SUITE_END, function() {
     --indents;
     if (indents === 1) {
-      console.log();
+      Base.consoleLog();
     }
   });
 
   runner.on(EVENT_TEST_PENDING, function(test) {
     var fmt = indent() + color('pending', '  - %s');
-    console.log(fmt, test.title);
+    Base.consoleLog(fmt, test.title);
   });
 
   runner.on(EVENT_TEST_PASS, function(test) {
@@ -4408,19 +4950,19 @@ function Spec(runner, options) {
         indent() +
         color('checkmark', '  ' + Base.symbols.ok) +
         color('pass', ' %s');
-      console.log(fmt, test.title);
+      Base.consoleLog(fmt, test.title);
     } else {
       fmt =
         indent() +
         color('checkmark', '  ' + Base.symbols.ok) +
         color('pass', ' %s') +
         color(test.speed, ' (%dms)');
-      console.log(fmt, test.title, test.duration);
+      Base.consoleLog(fmt, test.title, test.duration);
     }
   });
 
   runner.on(EVENT_TEST_FAIL, function(test) {
-    console.log(indent() + color('fail', '  %d) %s'), ++n, test.title);
+    Base.consoleLog(indent() + color('fail', '  %d) %s'), ++n, test.title);
   });
 
   runner.once(EVENT_RUN_END, self.epilogue.bind(self));
@@ -4487,9 +5029,7 @@ function TAP(runner, options) {
   this._producer = createProducer(tapVersion);
 
   runner.once(EVENT_RUN_BEGIN, function() {
-    var ntests = runner.grepTotal(runner.suite);
     self._producer.writeVersion();
-    self._producer.writePlan(ntests);
   });
 
   runner.on(EVENT_TEST_END, function() {
@@ -4641,6 +5181,7 @@ TAPProducer.prototype.writeEpilogue = function(stats) {
   println('# pass ' + stats.passes);
   // :TBD: Why are we not showing pending results?
   println('# fail ' + stats.failures);
+  this.writePlan(stats.passes + stats.failures + stats.pending);
 };
 
 /**
@@ -4731,7 +5272,7 @@ inherits(TAP13Producer, TAPProducer);
 TAP.description = 'TAP-compatible output';
 
 }).call(this,require('_process'))
-},{"../runner":34,"../utils":38,"./base":17,"_process":69,"util":89}],32:[function(require,module,exports){
+},{"../runner":34,"../utils":38,"./base":17,"_process":67,"util":89}],32:[function(require,module,exports){
 (function (process,global){
 'use strict';
 /**
@@ -4744,7 +5285,6 @@ TAP.description = 'TAP-compatible output';
 var Base = require('./base');
 var utils = require('../utils');
 var fs = require('fs');
-var mkdirp = require('mkdirp');
 var path = require('path');
 var errors = require('../errors');
 var createUnsupportedError = errors.createUnsupportedError;
@@ -4797,7 +5337,9 @@ function XUnit(runner, options) {
         throw createUnsupportedError('file output not supported in browser');
       }
 
-      mkdirp.sync(path.dirname(options.reporterOptions.output));
+      fs.mkdirSync(path.dirname(options.reporterOptions.output), {
+        recursive: true
+      });
       self.fileStream = fs.createWriteStream(options.reporterOptions.output);
     }
 
@@ -4877,7 +5419,7 @@ XUnit.prototype.write = function(line) {
   } else if (typeof process === 'object' && process.stdout) {
     process.stdout.write(line + '\n');
   } else {
-    console.log(line);
+    Base.consoleLog(line);
   }
 };
 
@@ -4898,9 +5440,9 @@ XUnit.prototype.test = function(test) {
   if (test.state === STATE_FAILED) {
     var err = test.err;
     var diff =
-      Base.hideDiff || !err.actual || !err.expected
-        ? ''
-        : '\n' + Base.generateDiff(err.actual, err.expected);
+      !Base.hideDiff && Base.showDiff(err)
+        ? '\n' + Base.generateDiff(err.actual, err.expected)
+        : '';
     this.write(
       tag(
         'testcase',
@@ -4951,7 +5493,7 @@ function tag(name, attrs, close, content) {
 XUnit.description = 'XUnit-compatible XML output';
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../errors":6,"../runnable":33,"../runner":34,"../utils":38,"./base":17,"_process":69,"fs":42,"mkdirp":59,"path":42}],33:[function(require,module,exports){
+},{"../errors":6,"../runnable":33,"../runner":34,"../utils":38,"./base":17,"_process":67,"fs":42,"path":42}],33:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -4960,8 +5502,9 @@ var Pending = require('./pending');
 var debug = require('debug')('mocha:runnable');
 var milliseconds = require('ms');
 var utils = require('./utils');
-var createInvalidExceptionError = require('./errors')
-  .createInvalidExceptionError;
+var errors = require('./errors');
+var createInvalidExceptionError = errors.createInvalidExceptionError;
+var createMultipleDoneError = errors.createMultipleDoneError;
 
 /**
  * Save timer references to avoid Sinon interfering (see GH-237).
@@ -4990,17 +5533,25 @@ function Runnable(title, fn) {
   this.sync = !this.async;
   this._timeout = 2000;
   this._slow = 75;
-  this._enableTimeouts = true;
-  this.timedOut = false;
   this._retries = -1;
-  this._currentRetry = 0;
-  this.pending = false;
+  this.reset();
 }
 
 /**
  * Inherit from `EventEmitter.prototype`.
  */
 utils.inherits(Runnable, EventEmitter);
+
+/**
+ * Resets the state initially or for a next run.
+ */
+Runnable.prototype.reset = function() {
+  this.timedOut = false;
+  this._currentRetry = 0;
+  this.pending = false;
+  delete this.state;
+  delete this.err;
+};
 
 /**
  * Get current timeout value in msecs.
@@ -5038,10 +5589,12 @@ Runnable.prototype.timeout = function(ms) {
 
   // see #1652 for reasoning
   if (ms === range[0] || ms === range[1]) {
-    this._enableTimeouts = false;
+    this._timeout = 0;
+  } else {
+    this._timeout = ms;
   }
-  debug('timeout %d', ms);
-  this._timeout = ms;
+  debug('timeout %d', this._timeout);
+
   if (this.timer) {
     this.resetTimeout();
   }
@@ -5068,29 +5621,14 @@ Runnable.prototype.slow = function(ms) {
 };
 
 /**
- * Set and get whether timeout is `enabled`.
- *
- * @private
- * @param {boolean} enabled
- * @return {Runnable|boolean} enabled or Runnable instance.
- */
-Runnable.prototype.enableTimeouts = function(enabled) {
-  if (!arguments.length) {
-    return this._enableTimeouts;
-  }
-  debug('enableTimeouts %s', enabled);
-  this._enableTimeouts = enabled;
-  return this;
-};
-
-/**
  * Halt and mark as pending.
  *
  * @memberof Mocha.Runnable
  * @public
  */
 Runnable.prototype.skip = function() {
-  throw new Pending('sync skip');
+  this.pending = true;
+  throw new Pending('sync skip; aborting execution');
 };
 
 /**
@@ -5177,45 +5715,20 @@ Runnable.prototype.clearTimeout = function() {
 };
 
 /**
- * Inspect the runnable void of private properties.
- *
- * @private
- * @return {string}
- */
-Runnable.prototype.inspect = function() {
-  return JSON.stringify(
-    this,
-    function(key, val) {
-      if (key[0] === '_') {
-        return;
-      }
-      if (key === 'parent') {
-        return '#<Suite>';
-      }
-      if (key === 'ctx') {
-        return '#<Context>';
-      }
-      return val;
-    },
-    2
-  );
-};
-
-/**
  * Reset the timeout.
  *
  * @private
  */
 Runnable.prototype.resetTimeout = function() {
   var self = this;
-  var ms = this.timeout() || 1e9;
+  var ms = this.timeout();
 
-  if (!this._enableTimeouts) {
+  if (ms === 0) {
     return;
   }
   this.clearTimeout();
   this.timer = setTimeout(function() {
-    if (!self._enableTimeouts) {
+    if (self.timeout() === 0) {
       return;
     }
     self.callback(self._timeoutError(ms));
@@ -5247,7 +5760,9 @@ Runnable.prototype.run = function(fn) {
   var start = new Date();
   var ctx = this.ctx;
   var finished;
-  var emitted;
+  var errorWasHandled = false;
+
+  if (this.isPending()) return fn();
 
   // Sometimes the ctx exists, but it is not runnable
   if (ctx && ctx.runnable) {
@@ -5256,17 +5771,11 @@ Runnable.prototype.run = function(fn) {
 
   // called multiple times
   function multiple(err) {
-    if (emitted) {
+    if (errorWasHandled) {
       return;
     }
-    emitted = true;
-    var msg = 'done() called multiple times';
-    if (err && err.message) {
-      err.message += " (and Mocha's " + msg + ')';
-      self.emit('error', err);
-    } else {
-      self.emit('error', new Error(msg));
-    }
+    errorWasHandled = true;
+    self.emit('error', createMultipleDoneError(self, err));
   }
 
   // finished
@@ -5283,14 +5792,23 @@ Runnable.prototype.run = function(fn) {
     self.clearTimeout();
     self.duration = new Date() - start;
     finished = true;
-    if (!err && self.duration > ms && self._enableTimeouts) {
+    if (!err && self.duration > ms && ms > 0) {
       err = self._timeoutError(ms);
     }
     fn(err);
   }
 
-  // for .resetTimeout()
+  // for .resetTimeout() and Runner#uncaught()
   this.callback = done;
+
+  if (this.fn && typeof this.fn.call !== 'function') {
+    done(
+      new TypeError(
+        'A runnable must be passed a function as its second argument.'
+      )
+    );
+    return;
+  }
 
   // explicit async with `done` argument
   if (this.async) {
@@ -5298,43 +5816,37 @@ Runnable.prototype.run = function(fn) {
 
     // allows skip() to be used in an explicit async context
     this.skip = function asyncSkip() {
-      done(new Pending('async skip call'));
-      // halt execution.  the Runnable will be marked pending
-      // by the previous call, and the uncaught handler will ignore
-      // the failure.
+      this.pending = true;
+      done();
+      // halt execution, the uncaught handler will ignore the failure.
       throw new Pending('async skip; aborting execution');
     };
 
-    if (this.allowUncaught) {
-      return callFnAsync(this.fn);
-    }
     try {
       callFnAsync(this.fn);
     } catch (err) {
-      emitted = true;
+      // handles async runnables which actually run synchronously
+      errorWasHandled = true;
+      if (err instanceof Pending) {
+        return; // done() is already called in this.skip()
+      } else if (this.allowUncaught) {
+        throw err;
+      }
       done(Runnable.toValueOrError(err));
-    }
-    return;
-  }
-
-  if (this.allowUncaught) {
-    if (this.isPending()) {
-      done();
-    } else {
-      callFn(this.fn);
     }
     return;
   }
 
   // sync or promise-returning
   try {
-    if (this.isPending()) {
-      done();
-    } else {
-      callFn(this.fn);
-    }
+    callFn(this.fn);
   } catch (err) {
-    emitted = true;
+    errorWasHandled = true;
+    if (err instanceof Pending) {
+      return done();
+    } else if (this.allowUncaught) {
+      throw err;
+    }
     done(Runnable.toValueOrError(err));
   }
 
@@ -5428,7 +5940,11 @@ var constants = utils.defineConstants(
     /**
      * Value of `state` prop when a `Runnable` has passed
      */
-    STATE_PASSED: 'passed'
+    STATE_PASSED: 'passed',
+    /**
+     * Value of `state` prop when a `Runnable` has been skipped by user
+     */
+    STATE_PENDING: 'pending'
   }
 );
 
@@ -5451,7 +5967,7 @@ Runnable.toValueOrError = function(value) {
 Runnable.constants = constants;
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./errors":6,"./pending":16,"./utils":38,"debug":45,"events":50,"ms":60}],34:[function(require,module,exports){
+},{"./errors":6,"./pending":16,"./utils":38,"debug":45,"events":50,"ms":58}],34:[function(require,module,exports){
 (function (process,global){
 'use strict';
 
@@ -5473,14 +5989,16 @@ var HOOK_TYPE_BEFORE_ALL = Suite.constants.HOOK_TYPE_BEFORE_ALL;
 var EVENT_ROOT_SUITE_RUN = Suite.constants.EVENT_ROOT_SUITE_RUN;
 var STATE_FAILED = Runnable.constants.STATE_FAILED;
 var STATE_PASSED = Runnable.constants.STATE_PASSED;
+var STATE_PENDING = Runnable.constants.STATE_PENDING;
 var dQuote = utils.dQuote;
-var ngettext = utils.ngettext;
 var sQuote = utils.sQuote;
 var stackFilter = utils.stackTraceFilter();
 var stringify = utils.stringify;
 var type = utils.type;
-var createInvalidExceptionError = require('./errors')
-  .createInvalidExceptionError;
+var errors = require('./errors');
+var createInvalidExceptionError = errors.createInvalidExceptionError;
+var createUnsupportedError = errors.createUnsupportedError;
+var createFatalError = errors.createFatalError;
 
 /**
  * Non-enumerable globals.
@@ -5563,7 +6081,19 @@ var constants = utils.defineConstants(
     /**
      * Emitted when {@link Test} execution has failed, but will retry
      */
-    EVENT_TEST_RETRY: 'retry'
+    EVENT_TEST_RETRY: 'retry',
+    /**
+     * Initial state of Runner
+     */
+    STATE_IDLE: 'idle',
+    /**
+     * State set to this value when the Runner has started running
+     */
+    STATE_RUNNING: 'running',
+    /**
+     * State set to this value when the Runner has stopped
+     */
+    STATE_STOPPED: 'stopped'
   }
 );
 
@@ -5575,20 +6105,36 @@ module.exports = Runner;
  * @extends external:EventEmitter
  * @public
  * @class
- * @param {Suite} suite Root suite
- * @param {boolean} [delay] Whether or not to delay execution of root suite
- * until ready.
+ * @param {Suite} suite - Root suite
+ * @param {Object|boolean} [opts] - Options. If `boolean`, whether or not to delay execution of root suite until ready (for backwards compatibility).
+ * @param {boolean} [opts.delay] - Whether to delay execution of root suite until ready.
+ * @param {boolean} [opts.cleanReferencesAfterRun] - Whether to clean references to test fns and hooks when a suite is done.
  */
-function Runner(suite, delay) {
+function Runner(suite, opts) {
+  if (opts === undefined) {
+    opts = {};
+  }
+  if (typeof opts === 'boolean') {
+    this._delay = opts;
+    opts = {};
+  } else {
+    this._delay = opts.delay;
+  }
   var self = this;
   this._globals = [];
   this._abort = false;
-  this._delay = delay;
   this.suite = suite;
-  this.started = false;
+  this._opts = opts;
+  this.state = constants.STATE_IDLE;
   this.total = suite.total();
   this.failures = 0;
+  this._eventListeners = [];
   this.on(constants.EVENT_TEST_END, function(test) {
+    if (test.type === 'test' && test.retriedTest() && test.parent) {
+      var idx =
+        test.parent.tests && test.parent.tests.indexOf(test.retriedTest());
+      if (idx > -1) test.parent.tests[idx] = test;
+    }
     self.checkGlobals(test);
   });
   this.on(constants.EVENT_HOOK_END, function(hook) {
@@ -5596,7 +6142,9 @@ function Runner(suite, delay) {
   });
   this._defaultGrep = /.*/;
   this.grep(this._defaultGrep);
-  this.globals(this.globalProps().concat(extraGlobals()));
+  this.globals(this.globalProps());
+
+  this.uncaught = this._uncaught.bind(this);
 }
 
 /**
@@ -5613,6 +6161,58 @@ Runner.immediately = global.setImmediate || process.nextTick;
 inherits(Runner, EventEmitter);
 
 /**
+ * Replacement for `target.on(eventName, listener)` that does bookkeeping to remove them when this runner instance is disposed.
+ * @param {EventEmitter} target - The `EventEmitter`
+ * @param {string} eventName - The event name
+ * @param {string} fn - Listener function
+ * @private
+ */
+Runner.prototype._addEventListener = function(target, eventName, listener) {
+  target.on(eventName, listener);
+  this._eventListeners.push([target, eventName, listener]);
+};
+
+/**
+ * Replacement for `target.removeListener(eventName, listener)` that also updates the bookkeeping.
+ * @param {EventEmitter} target - The `EventEmitter`
+ * @param {string} eventName - The event anme
+ * @param {function} listener - Listener function
+ * @private
+ */
+Runner.prototype._removeEventListener = function(target, eventName, listener) {
+  var eventListenerIndex = -1;
+  for (var i = 0; i < this._eventListeners.length; i++) {
+    var eventListenerDescriptor = this._eventListeners[i];
+    if (
+      eventListenerDescriptor[0] === target &&
+      eventListenerDescriptor[1] === eventName &&
+      eventListenerDescriptor[2] === listener
+    ) {
+      eventListenerIndex = i;
+      break;
+    }
+  }
+  if (eventListenerIndex !== -1) {
+    var removedListener = this._eventListeners.splice(eventListenerIndex, 1)[0];
+    removedListener[0].removeListener(removedListener[1], removedListener[2]);
+  }
+};
+
+/**
+ * Removes all event handlers set during a run on this instance.
+ * Remark: this does _not_ clean/dispose the tests or suites themselves.
+ */
+Runner.prototype.dispose = function() {
+  this.removeAllListeners();
+  this._eventListeners.forEach(function(eventListenerDescriptor) {
+    eventListenerDescriptor[0].removeListener(
+      eventListenerDescriptor[1],
+      eventListenerDescriptor[2]
+    );
+  });
+};
+
+/**
  * Run tests with full titles matching `re`. Updates runner.total
  * with number of tests matched.
  *
@@ -5623,7 +6223,7 @@ inherits(Runner, EventEmitter);
  * @return {Runner} Runner instance.
  */
 Runner.prototype.grep = function(re, invert) {
-  debug('grep %s', re);
+  debug('grep(): setting to %s', re);
   this._grep = re;
   this._invert = invert;
   this.total = this.grepTotal(this.suite);
@@ -5688,7 +6288,7 @@ Runner.prototype.globals = function(arr) {
   if (!arguments.length) {
     return this._globals;
   }
-  debug('globals %j', arr);
+  debug('globals(): setting to %O', arr);
   this._globals = this._globals.concat(arr);
   return this;
 };
@@ -5699,7 +6299,7 @@ Runner.prototype.globals = function(arr) {
  * @private
  */
 Runner.prototype.checkGlobals = function(test) {
-  if (this.ignoreLeaks) {
+  if (!this.checkLeaks) {
     return;
   }
   var ok = this._globals;
@@ -5720,12 +6320,8 @@ Runner.prototype.checkGlobals = function(test) {
   this._globals = this._globals.concat(leaks);
 
   if (leaks.length) {
-    var format = ngettext(
-      leaks.length,
-      'global leak detected: %s',
-      'global leaks detected: %s'
-    );
-    var error = new Error(util.format(format, leaks.map(sQuote).join(', ')));
+    var msg = 'global leak(s) detected: %s';
+    var error = new Error(util.format(msg, leaks.map(sQuote).join(', ')));
     this.fail(test, error);
   }
 };
@@ -5734,15 +6330,27 @@ Runner.prototype.checkGlobals = function(test) {
  * Fail the given `test`.
  *
  * @private
- * @param {Test} test
+ * @param {Runnable} test
  * @param {Error} err
+ * @param {boolean} [force=false] - Whether to fail a pending test.
  */
-Runner.prototype.fail = function(test, err) {
-  if (test.isPending()) {
+Runner.prototype.fail = function(test, err, force) {
+  force = force === true;
+  if (test.isPending() && !force) {
     return;
+  }
+  if (this.state === constants.STATE_STOPPED) {
+    if (err.code === errors.constants.MULTIPLE_DONE) {
+      throw err;
+    }
+    throw createFatalError(
+      'Test failed after root suite execution completed!',
+      err
+    );
   }
 
   ++this.failures;
+  debug('total number of failures: %d', this.failures);
   test.state = STATE_FAILED;
 
   if (!isError(err)) {
@@ -5770,8 +6378,7 @@ Runner.prototype.fail = function(test, err) {
  * - Failed `before each` hook skips remaining tests in a
  *   suite and jumps to corresponding `after each` hook,
  *   which is run only once
- * - Failed `after` hook does not alter
- *   execution order
+ * - Failed `after` hook does not alter execution order
  * - Failed `after each` hook skips remaining tests in a
  *   suite and subsuites, but executes other `after each`
  *   hooks
@@ -5831,44 +6438,48 @@ Runner.prototype.hook = function(name, fn) {
     self.emit(constants.EVENT_HOOK_BEGIN, hook);
 
     if (!hook.listeners('error').length) {
-      hook.on('error', function(err) {
+      self._addEventListener(hook, 'error', function(err) {
         self.failHook(hook, err);
       });
     }
 
-    hook.run(function(err) {
+    hook.run(function cbHookRun(err) {
       var testError = hook.error();
       if (testError) {
         self.fail(self.test, testError);
       }
-      if (err) {
-        if (err instanceof Pending) {
-          if (name === HOOK_TYPE_AFTER_ALL) {
-            utils.deprecate(
-              'Skipping a test within an "after all" hook is DEPRECATED and will throw an exception in a future version of Mocha. ' +
-                'Use a return statement or other means to abort hook execution.'
-            );
+      // conditional skip
+      if (hook.pending) {
+        if (name === HOOK_TYPE_AFTER_EACH) {
+          // TODO define and implement use case
+          if (self.test) {
+            self.test.pending = true;
           }
-          if (name === HOOK_TYPE_BEFORE_EACH || name === HOOK_TYPE_AFTER_EACH) {
-            if (self.test) {
-              self.test.pending = true;
-            }
-          } else {
-            suite.tests.forEach(function(test) {
-              test.pending = true;
-            });
-            suite.suites.forEach(function(suite) {
-              suite.pending = true;
-            });
-            // a pending hook won't be executed twice.
-            hook.pending = true;
+        } else if (name === HOOK_TYPE_BEFORE_EACH) {
+          if (self.test) {
+            self.test.pending = true;
           }
+          self.emit(constants.EVENT_HOOK_END, hook);
+          hook.pending = false; // activates hook for next test
+          return fn(new Error('abort hookDown'));
+        } else if (name === HOOK_TYPE_BEFORE_ALL) {
+          suite.tests.forEach(function(test) {
+            test.pending = true;
+          });
+          suite.suites.forEach(function(suite) {
+            suite.pending = true;
+          });
+          hooks = [];
         } else {
-          self.failHook(hook, err);
-
-          // stop executing hooks, notify callee of hook err
-          return fn(err);
+          hook.pending = false;
+          var errForbid = createUnsupportedError('`this.skip` forbidden');
+          self.failHook(hook, errForbid);
+          return fn(errForbid);
         }
+      } else if (err) {
+        self.failHook(hook, err);
+        // stop executing hooks, notify callee of hook err
+        return fn(err);
       }
       self.emit(constants.EVENT_HOOK_END, hook);
       delete hook.ctx.currentTest;
@@ -5971,15 +6582,10 @@ Runner.prototype.runTest = function(fn) {
     return;
   }
 
-  var suite = this.parents().reverse()[0] || this.suite;
-  if (this.forbidOnly && suite.hasOnly()) {
-    fn(new Error('`.only` forbidden'));
-    return;
-  }
   if (this.asyncOnly) {
     test.asyncOnly = true;
   }
-  test.on('error', function(err) {
+  this._addEventListener(test, 'error', function(err) {
     self.fail(test, err);
   });
   if (this.allowUncaught) {
@@ -6075,12 +6681,12 @@ Runner.prototype.runTests = function(suite, fn) {
       return;
     }
 
+    // static skip, no hooks are executed
     if (test.isPending()) {
       if (self.forbidPending) {
-        test.isPending = alwaysFalse;
-        self.fail(test, new Error('Pending test forbidden'));
-        delete test.isPending;
+        self.fail(test, new Error('Pending test forbidden'), true);
       } else {
+        test.state = STATE_PENDING;
         self.emit(constants.EVENT_TEST_PENDING, test);
       }
       self.emit(constants.EVENT_TEST_END, test);
@@ -6090,16 +6696,22 @@ Runner.prototype.runTests = function(suite, fn) {
     // execute test and hook(s)
     self.emit(constants.EVENT_TEST_BEGIN, (self.test = test));
     self.hookDown(HOOK_TYPE_BEFORE_EACH, function(err, errSuite) {
+      // conditional skip within beforeEach
       if (test.isPending()) {
         if (self.forbidPending) {
-          test.isPending = alwaysFalse;
-          self.fail(test, new Error('Pending test forbidden'));
-          delete test.isPending;
+          self.fail(test, new Error('Pending test forbidden'), true);
         } else {
+          test.state = STATE_PENDING;
           self.emit(constants.EVENT_TEST_PENDING, test);
         }
         self.emit(constants.EVENT_TEST_END, test);
-        return next();
+        // skip inner afterEach hooks below errSuite level
+        var origSuite = self.suite;
+        self.suite = errSuite || self.suite;
+        return self.hookUp(HOOK_TYPE_AFTER_EACH, function(e, eSuite) {
+          self.suite = origSuite;
+          next(e, eSuite);
+        });
       }
       if (err) {
         return hookErr(err, errSuite, false);
@@ -6107,14 +6719,19 @@ Runner.prototype.runTests = function(suite, fn) {
       self.currentRunnable = self.test;
       self.runTest(function(err) {
         test = self.test;
-        if (err) {
-          var retry = test.currentRetry();
-          if (err instanceof Pending && self.forbidPending) {
-            self.fail(test, new Error('Pending test forbidden'));
-          } else if (err instanceof Pending) {
-            test.pending = true;
+        // conditional skip within it
+        if (test.pending) {
+          if (self.forbidPending) {
+            self.fail(test, new Error('Pending test forbidden'), true);
+          } else {
+            test.state = STATE_PENDING;
             self.emit(constants.EVENT_TEST_PENDING, test);
-          } else if (retry < test.retries()) {
+          }
+          self.emit(constants.EVENT_TEST_END, test);
+          return self.hookUp(HOOK_TYPE_AFTER_EACH, next);
+        } else if (err) {
+          var retry = test.currentRetry();
+          if (retry < test.retries()) {
             var clonedTest = test.clone();
             clonedTest.currentRetry(retry + 1);
             tests.unshift(clonedTest);
@@ -6128,11 +6745,6 @@ Runner.prototype.runTests = function(suite, fn) {
             self.fail(test, err);
           }
           self.emit(constants.EVENT_TEST_END, test);
-
-          if (err instanceof Pending) {
-            return next();
-          }
-
           return self.hookUp(HOOK_TYPE_AFTER_EACH, next);
         }
 
@@ -6149,10 +6761,6 @@ Runner.prototype.runTests = function(suite, fn) {
   next();
 };
 
-function alwaysFalse() {
-  return false;
-}
-
 /**
  * Run the given `suite` and invoke the callback `fn()` when complete.
  *
@@ -6164,11 +6772,11 @@ Runner.prototype.runSuite = function(suite, fn) {
   var i = 0;
   var self = this;
   var total = this.grepTotal(suite);
-  var afterAllHookCalled = false;
 
-  debug('run suite %s', suite.fullTitle());
+  debug('runSuite(): running %s', suite.fullTitle());
 
   if (!total || (self.failures && suite._bail)) {
+    debug('runSuite(): bailing');
     return fn();
   }
 
@@ -6212,21 +6820,13 @@ Runner.prototype.runSuite = function(suite, fn) {
     self.suite = suite;
     self.nextSuite = next;
 
-    if (afterAllHookCalled) {
+    // remove reference to test
+    delete self.test;
+
+    self.hook(HOOK_TYPE_AFTER_ALL, function() {
+      self.emit(constants.EVENT_SUITE_END, suite);
       fn(errSuite);
-    } else {
-      // mark that the afterAll block has been called once
-      // and so can be skipped if there is an error in it.
-      afterAllHookCalled = true;
-
-      // remove reference to test
-      delete self.test;
-
-      self.hook(HOOK_TYPE_AFTER_ALL, function() {
-        self.emit(constants.EVENT_SUITE_END, suite);
-        fn(errSuite);
-      });
-    }
+    });
   }
 
   this.nextSuite = next;
@@ -6240,19 +6840,51 @@ Runner.prototype.runSuite = function(suite, fn) {
 };
 
 /**
- * Handle uncaught exceptions.
+ * Handle uncaught exceptions within runner.
  *
- * @param {Error} err
+ * This function is bound to the instance as `Runner#uncaught` at instantiation
+ * time. It's intended to be listening on the `Process.uncaughtException` event.
+ * In order to not leak EE listeners, we need to ensure no more than a single
+ * `uncaughtException` listener exists per `Runner`.  The only way to do
+ * this--because this function needs the context (and we don't have lambdas)--is
+ * to use `Function.prototype.bind`. We need strict equality to unregister and
+ * _only_ unregister the _one_ listener we set from the
+ * `Process.uncaughtException` event; would be poor form to just remove
+ * everything. See {@link Runner#run} for where the event listener is registered
+ * and unregistered.
+ * @param {Error} err - Some uncaught error
  * @private
  */
-Runner.prototype.uncaught = function(err) {
+Runner.prototype._uncaught = function(err) {
+  // this is defensive to prevent future developers from mis-calling this function.
+  // it's more likely that it'd be called with the incorrect context--say, the global
+  // `process` object--than it would to be called with a context that is not a "subclass"
+  // of `Runner`.
+  if (!(this instanceof Runner)) {
+    throw createFatalError(
+      'Runner#uncaught() called with invalid context',
+      this
+    );
+  }
   if (err instanceof Pending) {
+    debug('uncaught(): caught a Pending');
     return;
   }
+  // browser does not exit script when throwing in global.onerror()
+  if (this.allowUncaught && !utils.isBrowser()) {
+    debug('uncaught(): bubbling exception due to --allow-uncaught');
+    throw err;
+  }
+
+  if (this.state === constants.STATE_STOPPED) {
+    debug('uncaught(): throwing after run has completed!');
+    throw err;
+  }
+
   if (err) {
-    debug('uncaught exception %O', err);
+    debug('uncaught(): got truthy exception %O', err);
   } else {
-    debug('uncaught undefined/falsy exception');
+    debug('uncaught(): undefined/falsy exception');
     err = createInvalidExceptionError(
       'Caught falsy/undefined exception which would otherwise be uncaught. No stack trace found; try a debugger',
       err
@@ -6261,6 +6893,7 @@ Runner.prototype.uncaught = function(err) {
 
   if (!isError(err)) {
     err = thrown2Error(err);
+    debug('uncaught(): converted "error" %o to Error', err);
   }
   err.uncaught = true;
 
@@ -6268,12 +6901,15 @@ Runner.prototype.uncaught = function(err) {
 
   if (!runnable) {
     runnable = new Runnable('Uncaught error outside test suite');
+    debug('uncaught(): no current Runnable; created a phony one');
     runnable.parent = this.suite;
 
-    if (this.started) {
+    if (this.state === constants.STATE_RUNNING) {
+      debug('uncaught(): failing gracefully');
       this.fail(runnable, err);
     } else {
       // Can't recover from this failure
+      debug('uncaught(): test run has not yet started; unrecoverable');
       this.emit(constants.EVENT_RUN_BEGIN);
       this.fail(runnable, err);
       this.emit(constants.EVENT_RUN_END);
@@ -6284,43 +6920,27 @@ Runner.prototype.uncaught = function(err) {
 
   runnable.clearTimeout();
 
-  // Ignore errors if already failed or pending
-  // See #3226
-  if (runnable.isFailed() || runnable.isPending()) {
+  if (runnable.isFailed()) {
+    debug('uncaught(): Runnable has already failed');
+    // Ignore error if already failed
+    return;
+  } else if (runnable.isPending()) {
+    debug('uncaught(): pending Runnable wound up failing!');
+    // report 'pending test' retrospectively as failed
+    this.fail(runnable, err, true);
     return;
   }
+
   // we cannot recover gracefully if a Runnable has already passed
   // then fails asynchronously
-  var alreadyPassed = runnable.isPassed();
-  // this will change the state to "failed" regardless of the current value
-  this.fail(runnable, err);
-  if (!alreadyPassed) {
-    // recover from test
-    if (runnable.type === constants.EVENT_TEST_BEGIN) {
-      this.emit(constants.EVENT_TEST_END, runnable);
-      this.hookUp(HOOK_TYPE_AFTER_EACH, this.next);
-      return;
-    }
-    debug(runnable);
-
-    // recover from hooks
-    var errSuite = this.suite;
-
-    // XXX how about a less awful way to determine this?
-    // if hook failure is in afterEach block
-    if (runnable.fullTitle().indexOf('after each') > -1) {
-      return this.hookErr(err, errSuite, true);
-    }
-    // if hook failure is in beforeEach block
-    if (runnable.fullTitle().indexOf('before each') > -1) {
-      return this.hookErr(err, errSuite, false);
-    }
-    // if hook failure is in after or before blocks
-    return this.nextSuite(errSuite);
+  if (runnable.isPassed()) {
+    debug('uncaught(): Runnable has already passed; bailing gracefully');
+    this.fail(runnable, err);
+    this.abort();
+  } else {
+    debug('uncaught(): forcing Runnable to complete with Error');
+    return runnable.callback(err);
   }
-
-  // bail
-  this.emit(constants.EVENT_RUN_END);
 };
 
 /**
@@ -6329,60 +6949,70 @@ Runner.prototype.uncaught = function(err) {
  *
  * @public
  * @memberof Runner
- * @param {Function} fn
+ * @param {Function} fn - Callback when finished
+ * @param {{files: string[], options: Options}} [opts] - For subclasses
  * @return {Runner} Runner instance.
  */
-Runner.prototype.run = function(fn) {
+Runner.prototype.run = function(fn, opts) {
   var self = this;
   var rootSuite = this.suite;
 
   fn = fn || function() {};
 
-  function uncaught(err) {
-    self.uncaught(err);
-  }
-
   function start() {
+    debug('run(): starting');
     // If there is an `only` filter
     if (rootSuite.hasOnly()) {
       rootSuite.filterOnly();
+      debug('run(): filtered exclusive Runnables');
     }
-    self.started = true;
+    self.state = constants.STATE_RUNNING;
     if (self._delay) {
       self.emit(constants.EVENT_DELAY_END);
+      debug('run(): "delay" ended');
     }
+    debug('run(): emitting %s', constants.EVENT_RUN_BEGIN);
     self.emit(constants.EVENT_RUN_BEGIN);
+    debug('run(): emitted %s', constants.EVENT_RUN_BEGIN);
 
     self.runSuite(rootSuite, function() {
-      debug('finished running');
+      debug(
+        'run(): root suite completed; emitting %s',
+        constants.EVENT_RUN_END
+      );
       self.emit(constants.EVENT_RUN_END);
+      debug('run(): emitted %s', constants.EVENT_RUN_END);
     });
   }
 
-  debug(constants.EVENT_RUN_BEGIN);
-
   // references cleanup to avoid memory leaks
-  this.on(constants.EVENT_SUITE_END, function(suite) {
-    suite.cleanReferences();
-  });
+  if (this._opts.cleanReferencesAfterRun) {
+    this.on(constants.EVENT_SUITE_END, function(suite) {
+      suite.cleanReferences();
+    });
+  }
 
   // callback
   this.on(constants.EVENT_RUN_END, function() {
+    self.state = constants.STATE_STOPPED;
     debug(constants.EVENT_RUN_END);
-    process.removeListener('uncaughtException', uncaught);
+    debug('run(): emitted %s', constants.EVENT_RUN_END);
     fn(self.failures);
   });
 
-  // uncaught exception
-  process.on('uncaughtException', uncaught);
+  self._removeEventListener(process, 'uncaughtException', self.uncaught);
+  self._addEventListener(process, 'uncaughtException', self.uncaught);
 
   if (this._delay) {
     // for reporters, I guess.
     // might be nice to debounce some dots while we wait.
     this.emit(constants.EVENT_DELAY_BEGIN, rootSuite);
     rootSuite.once(EVENT_ROOT_SUITE_RUN, start);
+    debug('run(): waiting for green light due to --delay');
   } else {
-    start();
+    Runner.immediately(function() {
+      start();
+    });
   }
 
   return this;
@@ -6396,7 +7026,7 @@ Runner.prototype.run = function(fn) {
  * @return {Runner} Runner instance.
  */
 Runner.prototype.abort = function() {
-  debug('aborting');
+  debug('abort(): aborting');
   this._abort = true;
 
   return this;
@@ -6471,30 +7101,6 @@ function thrown2Error(err) {
   );
 }
 
-/**
- * Array of globals dependent on the environment.
- *
- * @return {Array}
- * @deprecated
- * @todo remove; long since unsupported
- * @private
- */
-function extraGlobals() {
-  if (typeof process === 'object' && typeof process.version === 'string') {
-    var parts = process.version.split('.');
-    var nodeVersion = parts.reduce(function(a, v) {
-      return (a << 8) | v;
-    });
-
-    // 'errno' was renamed to process._errno in v0.9.11.
-    if (nodeVersion < 0x00090b) {
-      return ['errno'];
-    }
-  }
-
-  return [];
-}
-
 Runner.constants = constants;
 
 /**
@@ -6504,7 +7110,7 @@ Runner.constants = constants;
  */
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./errors":6,"./pending":16,"./runnable":33,"./suite":36,"./utils":38,"_process":69,"debug":45,"events":50,"util":89}],35:[function(require,module,exports){
+},{"./errors":6,"./pending":16,"./runnable":33,"./suite":36,"./utils":38,"_process":67,"debug":45,"events":50,"util":89}],35:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -6655,20 +7261,19 @@ function Suite(title, parentContext, isRoot) {
   this.ctx = new Context();
   this.suites = [];
   this.tests = [];
+  this.root = isRoot === true;
   this.pending = false;
+  this._retries = -1;
   this._beforeEach = [];
   this._beforeAll = [];
   this._afterEach = [];
   this._afterAll = [];
-  this.root = isRoot === true;
   this._timeout = 2000;
-  this._enableTimeouts = true;
   this._slow = 75;
   this._bail = false;
-  this._retries = -1;
   this._onlyTests = [];
   this._onlySuites = [];
-  this.delayed = false;
+  this.reset();
 
   this.on('newListener', function(event) {
     if (deprecatedEvents[event]) {
@@ -6687,6 +7292,22 @@ function Suite(title, parentContext, isRoot) {
 inherits(Suite, EventEmitter);
 
 /**
+ * Resets the state initially or for a next run.
+ */
+Suite.prototype.reset = function() {
+  this.delayed = false;
+  function doReset(thingToReset) {
+    thingToReset.reset();
+  }
+  this.suites.forEach(doReset);
+  this.tests.forEach(doReset);
+  this._beforeEach.forEach(doReset);
+  this._afterEach.forEach(doReset);
+  this._beforeAll.forEach(doReset);
+  this._afterAll.forEach(doReset);
+};
+
+/**
  * Return a clone of this `Suite`.
  *
  * @private
@@ -6699,7 +7320,6 @@ Suite.prototype.clone = function() {
   suite.root = this.root;
   suite.timeout(this.timeout());
   suite.retries(this.retries());
-  suite.enableTimeouts(this.enableTimeouts());
   suite.slow(this.slow());
   suite.bail(this.bail());
   return suite;
@@ -6717,12 +7337,15 @@ Suite.prototype.timeout = function(ms) {
   if (!arguments.length) {
     return this._timeout;
   }
-  if (ms.toString() === '0') {
-    this._enableTimeouts = false;
-  }
   if (typeof ms === 'string') {
     ms = milliseconds(ms);
   }
+
+  // Clamp to range
+  var INT_MAX = Math.pow(2, 31) - 1;
+  var range = [0, INT_MAX];
+  ms = utils.clamp(ms, range);
+
   debug('timeout %d', ms);
   this._timeout = parseInt(ms, 10);
   return this;
@@ -6741,22 +7364,6 @@ Suite.prototype.retries = function(n) {
   }
   debug('retries %d', n);
   this._retries = parseInt(n, 10) || 0;
-  return this;
-};
-
-/**
- * Set or get timeout to `enabled`.
- *
- * @private
- * @param {boolean} enabled
- * @return {Suite|boolean} self or enabled
- */
-Suite.prototype.enableTimeouts = function(enabled) {
-  if (!arguments.length) {
-    return this._enableTimeouts;
-  }
-  debug('enableTimeouts %s', enabled);
-  this._enableTimeouts = enabled;
   return this;
 };
 
@@ -6816,7 +7423,6 @@ Suite.prototype._createHook = function(title, fn) {
   hook.parent = this;
   hook.timeout(this.timeout());
   hook.retries(this.retries());
-  hook.enableTimeouts(this.enableTimeouts());
   hook.slow(this.slow());
   hook.ctx = this.ctx;
   hook.file = this.file;
@@ -6931,7 +7537,6 @@ Suite.prototype.addSuite = function(suite) {
   suite.root = false;
   suite.timeout(this.timeout());
   suite.retries(this.retries());
-  suite.enableTimeouts(this.enableTimeouts());
   suite.slow(this.slow());
   suite.bail(this.bail());
   this.suites.push(suite);
@@ -6950,7 +7555,6 @@ Suite.prototype.addTest = function(test) {
   test.parent = this;
   test.timeout(this.timeout());
   test.retries(this.retries());
-  test.enableTimeouts(this.enableTimeouts());
   test.slow(this.slow());
   test.ctx = this.ctx;
   this.tests.push(test);
@@ -7088,6 +7692,15 @@ Suite.prototype.appendOnlySuite = function(suite) {
 };
 
 /**
+ * Marks a suite to be `only`.
+ *
+ * @private
+ */
+Suite.prototype.markOnly = function() {
+  this.parent && this.parent.appendOnlySuite(this);
+};
+
+/**
  * Adds a test to the list of tests marked `only`.
  *
  * @private
@@ -7103,6 +7716,16 @@ Suite.prototype.appendOnlyTest = function(test) {
  */
 Suite.prototype.getHooks = function getHooks(name) {
   return this['_' + name];
+};
+
+/**
+ * cleans all references from this suite and all child suites.
+ */
+Suite.prototype.dispose = function() {
+  this.suites.forEach(function(suite) {
+    suite.dispose();
+  });
+  this.cleanReferences();
 };
 
 /**
@@ -7141,6 +7764,22 @@ Suite.prototype.cleanReferences = function cleanReferences() {
   for (var i = 0; i < this.tests.length; i++) {
     delete this.tests[i].fn;
   }
+};
+
+/**
+ * Returns an object suitable for IPC.
+ * Functions are represented by keys beginning with `$$`.
+ * @private
+ * @returns {Object}
+ */
+Suite.prototype.serialize = function serialize() {
+  return {
+    _bail: this._bail,
+    $$fullTitle: this.fullTitle(),
+    $$isPending: this.isPending(),
+    root: this.root,
+    title: this.title
+  };
 };
 
 var constants = utils.defineConstants(
@@ -7235,7 +7874,7 @@ var deprecatedEvents = Object.keys(constants)
 
 Suite.constants = constants;
 
-},{"./errors":6,"./hook":7,"./utils":38,"debug":45,"events":50,"ms":60}],37:[function(require,module,exports){
+},{"./errors":6,"./hook":7,"./utils":38,"debug":45,"events":50,"ms":58}],37:[function(require,module,exports){
 'use strict';
 var Runnable = require('./runnable');
 var utils = require('./utils');
@@ -7264,9 +7903,9 @@ function Test(title, fn) {
       'string'
     );
   }
-  Runnable.call(this, title, fn);
-  this.pending = !fn;
   this.type = 'test';
+  Runnable.call(this, title, fn);
+  this.reset();
 }
 
 /**
@@ -7274,18 +7913,76 @@ function Test(title, fn) {
  */
 utils.inherits(Test, Runnable);
 
+/**
+ * Resets the state initially or for a next run.
+ */
+Test.prototype.reset = function() {
+  Runnable.prototype.reset.call(this);
+  this.pending = !this.fn;
+  delete this.state;
+};
+
+/**
+ * Set or get retried test
+ *
+ * @private
+ */
+Test.prototype.retriedTest = function(n) {
+  if (!arguments.length) {
+    return this._retriedTest;
+  }
+  this._retriedTest = n;
+};
+
+/**
+ * Add test to the list of tests marked `only`.
+ *
+ * @private
+ */
+Test.prototype.markOnly = function() {
+  this.parent.appendOnlyTest(this);
+};
+
 Test.prototype.clone = function() {
   var test = new Test(this.title, this.fn);
   test.timeout(this.timeout());
   test.slow(this.slow());
-  test.enableTimeouts(this.enableTimeouts());
   test.retries(this.retries());
   test.currentRetry(this.currentRetry());
+  test.retriedTest(this.retriedTest() || this);
   test.globals(this.globals());
   test.parent = this.parent;
   test.file = this.file;
   test.ctx = this.ctx;
   return test;
+};
+
+/**
+ * Returns an minimal object suitable for transmission over IPC.
+ * Functions are represented by keys beginning with `$$`.
+ * @private
+ * @returns {Object}
+ */
+Test.prototype.serialize = function serialize() {
+  return {
+    $$currentRetry: this._currentRetry,
+    $$fullTitle: this.fullTitle(),
+    $$isPending: this.pending,
+    $$retriedTest: this._retriedTest || null,
+    $$slow: this._slow,
+    $$titlePath: this.titlePath(),
+    body: this.body,
+    duration: this.duration,
+    err: this.err,
+    parent: {
+      $$fullTitle: this.parent.fullTitle()
+    },
+    speed: this.speed,
+    state: this.state,
+    title: this.title,
+    type: this.type,
+    file: this.file
+  };
 };
 
 },{"./errors":6,"./runnable":33,"./utils":38}],38:[function(require,module,exports){
@@ -7346,80 +8043,6 @@ exports.isString = function(obj) {
 };
 
 /**
- * Watch the given `files` for changes
- * and invoke `fn(file)` on modification.
- *
- * @private
- * @param {Array} files
- * @param {Function} fn
- */
-exports.watch = function(files, fn) {
-  var options = {interval: 100};
-  var debug = require('debug')('mocha:watch');
-  files.forEach(function(file) {
-    debug('file %s', file);
-    fs.watchFile(file, options, function(curr, prev) {
-      if (prev.mtime < curr.mtime) {
-        fn(file);
-      }
-    });
-  });
-};
-
-/**
- * Predicate to screen `pathname` for further consideration.
- *
- * @description
- * Returns <code>false</code> for pathname referencing:
- * <ul>
- *   <li>'npm' package installation directory
- *   <li>'git' version control directory
- * </ul>
- *
- * @private
- * @param {string} pathname - File or directory name to screen
- * @return {boolean} whether pathname should be further considered
- * @example
- * ['node_modules', 'test.js'].filter(considerFurther); // => ['test.js']
- */
-function considerFurther(pathname) {
-  var ignore = ['node_modules', '.git'];
-
-  return !~ignore.indexOf(pathname);
-}
-
-/**
- * Lookup files in the given `dir`.
- *
- * @description
- * Filenames are returned in _traversal_ order by the OS/filesystem.
- * **Make no assumption that the names will be sorted in any fashion.**
- *
- * @private
- * @param {string} dir
- * @param {string[]} [exts=['js']]
- * @param {Array} [ret=[]]
- * @return {Array}
- */
-exports.files = function(dir, exts, ret) {
-  ret = ret || [];
-  exts = exts || ['js'];
-
-  fs.readdirSync(dir)
-    .filter(considerFurther)
-    .forEach(function(dirent) {
-      var pathname = path.join(dir, dirent);
-      if (fs.lstatSync(pathname).isDirectory()) {
-        exports.files(pathname, exts, ret);
-      } else if (hasMatchingExtname(pathname, exts)) {
-        ret.push(pathname);
-      }
-    });
-
-  return ret;
-};
-
-/**
  * Compute a slug from the given `str`.
  *
  * @private
@@ -7429,8 +8052,9 @@ exports.files = function(dir, exts, ret) {
 exports.slug = function(str) {
   return str
     .toLowerCase()
-    .replace(/ +/g, '-')
-    .replace(/[^-\w]/g, '');
+    .replace(/\s+/g, '-')
+    .replace(/[^-\w]/g, '')
+    .replace(/-{2,}/g, '-');
 };
 
 /**
@@ -7853,33 +8477,41 @@ function isHiddenOnUnix(pathname) {
  * **Make no assumption that the names will be sorted in any fashion.**
  *
  * @public
- * @memberof Mocha.utils
- * @todo Fix extension handling
  * @param {string} filepath - Base path to start searching from.
- * @param {string[]} extensions - File extensions to look for.
- * @param {boolean} recursive - Whether to recurse into subdirectories.
+ * @param {string[]} [extensions=[]] - File extensions to look for.
+ * @param {boolean} [recursive=false] - Whether to recurse into subdirectories.
  * @return {string[]} An array of paths.
  * @throws {Error} if no files match pattern.
  * @throws {TypeError} if `filepath` is directory and `extensions` not provided.
  */
 exports.lookupFiles = function lookupFiles(filepath, extensions, recursive) {
+  extensions = extensions || [];
+  recursive = recursive || false;
   var files = [];
   var stat;
 
   if (!fs.existsSync(filepath)) {
-    if (fs.existsSync(filepath + '.js')) {
-      filepath += '.js';
+    var pattern;
+    if (glob.hasMagic(filepath)) {
+      // Handle glob as is without extensions
+      pattern = filepath;
     } else {
-      // Handle glob
-      files = glob.sync(filepath);
-      if (!files.length) {
-        throw createNoFilesMatchPatternError(
-          'Cannot find any files matching pattern ' + exports.dQuote(filepath),
-          filepath
-        );
-      }
-      return files;
+      // glob pattern e.g. 'filepath+(.js|.ts)'
+      var strExtensions = extensions
+        .map(function(v) {
+          return '.' + v;
+        })
+        .join('|');
+      pattern = filepath + '+(' + strExtensions + ')';
     }
+    files = glob.sync(pattern, {nodir: true});
+    if (!files.length) {
+      throw createNoFilesMatchPatternError(
+        'Cannot find any files matching pattern ' + exports.dQuote(filepath),
+        filepath
+      );
+    }
+    return files;
   }
 
   // Handle file
@@ -7910,7 +8542,7 @@ exports.lookupFiles = function lookupFiles(filepath, extensions, recursive) {
       // ignore error
       return;
     }
-    if (!extensions) {
+    if (!extensions.length) {
       throw createMissingArgumentError(
         util.format(
           'Argument %s required when argument %s is a directory',
@@ -7994,7 +8626,7 @@ exports.stackTraceFilter = function() {
   var slash = path.sep;
   var cwd;
   if (is.node) {
-    cwd = process.cwd() + slash;
+    cwd = exports.cwd() + slash;
   } else {
     cwd = (typeof location === 'undefined'
       ? window.location
@@ -8006,7 +8638,8 @@ exports.stackTraceFilter = function() {
   function isMochaInternal(line) {
     return (
       ~line.indexOf('node_modules' + slash + 'mocha' + slash) ||
-      ~line.indexOf(slash + 'mocha.js')
+      ~line.indexOf(slash + 'mocha.js') ||
+      ~line.indexOf(slash + 'mocha.min.js')
     );
   }
 
@@ -8110,38 +8743,6 @@ exports.dQuote = function(str) {
 };
 
 /**
- * Provides simplistic message translation for dealing with plurality.
- *
- * @description
- * Use this to create messages which need to be singular or plural.
- * Some languages have several plural forms, so _complete_ message clauses
- * are preferable to generating the message on the fly.
- *
- * @private
- * @param {number} n - Non-negative integer
- * @param {string} msg1 - Message to be used in English for `n = 1`
- * @param {string} msg2 - Message to be used in English for `n = 0, 2, 3, ...`
- * @returns {string} message corresponding to value of `n`
- * @example
- * var sprintf = require('util').format;
- * var pkgs = ['one', 'two'];
- * var msg = sprintf(
- *   ngettext(
- *     pkgs.length,
- *     'cannot load package: %s',
- *     'cannot load packages: %s'
- *   ),
- *   pkgs.map(sQuote).join(', ')
- * );
- * console.log(msg); // => cannot load packages: 'one', 'two'
- */
-exports.ngettext = function(n, msg1, msg2) {
-  if (typeof n === 'number' && n >= 0) {
-    return n === 1 ? msg1 : msg2;
-  }
-};
-
-/**
  * It's a noop.
  * @public
  */
@@ -8188,8 +8789,54 @@ exports.defineConstants = function(obj) {
   return Object.freeze(exports.createMap(obj));
 };
 
+/**
+ * Whether current version of Node support ES modules
+ *
+ * @description
+ * Versions prior to 10 did not support ES Modules, and version 10 has an old incompatibile version of ESM.
+ * This function returns whether Node.JS has ES Module supports that is compatible with Mocha's needs,
+ * which is version >=12.11.
+ *
+ * @param {partialSupport} whether the full Node.js ESM support is available (>= 12) or just something that supports the runtime (>= 10)
+ *
+ * @returns {Boolean} whether the current version of Node.JS supports ES Modules in a way that is compatible with Mocha
+ */
+exports.supportsEsModules = function(partialSupport) {
+  if (!exports.isBrowser() && process.versions && process.versions.node) {
+    var versionFields = process.versions.node.split('.');
+    var major = +versionFields[0];
+    var minor = +versionFields[1];
+
+    if (!partialSupport) {
+      return major >= 13 || (major === 12 && minor >= 11);
+    } else {
+      return major >= 10;
+    }
+  }
+};
+
+/**
+ * Returns current working directory
+ *
+ * Wrapper around `process.cwd()` for isolation
+ * @private
+ */
+exports.cwd = function cwd() {
+  return process.cwd();
+};
+
+/**
+ * Returns `true` if Mocha is running in a browser.
+ * Checks for `process.browser`.
+ * @returns {boolean}
+ * @private
+ */
+exports.isBrowser = function isBrowser() {
+  return Boolean(process.browser);
+};
+
 }).call(this,require('_process'),require("buffer").Buffer)
-},{"./errors":6,"_process":69,"buffer":43,"debug":45,"fs":42,"glob":42,"he":54,"object.assign":65,"path":42,"util":89}],39:[function(require,module,exports){
+},{"./errors":6,"_process":67,"buffer":43,"fs":42,"glob":42,"he":54,"object.assign":63,"path":42,"util":89}],39:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -8257,7 +8904,8 @@ function toByteArray (b64) {
     ? validLen - 4
     : validLen
 
-  for (var i = 0; i < len; i += 4) {
+  var i
+  for (i = 0; i < len; i += 4) {
     tmp =
       (revLookup[b64.charCodeAt(i)] << 18) |
       (revLookup[b64.charCodeAt(i + 1)] << 12) |
@@ -8373,7 +9021,7 @@ BrowserStdout.prototype._write = function(chunks, encoding, cb) {
 }
 
 }).call(this,require('_process'))
-},{"_process":69,"stream":84,"util":89}],42:[function(require,module,exports){
+},{"_process":67,"stream":83,"util":89}],42:[function(require,module,exports){
 arguments[4][40][0].apply(exports,arguments)
 },{"dup":40}],43:[function(require,module,exports){
 (function (Buffer){
@@ -10266,8 +10914,8 @@ function objectToString(o) {
   return Object.prototype.toString.call(o);
 }
 
-}).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":57}],45:[function(require,module,exports){
+}).call(this,{"isBuffer":require("../../insert-module-globals/node_modules/is-buffer/index.js")})
+},{"../../insert-module-globals/node_modules/is-buffer/index.js":57}],45:[function(require,module,exports){
 (function (process){
 "use strict";
 
@@ -10451,7 +11099,7 @@ formatters.j = function (v) {
 
 
 }).call(this,require('_process'))
-},{"./common":46,"_process":69}],46:[function(require,module,exports){
+},{"./common":46,"_process":67}],46:[function(require,module,exports){
 "use strict";
 
 /**
@@ -10702,7 +11350,7 @@ function setup(env) {
 module.exports = setup;
 
 
-},{"ms":60}],47:[function(require,module,exports){
+},{"ms":58}],47:[function(require,module,exports){
 'use strict';
 
 var keys = require('object-keys');
@@ -10762,10 +11410,10 @@ defineProperties.supportsDescriptors = !!supportsDescriptors;
 
 module.exports = defineProperties;
 
-},{"object-keys":62}],48:[function(require,module,exports){
+},{"object-keys":60}],48:[function(require,module,exports){
 /*!
 
- diff v3.5.0
+ diff v4.0.1
 
 Software License Agreement (BSD License)
 
@@ -10800,1812 +11448,1555 @@ IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISI
 OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 @license
 */
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
-	else if(false)
-		define([], factory);
-	else if(typeof exports === 'object')
-		exports["JsDiff"] = factory();
-	else
-		root["JsDiff"] = factory();
-})(this, function() {
-return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
+(function (global, factory) {
+  typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
+  false ? define(['exports'], factory) :
+  (global = global || self, factory(global.Diff = {}));
+}(this, function (exports) { 'use strict';
+
+  function Diff() {}
+  Diff.prototype = {
+    diff: function diff(oldString, newString) {
+      var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+      var callback = options.callback;
+
+      if (typeof options === 'function') {
+        callback = options;
+        options = {};
+      }
+
+      this.options = options;
+      var self = this;
+
+      function done(value) {
+        if (callback) {
+          setTimeout(function () {
+            callback(undefined, value);
+          }, 0);
+          return true;
+        } else {
+          return value;
+        }
+      } // Allow subclasses to massage the input prior to running
+
+
+      oldString = this.castInput(oldString);
+      newString = this.castInput(newString);
+      oldString = this.removeEmpty(this.tokenize(oldString));
+      newString = this.removeEmpty(this.tokenize(newString));
+      var newLen = newString.length,
+          oldLen = oldString.length;
+      var editLength = 1;
+      var maxEditLength = newLen + oldLen;
+      var bestPath = [{
+        newPos: -1,
+        components: []
+      }]; // Seed editLength = 0, i.e. the content starts with the same values
+
+      var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+
+      if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
+        // Identity per the equality and tokenizer
+        return done([{
+          value: this.join(newString),
+          count: newString.length
+        }]);
+      } // Main worker method. checks all permutations of a given edit length for acceptance.
+
+
+      function execEditLength() {
+        for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
+          var basePath = void 0;
+
+          var addPath = bestPath[diagonalPath - 1],
+              removePath = bestPath[diagonalPath + 1],
+              _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
+
+          if (addPath) {
+            // No one else is going to attempt to use this value, clear it
+            bestPath[diagonalPath - 1] = undefined;
+          }
+
+          var canAdd = addPath && addPath.newPos + 1 < newLen,
+              canRemove = removePath && 0 <= _oldPos && _oldPos < oldLen;
+
+          if (!canAdd && !canRemove) {
+            // If this path is a terminal then prune
+            bestPath[diagonalPath] = undefined;
+            continue;
+          } // Select the diagonal that we want to branch from. We select the prior
+          // path whose position in the new string is the farthest from the origin
+          // and does not pass the bounds of the diff graph
+
+
+          if (!canAdd || canRemove && addPath.newPos < removePath.newPos) {
+            basePath = clonePath(removePath);
+            self.pushComponent(basePath.components, undefined, true);
+          } else {
+            basePath = addPath; // No need to clone, we've pulled it from the list
+
+            basePath.newPos++;
+            self.pushComponent(basePath.components, true, undefined);
+          }
+
+          _oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath); // If we have hit the end of both strings, then we are done
+
+          if (basePath.newPos + 1 >= newLen && _oldPos + 1 >= oldLen) {
+            return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
+          } else {
+            // Otherwise track this path as a potential candidate and continue.
+            bestPath[diagonalPath] = basePath;
+          }
+        }
+
+        editLength++;
+      } // Performs the length of edit iteration. Is a bit fugly as this has to support the
+      // sync and async mode which is never fun. Loops over execEditLength until a value
+      // is produced.
+
+
+      if (callback) {
+        (function exec() {
+          setTimeout(function () {
+            // This should not happen, but we want to be safe.
+
+            /* istanbul ignore next */
+            if (editLength > maxEditLength) {
+              return callback();
+            }
+
+            if (!execEditLength()) {
+              exec();
+            }
+          }, 0);
+        })();
+      } else {
+        while (editLength <= maxEditLength) {
+          var ret = execEditLength();
+
+          if (ret) {
+            return ret;
+          }
+        }
+      }
+    },
+    pushComponent: function pushComponent(components, added, removed) {
+      var last = components[components.length - 1];
+
+      if (last && last.added === added && last.removed === removed) {
+        // We need to clone here as the component clone operation is just
+        // as shallow array clone
+        components[components.length - 1] = {
+          count: last.count + 1,
+          added: added,
+          removed: removed
+        };
+      } else {
+        components.push({
+          count: 1,
+          added: added,
+          removed: removed
+        });
+      }
+    },
+    extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
+      var newLen = newString.length,
+          oldLen = oldString.length,
+          newPos = basePath.newPos,
+          oldPos = newPos - diagonalPath,
+          commonCount = 0;
+
+      while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
+        newPos++;
+        oldPos++;
+        commonCount++;
+      }
+
+      if (commonCount) {
+        basePath.components.push({
+          count: commonCount
+        });
+      }
+
+      basePath.newPos = newPos;
+      return oldPos;
+    },
+    equals: function equals(left, right) {
+      if (this.options.comparator) {
+        return this.options.comparator(left, right);
+      } else {
+        return left === right || this.options.ignoreCase && left.toLowerCase() === right.toLowerCase();
+      }
+    },
+    removeEmpty: function removeEmpty(array) {
+      var ret = [];
+
+      for (var i = 0; i < array.length; i++) {
+        if (array[i]) {
+          ret.push(array[i]);
+        }
+      }
+
+      return ret;
+    },
+    castInput: function castInput(value) {
+      return value;
+    },
+    tokenize: function tokenize(value) {
+      return value.split('');
+    },
+    join: function join(chars) {
+      return chars.join('');
+    }
+  };
+
+  function buildValues(diff, components, newString, oldString, useLongestToken) {
+    var componentPos = 0,
+        componentLen = components.length,
+        newPos = 0,
+        oldPos = 0;
+
+    for (; componentPos < componentLen; componentPos++) {
+      var component = components[componentPos];
+
+      if (!component.removed) {
+        if (!component.added && useLongestToken) {
+          var value = newString.slice(newPos, newPos + component.count);
+          value = value.map(function (value, i) {
+            var oldValue = oldString[oldPos + i];
+            return oldValue.length > value.length ? oldValue : value;
+          });
+          component.value = diff.join(value);
+        } else {
+          component.value = diff.join(newString.slice(newPos, newPos + component.count));
+        }
+
+        newPos += component.count; // Common case
+
+        if (!component.added) {
+          oldPos += component.count;
+        }
+      } else {
+        component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
+        oldPos += component.count; // Reverse add and remove so removes are output first to match common convention
+        // The diffing algorithm is tied to add then remove output and this is the simplest
+        // route to get the desired output with minimal overhead.
+
+        if (componentPos && components[componentPos - 1].added) {
+          var tmp = components[componentPos - 1];
+          components[componentPos - 1] = components[componentPos];
+          components[componentPos] = tmp;
+        }
+      }
+    } // Special case handle for when one terminal is ignored (i.e. whitespace).
+    // For this case we merge the terminal into the prior string and drop the change.
+    // This is only available for string mode.
+
+
+    var lastComponent = components[componentLen - 1];
+
+    if (componentLen > 1 && typeof lastComponent.value === 'string' && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
+      components[componentLen - 2].value += lastComponent.value;
+      components.pop();
+    }
+
+    return components;
+  }
+
+  function clonePath(path) {
+    return {
+      newPos: path.newPos,
+      components: path.components.slice(0)
+    };
+  }
+
+  var characterDiff = new Diff();
+  function diffChars(oldStr, newStr, options) {
+    return characterDiff.diff(oldStr, newStr, options);
+  }
+
+  function generateOptions(options, defaults) {
+    if (typeof options === 'function') {
+      defaults.callback = options;
+    } else if (options) {
+      for (var name in options) {
+        /* istanbul ignore else */
+        if (options.hasOwnProperty(name)) {
+          defaults[name] = options[name];
+        }
+      }
+    }
+
+    return defaults;
+  }
+
+  //
+  // Ranges and exceptions:
+  // Latin-1 Supplement, 0080–00FF
+  //  - U+00D7  × Multiplication sign
+  //  - U+00F7  ÷ Division sign
+  // Latin Extended-A, 0100–017F
+  // Latin Extended-B, 0180–024F
+  // IPA Extensions, 0250–02AF
+  // Spacing Modifier Letters, 02B0–02FF
+  //  - U+02C7  ˇ &#711;  Caron
+  //  - U+02D8  ˘ &#728;  Breve
+  //  - U+02D9  ˙ &#729;  Dot Above
+  //  - U+02DA  ˚ &#730;  Ring Above
+  //  - U+02DB  ˛ &#731;  Ogonek
+  //  - U+02DC  ˜ &#732;  Small Tilde
+  //  - U+02DD  ˝ &#733;  Double Acute Accent
+  // Latin Extended Additional, 1E00–1EFF
+
+  var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1EFF]+$/;
+  var reWhitespace = /\S/;
+  var wordDiff = new Diff();
+
+  wordDiff.equals = function (left, right) {
+    if (this.options.ignoreCase) {
+      left = left.toLowerCase();
+      right = right.toLowerCase();
+    }
+
+    return left === right || this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
+  };
+
+  wordDiff.tokenize = function (value) {
+    var tokens = value.split(/(\s+|[()[\]{}'"]|\b)/); // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
+
+    for (var i = 0; i < tokens.length - 1; i++) {
+      // If we have an empty string in the next field and we have only word chars before and after, merge
+      if (!tokens[i + 1] && tokens[i + 2] && extendedWordChars.test(tokens[i]) && extendedWordChars.test(tokens[i + 2])) {
+        tokens[i] += tokens[i + 2];
+        tokens.splice(i + 1, 2);
+        i--;
+      }
+    }
+
+    return tokens;
+  };
+
+  function diffWords(oldStr, newStr, options) {
+    options = generateOptions(options, {
+      ignoreWhitespace: true
+    });
+    return wordDiff.diff(oldStr, newStr, options);
+  }
+  function diffWordsWithSpace(oldStr, newStr, options) {
+    return wordDiff.diff(oldStr, newStr, options);
+  }
+
+  var lineDiff = new Diff();
+
+  lineDiff.tokenize = function (value) {
+    var retLines = [],
+        linesAndNewlines = value.split(/(\n|\r\n)/); // Ignore the final empty token that occurs if the string ends with a new line
+
+    if (!linesAndNewlines[linesAndNewlines.length - 1]) {
+      linesAndNewlines.pop();
+    } // Merge the content and line separators into single tokens
+
+
+    for (var i = 0; i < linesAndNewlines.length; i++) {
+      var line = linesAndNewlines[i];
+
+      if (i % 2 && !this.options.newlineIsToken) {
+        retLines[retLines.length - 1] += line;
+      } else {
+        if (this.options.ignoreWhitespace) {
+          line = line.trim();
+        }
+
+        retLines.push(line);
+      }
+    }
+
+    return retLines;
+  };
+
+  function diffLines(oldStr, newStr, callback) {
+    return lineDiff.diff(oldStr, newStr, callback);
+  }
+  function diffTrimmedLines(oldStr, newStr, callback) {
+    var options = generateOptions(callback, {
+      ignoreWhitespace: true
+    });
+    return lineDiff.diff(oldStr, newStr, options);
+  }
+
+  var sentenceDiff = new Diff();
+
+  sentenceDiff.tokenize = function (value) {
+    return value.split(/(\S.+?[.!?])(?=\s+|$)/);
+  };
+
+  function diffSentences(oldStr, newStr, callback) {
+    return sentenceDiff.diff(oldStr, newStr, callback);
+  }
+
+  var cssDiff = new Diff();
+
+  cssDiff.tokenize = function (value) {
+    return value.split(/([{}:;,]|\s+)/);
+  };
+
+  function diffCss(oldStr, newStr, callback) {
+    return cssDiff.diff(oldStr, newStr, callback);
+  }
+
+  function _typeof(obj) {
+    if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
+      _typeof = function (obj) {
+        return typeof obj;
+      };
+    } else {
+      _typeof = function (obj) {
+        return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj;
+      };
+    }
+
+    return _typeof(obj);
+  }
+
+  function _toConsumableArray(arr) {
+    return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread();
+  }
+
+  function _arrayWithoutHoles(arr) {
+    if (Array.isArray(arr)) {
+      for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) arr2[i] = arr[i];
+
+      return arr2;
+    }
+  }
+
+  function _iterableToArray(iter) {
+    if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter);
+  }
+
+  function _nonIterableSpread() {
+    throw new TypeError("Invalid attempt to spread non-iterable instance");
+  }
+
+  var objectPrototypeToString = Object.prototype.toString;
+  var jsonDiff = new Diff(); // Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
+  // dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
+
+  jsonDiff.useLongestToken = true;
+  jsonDiff.tokenize = lineDiff.tokenize;
+
+  jsonDiff.castInput = function (value) {
+    var _this$options = this.options,
+        undefinedReplacement = _this$options.undefinedReplacement,
+        _this$options$stringi = _this$options.stringifyReplacer,
+        stringifyReplacer = _this$options$stringi === void 0 ? function (k, v) {
+      return typeof v === 'undefined' ? undefinedReplacement : v;
+    } : _this$options$stringi;
+    return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
+  };
+
+  jsonDiff.equals = function (left, right) {
+    return Diff.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'));
+  };
+
+  function diffJson(oldObj, newObj, options) {
+    return jsonDiff.diff(oldObj, newObj, options);
+  } // This function handles the presence of circular references by bailing out when encountering an
+  // object that is already on the "stack" of items being processed. Accepts an optional replacer
+
+  function canonicalize(obj, stack, replacementStack, replacer, key) {
+    stack = stack || [];
+    replacementStack = replacementStack || [];
+
+    if (replacer) {
+      obj = replacer(key, obj);
+    }
+
+    var i;
+
+    for (i = 0; i < stack.length; i += 1) {
+      if (stack[i] === obj) {
+        return replacementStack[i];
+      }
+    }
+
+    var canonicalizedObj;
+
+    if ('[object Array]' === objectPrototypeToString.call(obj)) {
+      stack.push(obj);
+      canonicalizedObj = new Array(obj.length);
+      replacementStack.push(canonicalizedObj);
+
+      for (i = 0; i < obj.length; i += 1) {
+        canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
+      }
+
+      stack.pop();
+      replacementStack.pop();
+      return canonicalizedObj;
+    }
+
+    if (obj && obj.toJSON) {
+      obj = obj.toJSON();
+    }
+
+    if (_typeof(obj) === 'object' && obj !== null) {
+      stack.push(obj);
+      canonicalizedObj = {};
+      replacementStack.push(canonicalizedObj);
+
+      var sortedKeys = [],
+          _key;
+
+      for (_key in obj) {
+        /* istanbul ignore else */
+        if (obj.hasOwnProperty(_key)) {
+          sortedKeys.push(_key);
+        }
+      }
+
+      sortedKeys.sort();
+
+      for (i = 0; i < sortedKeys.length; i += 1) {
+        _key = sortedKeys[i];
+        canonicalizedObj[_key] = canonicalize(obj[_key], stack, replacementStack, replacer, _key);
+      }
+
+      stack.pop();
+      replacementStack.pop();
+    } else {
+      canonicalizedObj = obj;
+    }
+
+    return canonicalizedObj;
+  }
+
+  var arrayDiff = new Diff();
+
+  arrayDiff.tokenize = function (value) {
+    return value.slice();
+  };
+
+  arrayDiff.join = arrayDiff.removeEmpty = function (value) {
+    return value;
+  };
+
+  function diffArrays(oldArr, newArr, callback) {
+    return arrayDiff.diff(oldArr, newArr, callback);
+  }
+
+  function parsePatch(uniDiff) {
+    var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+    var diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/),
+        delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [],
+        list = [],
+        i = 0;
+
+    function parseIndex() {
+      var index = {};
+      list.push(index); // Parse diff metadata
+
+      while (i < diffstr.length) {
+        var line = diffstr[i]; // File header found, end parsing diff metadata
+
+        if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
+          break;
+        } // Diff index
+
+
+        var header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
+
+        if (header) {
+          index.index = header[1];
+        }
+
+        i++;
+      } // Parse file headers if they are defined. Unified diff requires them, but
+      // there's no technical issues to have an isolated hunk without file header
+
+
+      parseFileHeader(index);
+      parseFileHeader(index); // Parse hunks
+
+      index.hunks = [];
+
+      while (i < diffstr.length) {
+        var _line = diffstr[i];
+
+        if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
+          break;
+        } else if (/^@@/.test(_line)) {
+          index.hunks.push(parseHunk());
+        } else if (_line && options.strict) {
+          // Ignore unexpected content unless in strict mode
+          throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(_line));
+        } else {
+          i++;
+        }
+      }
+    } // Parses the --- and +++ headers, if none are found, no lines
+    // are consumed.
+
+
+    function parseFileHeader(index) {
+      var fileHeader = /^(---|\+\+\+)\s+(.*)$/.exec(diffstr[i]);
+
+      if (fileHeader) {
+        var keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
+        var data = fileHeader[2].split('\t', 2);
+        var fileName = data[0].replace(/\\\\/g, '\\');
+
+        if (/^".*"$/.test(fileName)) {
+          fileName = fileName.substr(1, fileName.length - 2);
+        }
+
+        index[keyPrefix + 'FileName'] = fileName;
+        index[keyPrefix + 'Header'] = (data[1] || '').trim();
+        i++;
+      }
+    } // Parses a hunk
+    // This assumes that we are at the start of a hunk.
+
+
+    function parseHunk() {
+      var chunkHeaderIndex = i,
+          chunkHeaderLine = diffstr[i++],
+          chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
+      var hunk = {
+        oldStart: +chunkHeader[1],
+        oldLines: +chunkHeader[2] || 1,
+        newStart: +chunkHeader[3],
+        newLines: +chunkHeader[4] || 1,
+        lines: [],
+        linedelimiters: []
+      };
+      var addCount = 0,
+          removeCount = 0;
+
+      for (; i < diffstr.length; i++) {
+        // Lines starting with '---' could be mistaken for the "remove line" operation
+        // But they could be the header for the next file. Therefore prune such cases out.
+        if (diffstr[i].indexOf('--- ') === 0 && i + 2 < diffstr.length && diffstr[i + 1].indexOf('+++ ') === 0 && diffstr[i + 2].indexOf('@@') === 0) {
+          break;
+        }
+
+        var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? ' ' : diffstr[i][0];
+
+        if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
+          hunk.lines.push(diffstr[i]);
+          hunk.linedelimiters.push(delimiters[i] || '\n');
+
+          if (operation === '+') {
+            addCount++;
+          } else if (operation === '-') {
+            removeCount++;
+          } else if (operation === ' ') {
+            addCount++;
+            removeCount++;
+          }
+        } else {
+          break;
+        }
+      } // Handle the empty block count case
+
+
+      if (!addCount && hunk.newLines === 1) {
+        hunk.newLines = 0;
+      }
+
+      if (!removeCount && hunk.oldLines === 1) {
+        hunk.oldLines = 0;
+      } // Perform optional sanity checking
+
+
+      if (options.strict) {
+        if (addCount !== hunk.newLines) {
+          throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+        }
+
+        if (removeCount !== hunk.oldLines) {
+          throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
+        }
+      }
+
+      return hunk;
+    }
+
+    while (i < diffstr.length) {
+      parseIndex();
+    }
+
+    return list;
+  }
+
+  // Iterator that traverses in the range of [min, max], stepping
+  // by distance from a given start position. I.e. for [0, 4], with
+  // start of 2, this will iterate 2, 3, 1, 4, 0.
+  function distanceIterator (start, minLine, maxLine) {
+    var wantForward = true,
+        backwardExhausted = false,
+        forwardExhausted = false,
+        localOffset = 1;
+    return function iterator() {
+      if (wantForward && !forwardExhausted) {
+        if (backwardExhausted) {
+          localOffset++;
+        } else {
+          wantForward = false;
+        } // Check if trying to fit beyond text length, and if not, check it fits
+        // after offset location (or desired location on first iteration)
+
+
+        if (start + localOffset <= maxLine) {
+          return localOffset;
+        }
+
+        forwardExhausted = true;
+      }
+
+      if (!backwardExhausted) {
+        if (!forwardExhausted) {
+          wantForward = true;
+        } // Check if trying to fit before text beginning, and if not, check it fits
+        // before offset location
+
+
+        if (minLine <= start - localOffset) {
+          return -localOffset++;
+        }
+
+        backwardExhausted = true;
+        return iterator();
+      } // We tried to fit hunk before text beginning and beyond text length, then
+      // hunk can't fit on the text. Return undefined
+
+    };
+  }
+
+  function applyPatch(source, uniDiff) {
+    var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+    if (typeof uniDiff === 'string') {
+      uniDiff = parsePatch(uniDiff);
+    }
+
+    if (Array.isArray(uniDiff)) {
+      if (uniDiff.length > 1) {
+        throw new Error('applyPatch only works with a single input.');
+      }
+
+      uniDiff = uniDiff[0];
+    } // Apply the diff to the input
+
+
+    var lines = source.split(/\r\n|[\n\v\f\r\x85]/),
+        delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [],
+        hunks = uniDiff.hunks,
+        compareLine = options.compareLine || function (lineNumber, line, operation, patchContent) {
+      return line === patchContent;
+    },
+        errorCount = 0,
+        fuzzFactor = options.fuzzFactor || 0,
+        minLine = 0,
+        offset = 0,
+        removeEOFNL,
+        addEOFNL;
+    /**
+     * Checks if the hunk exactly fits on the provided location
+     */
+
+
+    function hunkFits(hunk, toPos) {
+      for (var j = 0; j < hunk.lines.length; j++) {
+        var line = hunk.lines[j],
+            operation = line.length > 0 ? line[0] : ' ',
+            content = line.length > 0 ? line.substr(1) : line;
+
+        if (operation === ' ' || operation === '-') {
+          // Context sanity check
+          if (!compareLine(toPos + 1, lines[toPos], operation, content)) {
+            errorCount++;
+
+            if (errorCount > fuzzFactor) {
+              return false;
+            }
+          }
+
+          toPos++;
+        }
+      }
+
+      return true;
+    } // Search best fit offsets for each hunk based on the previous ones
+
+
+    for (var i = 0; i < hunks.length; i++) {
+      var hunk = hunks[i],
+          maxLine = lines.length - hunk.oldLines,
+          localOffset = 0,
+          toPos = offset + hunk.oldStart - 1;
+      var iterator = distanceIterator(toPos, minLine, maxLine);
+
+      for (; localOffset !== undefined; localOffset = iterator()) {
+        if (hunkFits(hunk, toPos + localOffset)) {
+          hunk.offset = offset += localOffset;
+          break;
+        }
+      }
+
+      if (localOffset === undefined) {
+        return false;
+      } // Set lower text limit to end of the current hunk, so next ones don't try
+      // to fit over already patched text
+
+
+      minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
+    } // Apply patch hunks
+
+
+    var diffOffset = 0;
+
+    for (var _i = 0; _i < hunks.length; _i++) {
+      var _hunk = hunks[_i],
+          _toPos = _hunk.oldStart + _hunk.offset + diffOffset - 1;
+
+      diffOffset += _hunk.newLines - _hunk.oldLines;
+
+      if (_toPos < 0) {
+        // Creating a new file
+        _toPos = 0;
+      }
+
+      for (var j = 0; j < _hunk.lines.length; j++) {
+        var line = _hunk.lines[j],
+            operation = line.length > 0 ? line[0] : ' ',
+            content = line.length > 0 ? line.substr(1) : line,
+            delimiter = _hunk.linedelimiters[j];
+
+        if (operation === ' ') {
+          _toPos++;
+        } else if (operation === '-') {
+          lines.splice(_toPos, 1);
+          delimiters.splice(_toPos, 1);
+          /* istanbul ignore else */
+        } else if (operation === '+') {
+          lines.splice(_toPos, 0, content);
+          delimiters.splice(_toPos, 0, delimiter);
+          _toPos++;
+        } else if (operation === '\\') {
+          var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
+
+          if (previousOperation === '+') {
+            removeEOFNL = true;
+          } else if (previousOperation === '-') {
+            addEOFNL = true;
+          }
+        }
+      }
+    } // Handle EOFNL insertion/removal
+
+
+    if (removeEOFNL) {
+      while (!lines[lines.length - 1]) {
+        lines.pop();
+        delimiters.pop();
+      }
+    } else if (addEOFNL) {
+      lines.push('');
+      delimiters.push('\n');
+    }
+
+    for (var _k = 0; _k < lines.length - 1; _k++) {
+      lines[_k] = lines[_k] + delimiters[_k];
+    }
+
+    return lines.join('');
+  } // Wrapper that supports multiple file patches via callbacks.
+
+  function applyPatches(uniDiff, options) {
+    if (typeof uniDiff === 'string') {
+      uniDiff = parsePatch(uniDiff);
+    }
+
+    var currentIndex = 0;
+
+    function processIndex() {
+      var index = uniDiff[currentIndex++];
+
+      if (!index) {
+        return options.complete();
+      }
+
+      options.loadFile(index, function (err, data) {
+        if (err) {
+          return options.complete(err);
+        }
+
+        var updatedContent = applyPatch(data, index, options);
+        options.patched(index, updatedContent, function (err) {
+          if (err) {
+            return options.complete(err);
+          }
+
+          processIndex();
+        });
+      });
+    }
+
+    processIndex();
+  }
+
+  function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+    if (!options) {
+      options = {};
+    }
+
+    if (typeof options.context === 'undefined') {
+      options.context = 4;
+    }
+
+    var diff = diffLines(oldStr, newStr, options);
+    diff.push({
+      value: '',
+      lines: []
+    }); // Append an empty value to make cleanup easier
+
+    function contextLines(lines) {
+      return lines.map(function (entry) {
+        return ' ' + entry;
+      });
+    }
+
+    var hunks = [];
+    var oldRangeStart = 0,
+        newRangeStart = 0,
+        curRange = [],
+        oldLine = 1,
+        newLine = 1;
+
+    var _loop = function _loop(i) {
+      var current = diff[i],
+          lines = current.lines || current.value.replace(/\n$/, '').split('\n');
+      current.lines = lines;
+
+      if (current.added || current.removed) {
+        var _curRange;
+
+        // If we have previous context, start with that
+        if (!oldRangeStart) {
+          var prev = diff[i - 1];
+          oldRangeStart = oldLine;
+          newRangeStart = newLine;
+
+          if (prev) {
+            curRange = options.context > 0 ? contextLines(prev.lines.slice(-options.context)) : [];
+            oldRangeStart -= curRange.length;
+            newRangeStart -= curRange.length;
+          }
+        } // Output our changes
+
+
+        (_curRange = curRange).push.apply(_curRange, _toConsumableArray(lines.map(function (entry) {
+          return (current.added ? '+' : '-') + entry;
+        }))); // Track the updated file position
+
+
+        if (current.added) {
+          newLine += lines.length;
+        } else {
+          oldLine += lines.length;
+        }
+      } else {
+        // Identical context lines. Track line changes
+        if (oldRangeStart) {
+          // Close out any changes that have been output (or join overlapping)
+          if (lines.length <= options.context * 2 && i < diff.length - 2) {
+            var _curRange2;
+
+            // Overlapping
+            (_curRange2 = curRange).push.apply(_curRange2, _toConsumableArray(contextLines(lines)));
+          } else {
+            var _curRange3;
+
+            // end the range and output
+            var contextSize = Math.min(lines.length, options.context);
+
+            (_curRange3 = curRange).push.apply(_curRange3, _toConsumableArray(contextLines(lines.slice(0, contextSize))));
+
+            var hunk = {
+              oldStart: oldRangeStart,
+              oldLines: oldLine - oldRangeStart + contextSize,
+              newStart: newRangeStart,
+              newLines: newLine - newRangeStart + contextSize,
+              lines: curRange
+            };
+
+            if (i >= diff.length - 2 && lines.length <= options.context) {
+              // EOF is inside this hunk
+              var oldEOFNewline = /\n$/.test(oldStr);
+              var newEOFNewline = /\n$/.test(newStr);
+              var noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
+
+              if (!oldEOFNewline && noNlBeforeAdds) {
+                // special case: old has no eol and no trailing context; no-nl can end up before adds
+                curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
+              }
+
+              if (!oldEOFNewline && !noNlBeforeAdds || !newEOFNewline) {
+                curRange.push('\\ No newline at end of file');
+              }
+            }
+
+            hunks.push(hunk);
+            oldRangeStart = 0;
+            newRangeStart = 0;
+            curRange = [];
+          }
+        }
+
+        oldLine += lines.length;
+        newLine += lines.length;
+      }
+    };
+
+    for (var i = 0; i < diff.length; i++) {
+      _loop(i);
+    }
+
+    return {
+      oldFileName: oldFileName,
+      newFileName: newFileName,
+      oldHeader: oldHeader,
+      newHeader: newHeader,
+      hunks: hunks
+    };
+  }
+  function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
+    var diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
+    var ret = [];
+
+    if (oldFileName == newFileName) {
+      ret.push('Index: ' + oldFileName);
+    }
+
+    ret.push('===================================================================');
+    ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
+    ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
+
+    for (var i = 0; i < diff.hunks.length; i++) {
+      var hunk = diff.hunks[i];
+      ret.push('@@ -' + hunk.oldStart + ',' + hunk.oldLines + ' +' + hunk.newStart + ',' + hunk.newLines + ' @@');
+      ret.push.apply(ret, hunk.lines);
+    }
+
+    return ret.join('\n') + '\n';
+  }
+  function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
+    return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
+  }
+
+  function arrayEqual(a, b) {
+    if (a.length !== b.length) {
+      return false;
+    }
+
+    return arrayStartsWith(a, b);
+  }
+  function arrayStartsWith(array, start) {
+    if (start.length > array.length) {
+      return false;
+    }
+
+    for (var i = 0; i < start.length; i++) {
+      if (start[i] !== array[i]) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function calcLineCount(hunk) {
+    var _calcOldNewLineCount = calcOldNewLineCount(hunk.lines),
+        oldLines = _calcOldNewLineCount.oldLines,
+        newLines = _calcOldNewLineCount.newLines;
+
+    if (oldLines !== undefined) {
+      hunk.oldLines = oldLines;
+    } else {
+      delete hunk.oldLines;
+    }
+
+    if (newLines !== undefined) {
+      hunk.newLines = newLines;
+    } else {
+      delete hunk.newLines;
+    }
+  }
+  function merge(mine, theirs, base) {
+    mine = loadPatch(mine, base);
+    theirs = loadPatch(theirs, base);
+    var ret = {}; // For index we just let it pass through as it doesn't have any necessary meaning.
+    // Leaving sanity checks on this to the API consumer that may know more about the
+    // meaning in their own context.
+
+    if (mine.index || theirs.index) {
+      ret.index = mine.index || theirs.index;
+    }
+
+    if (mine.newFileName || theirs.newFileName) {
+      if (!fileNameChanged(mine)) {
+        // No header or no change in ours, use theirs (and ours if theirs does not exist)
+        ret.oldFileName = theirs.oldFileName || mine.oldFileName;
+        ret.newFileName = theirs.newFileName || mine.newFileName;
+        ret.oldHeader = theirs.oldHeader || mine.oldHeader;
+        ret.newHeader = theirs.newHeader || mine.newHeader;
+      } else if (!fileNameChanged(theirs)) {
+        // No header or no change in theirs, use ours
+        ret.oldFileName = mine.oldFileName;
+        ret.newFileName = mine.newFileName;
+        ret.oldHeader = mine.oldHeader;
+        ret.newHeader = mine.newHeader;
+      } else {
+        // Both changed... figure it out
+        ret.oldFileName = selectField(ret, mine.oldFileName, theirs.oldFileName);
+        ret.newFileName = selectField(ret, mine.newFileName, theirs.newFileName);
+        ret.oldHeader = selectField(ret, mine.oldHeader, theirs.oldHeader);
+        ret.newHeader = selectField(ret, mine.newHeader, theirs.newHeader);
+      }
+    }
+
+    ret.hunks = [];
+    var mineIndex = 0,
+        theirsIndex = 0,
+        mineOffset = 0,
+        theirsOffset = 0;
+
+    while (mineIndex < mine.hunks.length || theirsIndex < theirs.hunks.length) {
+      var mineCurrent = mine.hunks[mineIndex] || {
+        oldStart: Infinity
+      },
+          theirsCurrent = theirs.hunks[theirsIndex] || {
+        oldStart: Infinity
+      };
+
+      if (hunkBefore(mineCurrent, theirsCurrent)) {
+        // This patch does not overlap with any of the others, yay.
+        ret.hunks.push(cloneHunk(mineCurrent, mineOffset));
+        mineIndex++;
+        theirsOffset += mineCurrent.newLines - mineCurrent.oldLines;
+      } else if (hunkBefore(theirsCurrent, mineCurrent)) {
+        // This patch does not overlap with any of the others, yay.
+        ret.hunks.push(cloneHunk(theirsCurrent, theirsOffset));
+        theirsIndex++;
+        mineOffset += theirsCurrent.newLines - theirsCurrent.oldLines;
+      } else {
+        // Overlap, merge as best we can
+        var mergedHunk = {
+          oldStart: Math.min(mineCurrent.oldStart, theirsCurrent.oldStart),
+          oldLines: 0,
+          newStart: Math.min(mineCurrent.newStart + mineOffset, theirsCurrent.oldStart + theirsOffset),
+          newLines: 0,
+          lines: []
+        };
+        mergeLines(mergedHunk, mineCurrent.oldStart, mineCurrent.lines, theirsCurrent.oldStart, theirsCurrent.lines);
+        theirsIndex++;
+        mineIndex++;
+        ret.hunks.push(mergedHunk);
+      }
+    }
+
+    return ret;
+  }
+
+  function loadPatch(param, base) {
+    if (typeof param === 'string') {
+      if (/^@@/m.test(param) || /^Index:/m.test(param)) {
+        return parsePatch(param)[0];
+      }
+
+      if (!base) {
+        throw new Error('Must provide a base reference or pass in a patch');
+      }
+
+      return structuredPatch(undefined, undefined, base, param);
+    }
+
+    return param;
+  }
+
+  function fileNameChanged(patch) {
+    return patch.newFileName && patch.newFileName !== patch.oldFileName;
+  }
+
+  function selectField(index, mine, theirs) {
+    if (mine === theirs) {
+      return mine;
+    } else {
+      index.conflict = true;
+      return {
+        mine: mine,
+        theirs: theirs
+      };
+    }
+  }
+
+  function hunkBefore(test, check) {
+    return test.oldStart < check.oldStart && test.oldStart + test.oldLines < check.oldStart;
+  }
+
+  function cloneHunk(hunk, offset) {
+    return {
+      oldStart: hunk.oldStart,
+      oldLines: hunk.oldLines,
+      newStart: hunk.newStart + offset,
+      newLines: hunk.newLines,
+      lines: hunk.lines
+    };
+  }
+
+  function mergeLines(hunk, mineOffset, mineLines, theirOffset, theirLines) {
+    // This will generally result in a conflicted hunk, but there are cases where the context
+    // is the only overlap where we can successfully merge the content here.
+    var mine = {
+      offset: mineOffset,
+      lines: mineLines,
+      index: 0
+    },
+        their = {
+      offset: theirOffset,
+      lines: theirLines,
+      index: 0
+    }; // Handle any leading content
+
+    insertLeading(hunk, mine, their);
+    insertLeading(hunk, their, mine); // Now in the overlap content. Scan through and select the best changes from each.
+
+    while (mine.index < mine.lines.length && their.index < their.lines.length) {
+      var mineCurrent = mine.lines[mine.index],
+          theirCurrent = their.lines[their.index];
+
+      if ((mineCurrent[0] === '-' || mineCurrent[0] === '+') && (theirCurrent[0] === '-' || theirCurrent[0] === '+')) {
+        // Both modified ...
+        mutualChange(hunk, mine, their);
+      } else if (mineCurrent[0] === '+' && theirCurrent[0] === ' ') {
+        var _hunk$lines;
+
+        // Mine inserted
+        (_hunk$lines = hunk.lines).push.apply(_hunk$lines, _toConsumableArray(collectChange(mine)));
+      } else if (theirCurrent[0] === '+' && mineCurrent[0] === ' ') {
+        var _hunk$lines2;
+
+        // Theirs inserted
+        (_hunk$lines2 = hunk.lines).push.apply(_hunk$lines2, _toConsumableArray(collectChange(their)));
+      } else if (mineCurrent[0] === '-' && theirCurrent[0] === ' ') {
+        // Mine removed or edited
+        removal(hunk, mine, their);
+      } else if (theirCurrent[0] === '-' && mineCurrent[0] === ' ') {
+        // Their removed or edited
+        removal(hunk, their, mine, true);
+      } else if (mineCurrent === theirCurrent) {
+        // Context identity
+        hunk.lines.push(mineCurrent);
+        mine.index++;
+        their.index++;
+      } else {
+        // Context mismatch
+        conflict(hunk, collectChange(mine), collectChange(their));
+      }
+    } // Now push anything that may be remaining
+
+
+    insertTrailing(hunk, mine);
+    insertTrailing(hunk, their);
+    calcLineCount(hunk);
+  }
+
+  function mutualChange(hunk, mine, their) {
+    var myChanges = collectChange(mine),
+        theirChanges = collectChange(their);
+
+    if (allRemoves(myChanges) && allRemoves(theirChanges)) {
+      // Special case for remove changes that are supersets of one another
+      if (arrayStartsWith(myChanges, theirChanges) && skipRemoveSuperset(their, myChanges, myChanges.length - theirChanges.length)) {
+        var _hunk$lines3;
+
+        (_hunk$lines3 = hunk.lines).push.apply(_hunk$lines3, _toConsumableArray(myChanges));
+
+        return;
+      } else if (arrayStartsWith(theirChanges, myChanges) && skipRemoveSuperset(mine, theirChanges, theirChanges.length - myChanges.length)) {
+        var _hunk$lines4;
+
+        (_hunk$lines4 = hunk.lines).push.apply(_hunk$lines4, _toConsumableArray(theirChanges));
+
+        return;
+      }
+    } else if (arrayEqual(myChanges, theirChanges)) {
+      var _hunk$lines5;
+
+      (_hunk$lines5 = hunk.lines).push.apply(_hunk$lines5, _toConsumableArray(myChanges));
+
+      return;
+    }
+
+    conflict(hunk, myChanges, theirChanges);
+  }
+
+  function removal(hunk, mine, their, swap) {
+    var myChanges = collectChange(mine),
+        theirChanges = collectContext(their, myChanges);
+
+    if (theirChanges.merged) {
+      var _hunk$lines6;
+
+      (_hunk$lines6 = hunk.lines).push.apply(_hunk$lines6, _toConsumableArray(theirChanges.merged));
+    } else {
+      conflict(hunk, swap ? theirChanges : myChanges, swap ? myChanges : theirChanges);
+    }
+  }
+
+  function conflict(hunk, mine, their) {
+    hunk.conflict = true;
+    hunk.lines.push({
+      conflict: true,
+      mine: mine,
+      theirs: their
+    });
+  }
+
+  function insertLeading(hunk, insert, their) {
+    while (insert.offset < their.offset && insert.index < insert.lines.length) {
+      var line = insert.lines[insert.index++];
+      hunk.lines.push(line);
+      insert.offset++;
+    }
+  }
+
+  function insertTrailing(hunk, insert) {
+    while (insert.index < insert.lines.length) {
+      var line = insert.lines[insert.index++];
+      hunk.lines.push(line);
+    }
+  }
+
+  function collectChange(state) {
+    var ret = [],
+        operation = state.lines[state.index][0];
+
+    while (state.index < state.lines.length) {
+      var line = state.lines[state.index]; // Group additions that are immediately after subtractions and treat them as one "atomic" modify change.
+
+      if (operation === '-' && line[0] === '+') {
+        operation = '+';
+      }
+
+      if (operation === line[0]) {
+        ret.push(line);
+        state.index++;
+      } else {
+        break;
+      }
+    }
+
+    return ret;
+  }
+
+  function collectContext(state, matchChanges) {
+    var changes = [],
+        merged = [],
+        matchIndex = 0,
+        contextChanges = false,
+        conflicted = false;
+
+    while (matchIndex < matchChanges.length && state.index < state.lines.length) {
+      var change = state.lines[state.index],
+          match = matchChanges[matchIndex]; // Once we've hit our add, then we are done
+
+      if (match[0] === '+') {
+        break;
+      }
+
+      contextChanges = contextChanges || change[0] !== ' ';
+      merged.push(match);
+      matchIndex++; // Consume any additions in the other block as a conflict to attempt
+      // to pull in the remaining context after this
+
+      if (change[0] === '+') {
+        conflicted = true;
+
+        while (change[0] === '+') {
+          changes.push(change);
+          change = state.lines[++state.index];
+        }
+      }
+
+      if (match.substr(1) === change.substr(1)) {
+        changes.push(change);
+        state.index++;
+      } else {
+        conflicted = true;
+      }
+    }
+
+    if ((matchChanges[matchIndex] || '')[0] === '+' && contextChanges) {
+      conflicted = true;
+    }
+
+    if (conflicted) {
+      return changes;
+    }
+
+    while (matchIndex < matchChanges.length) {
+      merged.push(matchChanges[matchIndex++]);
+    }
+
+    return {
+      merged: merged,
+      changes: changes
+    };
+  }
+
+  function allRemoves(changes) {
+    return changes.reduce(function (prev, change) {
+      return prev && change[0] === '-';
+    }, true);
+  }
+
+  function skipRemoveSuperset(state, removeChanges, delta) {
+    for (var i = 0; i < delta; i++) {
+      var changeContent = removeChanges[removeChanges.length - delta + i].substr(1);
+
+      if (state.lines[state.index + i] !== ' ' + changeContent) {
+        return false;
+      }
+    }
+
+    state.index += delta;
+    return true;
+  }
+
+  function calcOldNewLineCount(lines) {
+    var oldLines = 0;
+    var newLines = 0;
+    lines.forEach(function (line) {
+      if (typeof line !== 'string') {
+        var myCount = calcOldNewLineCount(line.mine);
+        var theirCount = calcOldNewLineCount(line.theirs);
+
+        if (oldLines !== undefined) {
+          if (myCount.oldLines === theirCount.oldLines) {
+            oldLines += myCount.oldLines;
+          } else {
+            oldLines = undefined;
+          }
+        }
+
+        if (newLines !== undefined) {
+          if (myCount.newLines === theirCount.newLines) {
+            newLines += myCount.newLines;
+          } else {
+            newLines = undefined;
+          }
+        }
+      } else {
+        if (newLines !== undefined && (line[0] === '+' || line[0] === ' ')) {
+          newLines++;
+        }
+
+        if (oldLines !== undefined && (line[0] === '-' || line[0] === ' ')) {
+          oldLines++;
+        }
+      }
+    });
+    return {
+      oldLines: oldLines,
+      newLines: newLines
+    };
+  }
+
+  // See: http://code.google.com/p/google-diff-match-patch/wiki/API
+  function convertChangesToDMP(changes) {
+    var ret = [],
+        change,
+        operation;
+
+    for (var i = 0; i < changes.length; i++) {
+      change = changes[i];
+
+      if (change.added) {
+        operation = 1;
+      } else if (change.removed) {
+        operation = -1;
+      } else {
+        operation = 0;
+      }
+
+      ret.push([operation, change.value]);
+    }
+
+    return ret;
+  }
+
+  function convertChangesToXML(changes) {
+    var ret = [];
+
+    for (var i = 0; i < changes.length; i++) {
+      var change = changes[i];
+
+      if (change.added) {
+        ret.push('<ins>');
+      } else if (change.removed) {
+        ret.push('<del>');
+      }
+
+      ret.push(escapeHTML(change.value));
+
+      if (change.added) {
+        ret.push('</ins>');
+      } else if (change.removed) {
+        ret.push('</del>');
+      }
+    }
+
+    return ret.join('');
+  }
+
+  function escapeHTML(s) {
+    var n = s;
+    n = n.replace(/&/g, '&amp;');
+    n = n.replace(/</g, '&lt;');
+    n = n.replace(/>/g, '&gt;');
+    n = n.replace(/"/g, '&quot;');
+    return n;
+  }
+
+  /* See LICENSE file for terms of use */
+
+  exports.Diff = Diff;
+  exports.diffChars = diffChars;
+  exports.diffWords = diffWords;
+  exports.diffWordsWithSpace = diffWordsWithSpace;
+  exports.diffLines = diffLines;
+  exports.diffTrimmedLines = diffTrimmedLines;
+  exports.diffSentences = diffSentences;
+  exports.diffCss = diffCss;
+  exports.diffJson = diffJson;
+  exports.diffArrays = diffArrays;
+  exports.structuredPatch = structuredPatch;
+  exports.createTwoFilesPatch = createTwoFilesPatch;
+  exports.createPatch = createPatch;
+  exports.applyPatch = applyPatch;
+  exports.applyPatches = applyPatches;
+  exports.parsePatch = parsePatch;
+  exports.merge = merge;
+  exports.convertChangesToDMP = convertChangesToDMP;
+  exports.convertChangesToXML = convertChangesToXML;
+  exports.canonicalize = canonicalize;
+
+  Object.defineProperty(exports, '__esModule', { value: true });
+
+}));
 
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId])
-/******/ 			return installedModules[moduleId].exports;
-
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			exports: {},
-/******/ 			id: moduleId,
-/******/ 			loaded: false
-/******/ 		};
-
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-
-/******/ 		// Flag the module as loaded
-/******/ 		module.loaded = true;
-
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-
-
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(0);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.canonicalize = exports.convertChangesToXML = exports.convertChangesToDMP = exports.merge = exports.parsePatch = exports.applyPatches = exports.applyPatch = exports.createPatch = exports.createTwoFilesPatch = exports.structuredPatch = exports.diffArrays = exports.diffJson = exports.diffCss = exports.diffSentences = exports.diffTrimmedLines = exports.diffLines = exports.diffWordsWithSpace = exports.diffWords = exports.diffChars = exports.Diff = undefined;
-
-	/*istanbul ignore end*/var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	/*istanbul ignore end*/var /*istanbul ignore start*/_character = __webpack_require__(2) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_word = __webpack_require__(3) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_line = __webpack_require__(5) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_sentence = __webpack_require__(6) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_css = __webpack_require__(7) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_json = __webpack_require__(8) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_array = __webpack_require__(9) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_apply = __webpack_require__(10) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_parse = __webpack_require__(11) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_merge = __webpack_require__(13) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_create = __webpack_require__(14) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_dmp = __webpack_require__(16) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_xml = __webpack_require__(17) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/* See LICENSE file for terms of use */
-
-	/*
-	 * Text diff implementation.
-	 *
-	 * This library supports the following APIS:
-	 * JsDiff.diffChars: Character by character diff
-	 * JsDiff.diffWords: Word (as defined by \b regex) diff which ignores whitespace
-	 * JsDiff.diffLines: Line based diff
-	 *
-	 * JsDiff.diffCss: Diff targeted at CSS content
-	 *
-	 * These methods are based on the implementation proposed in
-	 * "An O(ND) Difference Algorithm and its Variations" (Myers, 1986).
-	 * http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.4.6927
-	 */
-	exports. /*istanbul ignore end*/Diff = _base2['default'];
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffChars = _character.diffChars;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWords = _word.diffWords;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWordsWithSpace = _word.diffWordsWithSpace;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffLines = _line.diffLines;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffTrimmedLines = _line.diffTrimmedLines;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffSentences = _sentence.diffSentences;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffCss = _css.diffCss;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffJson = _json.diffJson;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffArrays = _array.diffArrays;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/structuredPatch = _create.structuredPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/createTwoFilesPatch = _create.createTwoFilesPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/createPatch = _create.createPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatch = _apply.applyPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatches = _apply.applyPatches;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/parsePatch = _parse.parsePatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/merge = _merge.merge;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/convertChangesToDMP = _dmp.convertChangesToDMP;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/convertChangesToXML = _xml.convertChangesToXML;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/canonicalize = _json.canonicalize;
-
-
-
-/***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports['default'] = /*istanbul ignore end*/Diff;
-	function Diff() {}
-
-	Diff.prototype = {
-	  /*istanbul ignore start*/ /*istanbul ignore end*/diff: function diff(oldString, newString) {
-	    /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-	    var callback = options.callback;
-	    if (typeof options === 'function') {
-	      callback = options;
-	      options = {};
-	    }
-	    this.options = options;
-
-	    var self = this;
-
-	    function done(value) {
-	      if (callback) {
-	        setTimeout(function () {
-	          callback(undefined, value);
-	        }, 0);
-	        return true;
-	      } else {
-	        return value;
-	      }
-	    }
-
-	    // Allow subclasses to massage the input prior to running
-	    oldString = this.castInput(oldString);
-	    newString = this.castInput(newString);
-
-	    oldString = this.removeEmpty(this.tokenize(oldString));
-	    newString = this.removeEmpty(this.tokenize(newString));
-
-	    var newLen = newString.length,
-	        oldLen = oldString.length;
-	    var editLength = 1;
-	    var maxEditLength = newLen + oldLen;
-	    var bestPath = [{ newPos: -1, components: [] }];
-
-	    // Seed editLength = 0, i.e. the content starts with the same values
-	    var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
-	    if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
-	      // Identity per the equality and tokenizer
-	      return done([{ value: this.join(newString), count: newString.length }]);
-	    }
-
-	    // Main worker method. checks all permutations of a given edit length for acceptance.
-	    function execEditLength() {
-	      for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
-	        var basePath = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-	        var addPath = bestPath[diagonalPath - 1],
-	            removePath = bestPath[diagonalPath + 1],
-	            _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-	        if (addPath) {
-	          // No one else is going to attempt to use this value, clear it
-	          bestPath[diagonalPath - 1] = undefined;
-	        }
-
-	        var canAdd = addPath && addPath.newPos + 1 < newLen,
-	            canRemove = removePath && 0 <= _oldPos && _oldPos < oldLen;
-	        if (!canAdd && !canRemove) {
-	          // If this path is a terminal then prune
-	          bestPath[diagonalPath] = undefined;
-	          continue;
-	        }
-
-	        // Select the diagonal that we want to branch from. We select the prior
-	        // path whose position in the new string is the farthest from the origin
-	        // and does not pass the bounds of the diff graph
-	        if (!canAdd || canRemove && addPath.newPos < removePath.newPos) {
-	          basePath = clonePath(removePath);
-	          self.pushComponent(basePath.components, undefined, true);
-	        } else {
-	          basePath = addPath; // No need to clone, we've pulled it from the list
-	          basePath.newPos++;
-	          self.pushComponent(basePath.components, true, undefined);
-	        }
-
-	        _oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
-
-	        // If we have hit the end of both strings, then we are done
-	        if (basePath.newPos + 1 >= newLen && _oldPos + 1 >= oldLen) {
-	          return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
-	        } else {
-	          // Otherwise track this path as a potential candidate and continue.
-	          bestPath[diagonalPath] = basePath;
-	        }
-	      }
-
-	      editLength++;
-	    }
-
-	    // Performs the length of edit iteration. Is a bit fugly as this has to support the
-	    // sync and async mode which is never fun. Loops over execEditLength until a value
-	    // is produced.
-	    if (callback) {
-	      (function exec() {
-	        setTimeout(function () {
-	          // This should not happen, but we want to be safe.
-	          /* istanbul ignore next */
-	          if (editLength > maxEditLength) {
-	            return callback();
-	          }
-
-	          if (!execEditLength()) {
-	            exec();
-	          }
-	        }, 0);
-	      })();
-	    } else {
-	      while (editLength <= maxEditLength) {
-	        var ret = execEditLength();
-	        if (ret) {
-	          return ret;
-	        }
-	      }
-	    }
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/pushComponent: function pushComponent(components, added, removed) {
-	    var last = components[components.length - 1];
-	    if (last && last.added === added && last.removed === removed) {
-	      // We need to clone here as the component clone operation is just
-	      // as shallow array clone
-	      components[components.length - 1] = { count: last.count + 1, added: added, removed: removed };
-	    } else {
-	      components.push({ count: 1, added: added, removed: removed });
-	    }
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
-	    var newLen = newString.length,
-	        oldLen = oldString.length,
-	        newPos = basePath.newPos,
-	        oldPos = newPos - diagonalPath,
-	        commonCount = 0;
-	    while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
-	      newPos++;
-	      oldPos++;
-	      commonCount++;
-	    }
-
-	    if (commonCount) {
-	      basePath.components.push({ count: commonCount });
-	    }
-
-	    basePath.newPos = newPos;
-	    return oldPos;
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/equals: function equals(left, right) {
-	    if (this.options.comparator) {
-	      return this.options.comparator(left, right);
-	    } else {
-	      return left === right || this.options.ignoreCase && left.toLowerCase() === right.toLowerCase();
-	    }
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/removeEmpty: function removeEmpty(array) {
-	    var ret = [];
-	    for (var i = 0; i < array.length; i++) {
-	      if (array[i]) {
-	        ret.push(array[i]);
-	      }
-	    }
-	    return ret;
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/castInput: function castInput(value) {
-	    return value;
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/tokenize: function tokenize(value) {
-	    return value.split('');
-	  },
-	  /*istanbul ignore start*/ /*istanbul ignore end*/join: function join(chars) {
-	    return chars.join('');
-	  }
-	};
-
-	function buildValues(diff, components, newString, oldString, useLongestToken) {
-	  var componentPos = 0,
-	      componentLen = components.length,
-	      newPos = 0,
-	      oldPos = 0;
-
-	  for (; componentPos < componentLen; componentPos++) {
-	    var component = components[componentPos];
-	    if (!component.removed) {
-	      if (!component.added && useLongestToken) {
-	        var value = newString.slice(newPos, newPos + component.count);
-	        value = value.map(function (value, i) {
-	          var oldValue = oldString[oldPos + i];
-	          return oldValue.length > value.length ? oldValue : value;
-	        });
-
-	        component.value = diff.join(value);
-	      } else {
-	        component.value = diff.join(newString.slice(newPos, newPos + component.count));
-	      }
-	      newPos += component.count;
-
-	      // Common case
-	      if (!component.added) {
-	        oldPos += component.count;
-	      }
-	    } else {
-	      component.value = diff.join(oldString.slice(oldPos, oldPos + component.count));
-	      oldPos += component.count;
-
-	      // Reverse add and remove so removes are output first to match common convention
-	      // The diffing algorithm is tied to add then remove output and this is the simplest
-	      // route to get the desired output with minimal overhead.
-	      if (componentPos && components[componentPos - 1].added) {
-	        var tmp = components[componentPos - 1];
-	        components[componentPos - 1] = components[componentPos];
-	        components[componentPos] = tmp;
-	      }
-	    }
-	  }
-
-	  // Special case handle for when one terminal is ignored (i.e. whitespace).
-	  // For this case we merge the terminal into the prior string and drop the change.
-	  // This is only available for string mode.
-	  var lastComponent = components[componentLen - 1];
-	  if (componentLen > 1 && typeof lastComponent.value === 'string' && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
-	    components[componentLen - 2].value += lastComponent.value;
-	    components.pop();
-	  }
-
-	  return components;
-	}
-
-	function clonePath(path) {
-	  return { newPos: path.newPos, components: path.components.slice(0) };
-	}
-
-
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.characterDiff = undefined;
-	exports. /*istanbul ignore end*/diffChars = diffChars;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var characterDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/characterDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	function diffChars(oldStr, newStr, options) {
-	  return characterDiff.diff(oldStr, newStr, options);
-	}
-
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.wordDiff = undefined;
-	exports. /*istanbul ignore end*/diffWords = diffWords;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffWordsWithSpace = diffWordsWithSpace;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	/*istanbul ignore end*/var /*istanbul ignore start*/_params = __webpack_require__(4) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/ // Based on https://en.wikipedia.org/wiki/Latin_script_in_Unicode
-	//
-	// Ranges and exceptions:
-	// Latin-1 Supplement, 0080–00FF
-	//  - U+00D7  × Multiplication sign
-	//  - U+00F7  ÷ Division sign
-	// Latin Extended-A, 0100–017F
-	// Latin Extended-B, 0180–024F
-	// IPA Extensions, 0250–02AF
-	// Spacing Modifier Letters, 02B0–02FF
-	//  - U+02C7  ˇ &#711;  Caron
-	//  - U+02D8  ˘ &#728;  Breve
-	//  - U+02D9  ˙ &#729;  Dot Above
-	//  - U+02DA  ˚ &#730;  Ring Above
-	//  - U+02DB  ˛ &#731;  Ogonek
-	//  - U+02DC  ˜ &#732;  Small Tilde
-	//  - U+02DD  ˝ &#733;  Double Acute Accent
-	// Latin Extended Additional, 1E00–1EFF
-	var extendedWordChars = /^[A-Za-z\xC0-\u02C6\u02C8-\u02D7\u02DE-\u02FF\u1E00-\u1EFF]+$/;
-
-	var reWhitespace = /\S/;
-
-	var wordDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/wordDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	wordDiff.equals = function (left, right) {
-	  if (this.options.ignoreCase) {
-	    left = left.toLowerCase();
-	    right = right.toLowerCase();
-	  }
-	  return left === right || this.options.ignoreWhitespace && !reWhitespace.test(left) && !reWhitespace.test(right);
-	};
-	wordDiff.tokenize = function (value) {
-	  var tokens = value.split(/(\s+|\b)/);
-
-	  // Join the boundary splits that we do not consider to be boundaries. This is primarily the extended Latin character set.
-	  for (var i = 0; i < tokens.length - 1; i++) {
-	    // If we have an empty string in the next field and we have only word chars before and after, merge
-	    if (!tokens[i + 1] && tokens[i + 2] && extendedWordChars.test(tokens[i]) && extendedWordChars.test(tokens[i + 2])) {
-	      tokens[i] += tokens[i + 2];
-	      tokens.splice(i + 1, 2);
-	      i--;
-	    }
-	  }
-
-	  return tokens;
-	};
-
-	function diffWords(oldStr, newStr, options) {
-	  options = /*istanbul ignore start*/(0, _params.generateOptions) /*istanbul ignore end*/(options, { ignoreWhitespace: true });
-	  return wordDiff.diff(oldStr, newStr, options);
-	}
-
-	function diffWordsWithSpace(oldStr, newStr, options) {
-	  return wordDiff.diff(oldStr, newStr, options);
-	}
-
-
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/generateOptions = generateOptions;
-	function generateOptions(options, defaults) {
-	  if (typeof options === 'function') {
-	    defaults.callback = options;
-	  } else if (options) {
-	    for (var name in options) {
-	      /* istanbul ignore else */
-	      if (options.hasOwnProperty(name)) {
-	        defaults[name] = options[name];
-	      }
-	    }
-	  }
-	  return defaults;
-	}
-
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.lineDiff = undefined;
-	exports. /*istanbul ignore end*/diffLines = diffLines;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/diffTrimmedLines = diffTrimmedLines;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	/*istanbul ignore end*/var /*istanbul ignore start*/_params = __webpack_require__(4) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var lineDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/lineDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	lineDiff.tokenize = function (value) {
-	  var retLines = [],
-	      linesAndNewlines = value.split(/(\n|\r\n)/);
-
-	  // Ignore the final empty token that occurs if the string ends with a new line
-	  if (!linesAndNewlines[linesAndNewlines.length - 1]) {
-	    linesAndNewlines.pop();
-	  }
-
-	  // Merge the content and line separators into single tokens
-	  for (var i = 0; i < linesAndNewlines.length; i++) {
-	    var line = linesAndNewlines[i];
-
-	    if (i % 2 && !this.options.newlineIsToken) {
-	      retLines[retLines.length - 1] += line;
-	    } else {
-	      if (this.options.ignoreWhitespace) {
-	        line = line.trim();
-	      }
-	      retLines.push(line);
-	    }
-	  }
-
-	  return retLines;
-	};
-
-	function diffLines(oldStr, newStr, callback) {
-	  return lineDiff.diff(oldStr, newStr, callback);
-	}
-	function diffTrimmedLines(oldStr, newStr, callback) {
-	  var options = /*istanbul ignore start*/(0, _params.generateOptions) /*istanbul ignore end*/(callback, { ignoreWhitespace: true });
-	  return lineDiff.diff(oldStr, newStr, options);
-	}
-
-
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.sentenceDiff = undefined;
-	exports. /*istanbul ignore end*/diffSentences = diffSentences;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var sentenceDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/sentenceDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	sentenceDiff.tokenize = function (value) {
-	  return value.split(/(\S.+?[.!?])(?=\s+|$)/);
-	};
-
-	function diffSentences(oldStr, newStr, callback) {
-	  return sentenceDiff.diff(oldStr, newStr, callback);
-	}
-
-
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.cssDiff = undefined;
-	exports. /*istanbul ignore end*/diffCss = diffCss;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var cssDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/cssDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	cssDiff.tokenize = function (value) {
-	  return value.split(/([{}:;,]|\s+)/);
-	};
-
-	function diffCss(oldStr, newStr, callback) {
-	  return cssDiff.diff(oldStr, newStr, callback);
-	}
-
-
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.jsonDiff = undefined;
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	exports. /*istanbul ignore end*/diffJson = diffJson;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/canonicalize = canonicalize;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	/*istanbul ignore end*/var /*istanbul ignore start*/_line = __webpack_require__(5) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var objectPrototypeToString = Object.prototype.toString;
-
-	var jsonDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/jsonDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	// Discriminate between two lines of pretty-printed, serialized JSON where one of them has a
-	// dangling comma and the other doesn't. Turns out including the dangling comma yields the nicest output:
-	jsonDiff.useLongestToken = true;
-
-	jsonDiff.tokenize = /*istanbul ignore start*/_line.lineDiff /*istanbul ignore end*/.tokenize;
-	jsonDiff.castInput = function (value) {
-	  /*istanbul ignore start*/var _options = /*istanbul ignore end*/this.options,
-	      undefinedReplacement = _options.undefinedReplacement,
-	      _options$stringifyRep = _options.stringifyReplacer,
-	      stringifyReplacer = _options$stringifyRep === undefined ? function (k, v) /*istanbul ignore start*/{
-	    return (/*istanbul ignore end*/typeof v === 'undefined' ? undefinedReplacement : v
-	    );
-	  } : _options$stringifyRep;
-
-
-	  return typeof value === 'string' ? value : JSON.stringify(canonicalize(value, null, null, stringifyReplacer), stringifyReplacer, '  ');
-	};
-	jsonDiff.equals = function (left, right) {
-	  return (/*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/.prototype.equals.call(jsonDiff, left.replace(/,([\r\n])/g, '$1'), right.replace(/,([\r\n])/g, '$1'))
-	  );
-	};
-
-	function diffJson(oldObj, newObj, options) {
-	  return jsonDiff.diff(oldObj, newObj, options);
-	}
-
-	// This function handles the presence of circular references by bailing out when encountering an
-	// object that is already on the "stack" of items being processed. Accepts an optional replacer
-	function canonicalize(obj, stack, replacementStack, replacer, key) {
-	  stack = stack || [];
-	  replacementStack = replacementStack || [];
-
-	  if (replacer) {
-	    obj = replacer(key, obj);
-	  }
-
-	  var i = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-
-	  for (i = 0; i < stack.length; i += 1) {
-	    if (stack[i] === obj) {
-	      return replacementStack[i];
-	    }
-	  }
-
-	  var canonicalizedObj = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-
-	  if ('[object Array]' === objectPrototypeToString.call(obj)) {
-	    stack.push(obj);
-	    canonicalizedObj = new Array(obj.length);
-	    replacementStack.push(canonicalizedObj);
-	    for (i = 0; i < obj.length; i += 1) {
-	      canonicalizedObj[i] = canonicalize(obj[i], stack, replacementStack, replacer, key);
-	    }
-	    stack.pop();
-	    replacementStack.pop();
-	    return canonicalizedObj;
-	  }
-
-	  if (obj && obj.toJSON) {
-	    obj = obj.toJSON();
-	  }
-
-	  if ( /*istanbul ignore start*/(typeof /*istanbul ignore end*/obj === 'undefined' ? 'undefined' : _typeof(obj)) === 'object' && obj !== null) {
-	    stack.push(obj);
-	    canonicalizedObj = {};
-	    replacementStack.push(canonicalizedObj);
-	    var sortedKeys = [],
-	        _key = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-	    for (_key in obj) {
-	      /* istanbul ignore else */
-	      if (obj.hasOwnProperty(_key)) {
-	        sortedKeys.push(_key);
-	      }
-	    }
-	    sortedKeys.sort();
-	    for (i = 0; i < sortedKeys.length; i += 1) {
-	      _key = sortedKeys[i];
-	      canonicalizedObj[_key] = canonicalize(obj[_key], stack, replacementStack, replacer, _key);
-	    }
-	    stack.pop();
-	    replacementStack.pop();
-	  } else {
-	    canonicalizedObj = obj;
-	  }
-	  return canonicalizedObj;
-	}
-
-
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports.arrayDiff = undefined;
-	exports. /*istanbul ignore end*/diffArrays = diffArrays;
-
-	var /*istanbul ignore start*/_base = __webpack_require__(1) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _base2 = _interopRequireDefault(_base);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/var arrayDiff = /*istanbul ignore start*/exports. /*istanbul ignore end*/arrayDiff = new /*istanbul ignore start*/_base2['default'] /*istanbul ignore end*/();
-	arrayDiff.tokenize = function (value) {
-	  return value.slice();
-	};
-	arrayDiff.join = arrayDiff.removeEmpty = function (value) {
-	  return value;
-	};
-
-	function diffArrays(oldArr, newArr, callback) {
-	  return arrayDiff.diff(oldArr, newArr, callback);
-	}
-
-
-
-/***/ }),
-/* 10 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/applyPatch = applyPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/applyPatches = applyPatches;
-
-	var /*istanbul ignore start*/_parse = __webpack_require__(11) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_distanceIterator = __webpack_require__(12) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/var _distanceIterator2 = _interopRequireDefault(_distanceIterator);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	/*istanbul ignore end*/function applyPatch(source, uniDiff) {
-	  /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-	  if (typeof uniDiff === 'string') {
-	    uniDiff = /*istanbul ignore start*/(0, _parse.parsePatch) /*istanbul ignore end*/(uniDiff);
-	  }
-
-	  if (Array.isArray(uniDiff)) {
-	    if (uniDiff.length > 1) {
-	      throw new Error('applyPatch only works with a single input.');
-	    }
-
-	    uniDiff = uniDiff[0];
-	  }
-
-	  // Apply the diff to the input
-	  var lines = source.split(/\r\n|[\n\v\f\r\x85]/),
-	      delimiters = source.match(/\r\n|[\n\v\f\r\x85]/g) || [],
-	      hunks = uniDiff.hunks,
-	      compareLine = options.compareLine || function (lineNumber, line, operation, patchContent) /*istanbul ignore start*/{
-	    return (/*istanbul ignore end*/line === patchContent
-	    );
-	  },
-	      errorCount = 0,
-	      fuzzFactor = options.fuzzFactor || 0,
-	      minLine = 0,
-	      offset = 0,
-	      removeEOFNL = /*istanbul ignore start*/void 0 /*istanbul ignore end*/,
-	      addEOFNL = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-
-	  /**
-	   * Checks if the hunk exactly fits on the provided location
-	   */
-	  function hunkFits(hunk, toPos) {
-	    for (var j = 0; j < hunk.lines.length; j++) {
-	      var line = hunk.lines[j],
-	          operation = line.length > 0 ? line[0] : ' ',
-	          content = line.length > 0 ? line.substr(1) : line;
-
-	      if (operation === ' ' || operation === '-') {
-	        // Context sanity check
-	        if (!compareLine(toPos + 1, lines[toPos], operation, content)) {
-	          errorCount++;
-
-	          if (errorCount > fuzzFactor) {
-	            return false;
-	          }
-	        }
-	        toPos++;
-	      }
-	    }
-
-	    return true;
-	  }
-
-	  // Search best fit offsets for each hunk based on the previous ones
-	  for (var i = 0; i < hunks.length; i++) {
-	    var hunk = hunks[i],
-	        maxLine = lines.length - hunk.oldLines,
-	        localOffset = 0,
-	        toPos = offset + hunk.oldStart - 1;
-
-	    var iterator = /*istanbul ignore start*/(0, _distanceIterator2['default']) /*istanbul ignore end*/(toPos, minLine, maxLine);
-
-	    for (; localOffset !== undefined; localOffset = iterator()) {
-	      if (hunkFits(hunk, toPos + localOffset)) {
-	        hunk.offset = offset += localOffset;
-	        break;
-	      }
-	    }
-
-	    if (localOffset === undefined) {
-	      return false;
-	    }
-
-	    // Set lower text limit to end of the current hunk, so next ones don't try
-	    // to fit over already patched text
-	    minLine = hunk.offset + hunk.oldStart + hunk.oldLines;
-	  }
-
-	  // Apply patch hunks
-	  var diffOffset = 0;
-	  for (var _i = 0; _i < hunks.length; _i++) {
-	    var _hunk = hunks[_i],
-	        _toPos = _hunk.oldStart + _hunk.offset + diffOffset - 1;
-	    diffOffset += _hunk.newLines - _hunk.oldLines;
-
-	    if (_toPos < 0) {
-	      // Creating a new file
-	      _toPos = 0;
-	    }
-
-	    for (var j = 0; j < _hunk.lines.length; j++) {
-	      var line = _hunk.lines[j],
-	          operation = line.length > 0 ? line[0] : ' ',
-	          content = line.length > 0 ? line.substr(1) : line,
-	          delimiter = _hunk.linedelimiters[j];
-
-	      if (operation === ' ') {
-	        _toPos++;
-	      } else if (operation === '-') {
-	        lines.splice(_toPos, 1);
-	        delimiters.splice(_toPos, 1);
-	        /* istanbul ignore else */
-	      } else if (operation === '+') {
-	        lines.splice(_toPos, 0, content);
-	        delimiters.splice(_toPos, 0, delimiter);
-	        _toPos++;
-	      } else if (operation === '\\') {
-	        var previousOperation = _hunk.lines[j - 1] ? _hunk.lines[j - 1][0] : null;
-	        if (previousOperation === '+') {
-	          removeEOFNL = true;
-	        } else if (previousOperation === '-') {
-	          addEOFNL = true;
-	        }
-	      }
-	    }
-	  }
-
-	  // Handle EOFNL insertion/removal
-	  if (removeEOFNL) {
-	    while (!lines[lines.length - 1]) {
-	      lines.pop();
-	      delimiters.pop();
-	    }
-	  } else if (addEOFNL) {
-	    lines.push('');
-	    delimiters.push('\n');
-	  }
-	  for (var _k = 0; _k < lines.length - 1; _k++) {
-	    lines[_k] = lines[_k] + delimiters[_k];
-	  }
-	  return lines.join('');
-	}
-
-	// Wrapper that supports multiple file patches via callbacks.
-	function applyPatches(uniDiff, options) {
-	  if (typeof uniDiff === 'string') {
-	    uniDiff = /*istanbul ignore start*/(0, _parse.parsePatch) /*istanbul ignore end*/(uniDiff);
-	  }
-
-	  var currentIndex = 0;
-	  function processIndex() {
-	    var index = uniDiff[currentIndex++];
-	    if (!index) {
-	      return options.complete();
-	    }
-
-	    options.loadFile(index, function (err, data) {
-	      if (err) {
-	        return options.complete(err);
-	      }
-
-	      var updatedContent = applyPatch(data, index, options);
-	      options.patched(index, updatedContent, function (err) {
-	        if (err) {
-	          return options.complete(err);
-	        }
-
-	        processIndex();
-	      });
-	    });
-	  }
-	  processIndex();
-	}
-
-
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/parsePatch = parsePatch;
-	function parsePatch(uniDiff) {
-	  /*istanbul ignore start*/var /*istanbul ignore end*/options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-	  var diffstr = uniDiff.split(/\r\n|[\n\v\f\r\x85]/),
-	      delimiters = uniDiff.match(/\r\n|[\n\v\f\r\x85]/g) || [],
-	      list = [],
-	      i = 0;
-
-	  function parseIndex() {
-	    var index = {};
-	    list.push(index);
-
-	    // Parse diff metadata
-	    while (i < diffstr.length) {
-	      var line = diffstr[i];
-
-	      // File header found, end parsing diff metadata
-	      if (/^(\-\-\-|\+\+\+|@@)\s/.test(line)) {
-	        break;
-	      }
-
-	      // Diff index
-	      var header = /^(?:Index:|diff(?: -r \w+)+)\s+(.+?)\s*$/.exec(line);
-	      if (header) {
-	        index.index = header[1];
-	      }
-
-	      i++;
-	    }
-
-	    // Parse file headers if they are defined. Unified diff requires them, but
-	    // there's no technical issues to have an isolated hunk without file header
-	    parseFileHeader(index);
-	    parseFileHeader(index);
-
-	    // Parse hunks
-	    index.hunks = [];
-
-	    while (i < diffstr.length) {
-	      var _line = diffstr[i];
-
-	      if (/^(Index:|diff|\-\-\-|\+\+\+)\s/.test(_line)) {
-	        break;
-	      } else if (/^@@/.test(_line)) {
-	        index.hunks.push(parseHunk());
-	      } else if (_line && options.strict) {
-	        // Ignore unexpected content unless in strict mode
-	        throw new Error('Unknown line ' + (i + 1) + ' ' + JSON.stringify(_line));
-	      } else {
-	        i++;
-	      }
-	    }
-	  }
-
-	  // Parses the --- and +++ headers, if none are found, no lines
-	  // are consumed.
-	  function parseFileHeader(index) {
-	    var fileHeader = /^(---|\+\+\+)\s+(.*)$/.exec(diffstr[i]);
-	    if (fileHeader) {
-	      var keyPrefix = fileHeader[1] === '---' ? 'old' : 'new';
-	      var data = fileHeader[2].split('\t', 2);
-	      var fileName = data[0].replace(/\\\\/g, '\\');
-	      if (/^".*"$/.test(fileName)) {
-	        fileName = fileName.substr(1, fileName.length - 2);
-	      }
-	      index[keyPrefix + 'FileName'] = fileName;
-	      index[keyPrefix + 'Header'] = (data[1] || '').trim();
-
-	      i++;
-	    }
-	  }
-
-	  // Parses a hunk
-	  // This assumes that we are at the start of a hunk.
-	  function parseHunk() {
-	    var chunkHeaderIndex = i,
-	        chunkHeaderLine = diffstr[i++],
-	        chunkHeader = chunkHeaderLine.split(/@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@/);
-
-	    var hunk = {
-	      oldStart: +chunkHeader[1],
-	      oldLines: +chunkHeader[2] || 1,
-	      newStart: +chunkHeader[3],
-	      newLines: +chunkHeader[4] || 1,
-	      lines: [],
-	      linedelimiters: []
-	    };
-
-	    var addCount = 0,
-	        removeCount = 0;
-	    for (; i < diffstr.length; i++) {
-	      // Lines starting with '---' could be mistaken for the "remove line" operation
-	      // But they could be the header for the next file. Therefore prune such cases out.
-	      if (diffstr[i].indexOf('--- ') === 0 && i + 2 < diffstr.length && diffstr[i + 1].indexOf('+++ ') === 0 && diffstr[i + 2].indexOf('@@') === 0) {
-	        break;
-	      }
-	      var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? ' ' : diffstr[i][0];
-
-	      if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
-	        hunk.lines.push(diffstr[i]);
-	        hunk.linedelimiters.push(delimiters[i] || '\n');
-
-	        if (operation === '+') {
-	          addCount++;
-	        } else if (operation === '-') {
-	          removeCount++;
-	        } else if (operation === ' ') {
-	          addCount++;
-	          removeCount++;
-	        }
-	      } else {
-	        break;
-	      }
-	    }
-
-	    // Handle the empty block count case
-	    if (!addCount && hunk.newLines === 1) {
-	      hunk.newLines = 0;
-	    }
-	    if (!removeCount && hunk.oldLines === 1) {
-	      hunk.oldLines = 0;
-	    }
-
-	    // Perform optional sanity checking
-	    if (options.strict) {
-	      if (addCount !== hunk.newLines) {
-	        throw new Error('Added line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
-	      }
-	      if (removeCount !== hunk.oldLines) {
-	        throw new Error('Removed line count did not match for hunk at line ' + (chunkHeaderIndex + 1));
-	      }
-	    }
-
-	    return hunk;
-	  }
-
-	  while (i < diffstr.length) {
-	    parseIndex();
-	  }
-
-	  return list;
-	}
-
-
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/"use strict";
-
-	exports.__esModule = true;
-
-	exports["default"] = /*istanbul ignore end*/function (start, minLine, maxLine) {
-	  var wantForward = true,
-	      backwardExhausted = false,
-	      forwardExhausted = false,
-	      localOffset = 1;
-
-	  return function iterator() {
-	    if (wantForward && !forwardExhausted) {
-	      if (backwardExhausted) {
-	        localOffset++;
-	      } else {
-	        wantForward = false;
-	      }
-
-	      // Check if trying to fit beyond text length, and if not, check it fits
-	      // after offset location (or desired location on first iteration)
-	      if (start + localOffset <= maxLine) {
-	        return localOffset;
-	      }
-
-	      forwardExhausted = true;
-	    }
-
-	    if (!backwardExhausted) {
-	      if (!forwardExhausted) {
-	        wantForward = true;
-	      }
-
-	      // Check if trying to fit before text beginning, and if not, check it fits
-	      // before offset location
-	      if (minLine <= start - localOffset) {
-	        return -localOffset++;
-	      }
-
-	      backwardExhausted = true;
-	      return iterator();
-	    }
-
-	    // We tried to fit hunk before text beginning and beyond text length, then
-	    // hunk can't fit on the text. Return undefined
-	  };
-	};
-
-
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/calcLineCount = calcLineCount;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/merge = merge;
-
-	var /*istanbul ignore start*/_create = __webpack_require__(14) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_parse = __webpack_require__(11) /*istanbul ignore end*/;
-
-	var /*istanbul ignore start*/_array = __webpack_require__(15) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	/*istanbul ignore end*/function calcLineCount(hunk) {
-	  /*istanbul ignore start*/var _calcOldNewLineCount = /*istanbul ignore end*/calcOldNewLineCount(hunk.lines),
-	      oldLines = _calcOldNewLineCount.oldLines,
-	      newLines = _calcOldNewLineCount.newLines;
-
-	  if (oldLines !== undefined) {
-	    hunk.oldLines = oldLines;
-	  } else {
-	    delete hunk.oldLines;
-	  }
-
-	  if (newLines !== undefined) {
-	    hunk.newLines = newLines;
-	  } else {
-	    delete hunk.newLines;
-	  }
-	}
-
-	function merge(mine, theirs, base) {
-	  mine = loadPatch(mine, base);
-	  theirs = loadPatch(theirs, base);
-
-	  var ret = {};
-
-	  // For index we just let it pass through as it doesn't have any necessary meaning.
-	  // Leaving sanity checks on this to the API consumer that may know more about the
-	  // meaning in their own context.
-	  if (mine.index || theirs.index) {
-	    ret.index = mine.index || theirs.index;
-	  }
-
-	  if (mine.newFileName || theirs.newFileName) {
-	    if (!fileNameChanged(mine)) {
-	      // No header or no change in ours, use theirs (and ours if theirs does not exist)
-	      ret.oldFileName = theirs.oldFileName || mine.oldFileName;
-	      ret.newFileName = theirs.newFileName || mine.newFileName;
-	      ret.oldHeader = theirs.oldHeader || mine.oldHeader;
-	      ret.newHeader = theirs.newHeader || mine.newHeader;
-	    } else if (!fileNameChanged(theirs)) {
-	      // No header or no change in theirs, use ours
-	      ret.oldFileName = mine.oldFileName;
-	      ret.newFileName = mine.newFileName;
-	      ret.oldHeader = mine.oldHeader;
-	      ret.newHeader = mine.newHeader;
-	    } else {
-	      // Both changed... figure it out
-	      ret.oldFileName = selectField(ret, mine.oldFileName, theirs.oldFileName);
-	      ret.newFileName = selectField(ret, mine.newFileName, theirs.newFileName);
-	      ret.oldHeader = selectField(ret, mine.oldHeader, theirs.oldHeader);
-	      ret.newHeader = selectField(ret, mine.newHeader, theirs.newHeader);
-	    }
-	  }
-
-	  ret.hunks = [];
-
-	  var mineIndex = 0,
-	      theirsIndex = 0,
-	      mineOffset = 0,
-	      theirsOffset = 0;
-
-	  while (mineIndex < mine.hunks.length || theirsIndex < theirs.hunks.length) {
-	    var mineCurrent = mine.hunks[mineIndex] || { oldStart: Infinity },
-	        theirsCurrent = theirs.hunks[theirsIndex] || { oldStart: Infinity };
-
-	    if (hunkBefore(mineCurrent, theirsCurrent)) {
-	      // This patch does not overlap with any of the others, yay.
-	      ret.hunks.push(cloneHunk(mineCurrent, mineOffset));
-	      mineIndex++;
-	      theirsOffset += mineCurrent.newLines - mineCurrent.oldLines;
-	    } else if (hunkBefore(theirsCurrent, mineCurrent)) {
-	      // This patch does not overlap with any of the others, yay.
-	      ret.hunks.push(cloneHunk(theirsCurrent, theirsOffset));
-	      theirsIndex++;
-	      mineOffset += theirsCurrent.newLines - theirsCurrent.oldLines;
-	    } else {
-	      // Overlap, merge as best we can
-	      var mergedHunk = {
-	        oldStart: Math.min(mineCurrent.oldStart, theirsCurrent.oldStart),
-	        oldLines: 0,
-	        newStart: Math.min(mineCurrent.newStart + mineOffset, theirsCurrent.oldStart + theirsOffset),
-	        newLines: 0,
-	        lines: []
-	      };
-	      mergeLines(mergedHunk, mineCurrent.oldStart, mineCurrent.lines, theirsCurrent.oldStart, theirsCurrent.lines);
-	      theirsIndex++;
-	      mineIndex++;
-
-	      ret.hunks.push(mergedHunk);
-	    }
-	  }
-
-	  return ret;
-	}
-
-	function loadPatch(param, base) {
-	  if (typeof param === 'string') {
-	    if (/^@@/m.test(param) || /^Index:/m.test(param)) {
-	      return (/*istanbul ignore start*/(0, _parse.parsePatch) /*istanbul ignore end*/(param)[0]
-	      );
-	    }
-
-	    if (!base) {
-	      throw new Error('Must provide a base reference or pass in a patch');
-	    }
-	    return (/*istanbul ignore start*/(0, _create.structuredPatch) /*istanbul ignore end*/(undefined, undefined, base, param)
-	    );
-	  }
-
-	  return param;
-	}
-
-	function fileNameChanged(patch) {
-	  return patch.newFileName && patch.newFileName !== patch.oldFileName;
-	}
-
-	function selectField(index, mine, theirs) {
-	  if (mine === theirs) {
-	    return mine;
-	  } else {
-	    index.conflict = true;
-	    return { mine: mine, theirs: theirs };
-	  }
-	}
-
-	function hunkBefore(test, check) {
-	  return test.oldStart < check.oldStart && test.oldStart + test.oldLines < check.oldStart;
-	}
-
-	function cloneHunk(hunk, offset) {
-	  return {
-	    oldStart: hunk.oldStart, oldLines: hunk.oldLines,
-	    newStart: hunk.newStart + offset, newLines: hunk.newLines,
-	    lines: hunk.lines
-	  };
-	}
-
-	function mergeLines(hunk, mineOffset, mineLines, theirOffset, theirLines) {
-	  // This will generally result in a conflicted hunk, but there are cases where the context
-	  // is the only overlap where we can successfully merge the content here.
-	  var mine = { offset: mineOffset, lines: mineLines, index: 0 },
-	      their = { offset: theirOffset, lines: theirLines, index: 0 };
-
-	  // Handle any leading content
-	  insertLeading(hunk, mine, their);
-	  insertLeading(hunk, their, mine);
-
-	  // Now in the overlap content. Scan through and select the best changes from each.
-	  while (mine.index < mine.lines.length && their.index < their.lines.length) {
-	    var mineCurrent = mine.lines[mine.index],
-	        theirCurrent = their.lines[their.index];
-
-	    if ((mineCurrent[0] === '-' || mineCurrent[0] === '+') && (theirCurrent[0] === '-' || theirCurrent[0] === '+')) {
-	      // Both modified ...
-	      mutualChange(hunk, mine, their);
-	    } else if (mineCurrent[0] === '+' && theirCurrent[0] === ' ') {
-	      /*istanbul ignore start*/var _hunk$lines;
-
-	      /*istanbul ignore end*/ // Mine inserted
-	      /*istanbul ignore start*/(_hunk$lines = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/collectChange(mine)));
-	    } else if (theirCurrent[0] === '+' && mineCurrent[0] === ' ') {
-	      /*istanbul ignore start*/var _hunk$lines2;
-
-	      /*istanbul ignore end*/ // Theirs inserted
-	      /*istanbul ignore start*/(_hunk$lines2 = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines2 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/collectChange(their)));
-	    } else if (mineCurrent[0] === '-' && theirCurrent[0] === ' ') {
-	      // Mine removed or edited
-	      removal(hunk, mine, their);
-	    } else if (theirCurrent[0] === '-' && mineCurrent[0] === ' ') {
-	      // Their removed or edited
-	      removal(hunk, their, mine, true);
-	    } else if (mineCurrent === theirCurrent) {
-	      // Context identity
-	      hunk.lines.push(mineCurrent);
-	      mine.index++;
-	      their.index++;
-	    } else {
-	      // Context mismatch
-	      conflict(hunk, collectChange(mine), collectChange(their));
-	    }
-	  }
-
-	  // Now push anything that may be remaining
-	  insertTrailing(hunk, mine);
-	  insertTrailing(hunk, their);
-
-	  calcLineCount(hunk);
-	}
-
-	function mutualChange(hunk, mine, their) {
-	  var myChanges = collectChange(mine),
-	      theirChanges = collectChange(their);
-
-	  if (allRemoves(myChanges) && allRemoves(theirChanges)) {
-	    // Special case for remove changes that are supersets of one another
-	    if ( /*istanbul ignore start*/(0, _array.arrayStartsWith) /*istanbul ignore end*/(myChanges, theirChanges) && skipRemoveSuperset(their, myChanges, myChanges.length - theirChanges.length)) {
-	      /*istanbul ignore start*/var _hunk$lines3;
-
-	      /*istanbul ignore end*/ /*istanbul ignore start*/(_hunk$lines3 = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines3 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/myChanges));
-	      return;
-	    } else if ( /*istanbul ignore start*/(0, _array.arrayStartsWith) /*istanbul ignore end*/(theirChanges, myChanges) && skipRemoveSuperset(mine, theirChanges, theirChanges.length - myChanges.length)) {
-	      /*istanbul ignore start*/var _hunk$lines4;
-
-	      /*istanbul ignore end*/ /*istanbul ignore start*/(_hunk$lines4 = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines4 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/theirChanges));
-	      return;
-	    }
-	  } else if ( /*istanbul ignore start*/(0, _array.arrayEqual) /*istanbul ignore end*/(myChanges, theirChanges)) {
-	    /*istanbul ignore start*/var _hunk$lines5;
-
-	    /*istanbul ignore end*/ /*istanbul ignore start*/(_hunk$lines5 = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines5 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/myChanges));
-	    return;
-	  }
-
-	  conflict(hunk, myChanges, theirChanges);
-	}
-
-	function removal(hunk, mine, their, swap) {
-	  var myChanges = collectChange(mine),
-	      theirChanges = collectContext(their, myChanges);
-	  if (theirChanges.merged) {
-	    /*istanbul ignore start*/var _hunk$lines6;
-
-	    /*istanbul ignore end*/ /*istanbul ignore start*/(_hunk$lines6 = /*istanbul ignore end*/hunk.lines).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_hunk$lines6 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/theirChanges.merged));
-	  } else {
-	    conflict(hunk, swap ? theirChanges : myChanges, swap ? myChanges : theirChanges);
-	  }
-	}
-
-	function conflict(hunk, mine, their) {
-	  hunk.conflict = true;
-	  hunk.lines.push({
-	    conflict: true,
-	    mine: mine,
-	    theirs: their
-	  });
-	}
-
-	function insertLeading(hunk, insert, their) {
-	  while (insert.offset < their.offset && insert.index < insert.lines.length) {
-	    var line = insert.lines[insert.index++];
-	    hunk.lines.push(line);
-	    insert.offset++;
-	  }
-	}
-	function insertTrailing(hunk, insert) {
-	  while (insert.index < insert.lines.length) {
-	    var line = insert.lines[insert.index++];
-	    hunk.lines.push(line);
-	  }
-	}
-
-	function collectChange(state) {
-	  var ret = [],
-	      operation = state.lines[state.index][0];
-	  while (state.index < state.lines.length) {
-	    var line = state.lines[state.index];
-
-	    // Group additions that are immediately after subtractions and treat them as one "atomic" modify change.
-	    if (operation === '-' && line[0] === '+') {
-	      operation = '+';
-	    }
-
-	    if (operation === line[0]) {
-	      ret.push(line);
-	      state.index++;
-	    } else {
-	      break;
-	    }
-	  }
-
-	  return ret;
-	}
-	function collectContext(state, matchChanges) {
-	  var changes = [],
-	      merged = [],
-	      matchIndex = 0,
-	      contextChanges = false,
-	      conflicted = false;
-	  while (matchIndex < matchChanges.length && state.index < state.lines.length) {
-	    var change = state.lines[state.index],
-	        match = matchChanges[matchIndex];
-
-	    // Once we've hit our add, then we are done
-	    if (match[0] === '+') {
-	      break;
-	    }
-
-	    contextChanges = contextChanges || change[0] !== ' ';
-
-	    merged.push(match);
-	    matchIndex++;
-
-	    // Consume any additions in the other block as a conflict to attempt
-	    // to pull in the remaining context after this
-	    if (change[0] === '+') {
-	      conflicted = true;
-
-	      while (change[0] === '+') {
-	        changes.push(change);
-	        change = state.lines[++state.index];
-	      }
-	    }
-
-	    if (match.substr(1) === change.substr(1)) {
-	      changes.push(change);
-	      state.index++;
-	    } else {
-	      conflicted = true;
-	    }
-	  }
-
-	  if ((matchChanges[matchIndex] || '')[0] === '+' && contextChanges) {
-	    conflicted = true;
-	  }
-
-	  if (conflicted) {
-	    return changes;
-	  }
-
-	  while (matchIndex < matchChanges.length) {
-	    merged.push(matchChanges[matchIndex++]);
-	  }
-
-	  return {
-	    merged: merged,
-	    changes: changes
-	  };
-	}
-
-	function allRemoves(changes) {
-	  return changes.reduce(function (prev, change) {
-	    return prev && change[0] === '-';
-	  }, true);
-	}
-	function skipRemoveSuperset(state, removeChanges, delta) {
-	  for (var i = 0; i < delta; i++) {
-	    var changeContent = removeChanges[removeChanges.length - delta + i].substr(1);
-	    if (state.lines[state.index + i] !== ' ' + changeContent) {
-	      return false;
-	    }
-	  }
-
-	  state.index += delta;
-	  return true;
-	}
-
-	function calcOldNewLineCount(lines) {
-	  var oldLines = 0;
-	  var newLines = 0;
-
-	  lines.forEach(function (line) {
-	    if (typeof line !== 'string') {
-	      var myCount = calcOldNewLineCount(line.mine);
-	      var theirCount = calcOldNewLineCount(line.theirs);
-
-	      if (oldLines !== undefined) {
-	        if (myCount.oldLines === theirCount.oldLines) {
-	          oldLines += myCount.oldLines;
-	        } else {
-	          oldLines = undefined;
-	        }
-	      }
-
-	      if (newLines !== undefined) {
-	        if (myCount.newLines === theirCount.newLines) {
-	          newLines += myCount.newLines;
-	        } else {
-	          newLines = undefined;
-	        }
-	      }
-	    } else {
-	      if (newLines !== undefined && (line[0] === '+' || line[0] === ' ')) {
-	        newLines++;
-	      }
-	      if (oldLines !== undefined && (line[0] === '-' || line[0] === ' ')) {
-	        oldLines++;
-	      }
-	    }
-	  });
-
-	  return { oldLines: oldLines, newLines: newLines };
-	}
-
-
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/structuredPatch = structuredPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/createTwoFilesPatch = createTwoFilesPatch;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/createPatch = createPatch;
-
-	var /*istanbul ignore start*/_line = __webpack_require__(5) /*istanbul ignore end*/;
-
-	/*istanbul ignore start*/function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-	/*istanbul ignore end*/function structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-	  if (!options) {
-	    options = {};
-	  }
-	  if (typeof options.context === 'undefined') {
-	    options.context = 4;
-	  }
-
-	  var diff = /*istanbul ignore start*/(0, _line.diffLines) /*istanbul ignore end*/(oldStr, newStr, options);
-	  diff.push({ value: '', lines: [] }); // Append an empty value to make cleanup easier
-
-	  function contextLines(lines) {
-	    return lines.map(function (entry) {
-	      return ' ' + entry;
-	    });
-	  }
-
-	  var hunks = [];
-	  var oldRangeStart = 0,
-	      newRangeStart = 0,
-	      curRange = [],
-	      oldLine = 1,
-	      newLine = 1;
-
-	  /*istanbul ignore start*/var _loop = function _loop( /*istanbul ignore end*/i) {
-	    var current = diff[i],
-	        lines = current.lines || current.value.replace(/\n$/, '').split('\n');
-	    current.lines = lines;
-
-	    if (current.added || current.removed) {
-	      /*istanbul ignore start*/var _curRange;
-
-	      /*istanbul ignore end*/ // If we have previous context, start with that
-	      if (!oldRangeStart) {
-	        var prev = diff[i - 1];
-	        oldRangeStart = oldLine;
-	        newRangeStart = newLine;
-
-	        if (prev) {
-	          curRange = options.context > 0 ? contextLines(prev.lines.slice(-options.context)) : [];
-	          oldRangeStart -= curRange.length;
-	          newRangeStart -= curRange.length;
-	        }
-	      }
-
-	      // Output our changes
-	      /*istanbul ignore start*/(_curRange = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/lines.map(function (entry) {
-	        return (current.added ? '+' : '-') + entry;
-	      })));
-
-	      // Track the updated file position
-	      if (current.added) {
-	        newLine += lines.length;
-	      } else {
-	        oldLine += lines.length;
-	      }
-	    } else {
-	      // Identical context lines. Track line changes
-	      if (oldRangeStart) {
-	        // Close out any changes that have been output (or join overlapping)
-	        if (lines.length <= options.context * 2 && i < diff.length - 2) {
-	          /*istanbul ignore start*/var _curRange2;
-
-	          /*istanbul ignore end*/ // Overlapping
-	          /*istanbul ignore start*/(_curRange2 = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange2 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/contextLines(lines)));
-	        } else {
-	          /*istanbul ignore start*/var _curRange3;
-
-	          /*istanbul ignore end*/ // end the range and output
-	          var contextSize = Math.min(lines.length, options.context);
-	          /*istanbul ignore start*/(_curRange3 = /*istanbul ignore end*/curRange).push. /*istanbul ignore start*/apply /*istanbul ignore end*/( /*istanbul ignore start*/_curRange3 /*istanbul ignore end*/, /*istanbul ignore start*/_toConsumableArray( /*istanbul ignore end*/contextLines(lines.slice(0, contextSize))));
-
-	          var hunk = {
-	            oldStart: oldRangeStart,
-	            oldLines: oldLine - oldRangeStart + contextSize,
-	            newStart: newRangeStart,
-	            newLines: newLine - newRangeStart + contextSize,
-	            lines: curRange
-	          };
-	          if (i >= diff.length - 2 && lines.length <= options.context) {
-	            // EOF is inside this hunk
-	            var oldEOFNewline = /\n$/.test(oldStr);
-	            var newEOFNewline = /\n$/.test(newStr);
-	            if (lines.length == 0 && !oldEOFNewline) {
-	              // special case: old has no eol and no trailing context; no-nl can end up before adds
-	              curRange.splice(hunk.oldLines, 0, '\\ No newline at end of file');
-	            } else if (!oldEOFNewline || !newEOFNewline) {
-	              curRange.push('\\ No newline at end of file');
-	            }
-	          }
-	          hunks.push(hunk);
-
-	          oldRangeStart = 0;
-	          newRangeStart = 0;
-	          curRange = [];
-	        }
-	      }
-	      oldLine += lines.length;
-	      newLine += lines.length;
-	    }
-	  };
-
-	  for (var i = 0; i < diff.length; i++) {
-	    /*istanbul ignore start*/_loop( /*istanbul ignore end*/i);
-	  }
-
-	  return {
-	    oldFileName: oldFileName, newFileName: newFileName,
-	    oldHeader: oldHeader, newHeader: newHeader,
-	    hunks: hunks
-	  };
-	}
-
-	function createTwoFilesPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options) {
-	  var diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
-
-	  var ret = [];
-	  if (oldFileName == newFileName) {
-	    ret.push('Index: ' + oldFileName);
-	  }
-	  ret.push('===================================================================');
-	  ret.push('--- ' + diff.oldFileName + (typeof diff.oldHeader === 'undefined' ? '' : '\t' + diff.oldHeader));
-	  ret.push('+++ ' + diff.newFileName + (typeof diff.newHeader === 'undefined' ? '' : '\t' + diff.newHeader));
-
-	  for (var i = 0; i < diff.hunks.length; i++) {
-	    var hunk = diff.hunks[i];
-	    ret.push('@@ -' + hunk.oldStart + ',' + hunk.oldLines + ' +' + hunk.newStart + ',' + hunk.newLines + ' @@');
-	    ret.push.apply(ret, hunk.lines);
-	  }
-
-	  return ret.join('\n') + '\n';
-	}
-
-	function createPatch(fileName, oldStr, newStr, oldHeader, newHeader, options) {
-	  return createTwoFilesPatch(fileName, fileName, oldStr, newStr, oldHeader, newHeader, options);
-	}
-
-
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/"use strict";
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/arrayEqual = arrayEqual;
-	/*istanbul ignore start*/exports. /*istanbul ignore end*/arrayStartsWith = arrayStartsWith;
-	function arrayEqual(a, b) {
-	  if (a.length !== b.length) {
-	    return false;
-	  }
-
-	  return arrayStartsWith(a, b);
-	}
-
-	function arrayStartsWith(array, start) {
-	  if (start.length > array.length) {
-	    return false;
-	  }
-
-	  for (var i = 0; i < start.length; i++) {
-	    if (start[i] !== array[i]) {
-	      return false;
-	    }
-	  }
-
-	  return true;
-	}
-
-
-
-/***/ }),
-/* 16 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/"use strict";
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/convertChangesToDMP = convertChangesToDMP;
-	// See: http://code.google.com/p/google-diff-match-patch/wiki/API
-	function convertChangesToDMP(changes) {
-	  var ret = [],
-	      change = /*istanbul ignore start*/void 0 /*istanbul ignore end*/,
-	      operation = /*istanbul ignore start*/void 0 /*istanbul ignore end*/;
-	  for (var i = 0; i < changes.length; i++) {
-	    change = changes[i];
-	    if (change.added) {
-	      operation = 1;
-	    } else if (change.removed) {
-	      operation = -1;
-	    } else {
-	      operation = 0;
-	    }
-
-	    ret.push([operation, change.value]);
-	  }
-	  return ret;
-	}
-
-
-
-/***/ }),
-/* 17 */
-/***/ (function(module, exports) {
-
-	/*istanbul ignore start*/'use strict';
-
-	exports.__esModule = true;
-	exports. /*istanbul ignore end*/convertChangesToXML = convertChangesToXML;
-	function convertChangesToXML(changes) {
-	  var ret = [];
-	  for (var i = 0; i < changes.length; i++) {
-	    var change = changes[i];
-	    if (change.added) {
-	      ret.push('<ins>');
-	    } else if (change.removed) {
-	      ret.push('<del>');
-	    }
-
-	    ret.push(escapeHTML(change.value));
-
-	    if (change.added) {
-	      ret.push('</ins>');
-	    } else if (change.removed) {
-	      ret.push('</del>');
-	    }
-	  }
-	  return ret.join('');
-	}
-
-	function escapeHTML(s) {
-	  var n = s;
-	  n = n.replace(/&/g, '&amp;');
-	  n = n.replace(/</g, '&lt;');
-	  n = n.replace(/>/g, '&gt;');
-	  n = n.replace(/"/g, '&quot;');
-
-	  return n;
-	}
-
-
-
-/***/ })
-/******/ ])
-});
-;
 },{}],49:[function(require,module,exports){
 'use strict';
 
@@ -13208,7 +13599,7 @@ module.exports = Function.prototype.bind || implementation;
 },{"./implementation":51}],53:[function(require,module,exports){
 'use strict';
 
-/* eslint complexity: [2, 17], max-statements: [2, 33] */
+/* eslint complexity: [2, 18], max-statements: [2, 33] */
 module.exports = function hasSymbols() {
 	if (typeof Symbol !== 'function' || typeof Object.getOwnPropertySymbols !== 'function') { return false; }
 	if (typeof Symbol.iterator === 'symbol') { return true; }
@@ -13686,24 +14077,28 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    ctor.prototype = Object.create(superCtor.prototype, {
-      constructor: {
-        value: ctor,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
+    if (superCtor) {
+      ctor.super_ = superCtor
+      ctor.prototype = Object.create(superCtor.prototype, {
+        constructor: {
+          value: ctor,
+          enumerable: false,
+          writable: true,
+          configurable: true
+        }
+      })
+    }
   };
 } else {
   // old school shim for old browsers
   module.exports = function inherits(ctor, superCtor) {
-    ctor.super_ = superCtor
-    var TempCtor = function () {}
-    TempCtor.prototype = superCtor.prototype
-    ctor.prototype = new TempCtor()
-    ctor.prototype.constructor = ctor
+    if (superCtor) {
+      ctor.super_ = superCtor
+      var TempCtor = function () {}
+      TempCtor.prototype = superCtor.prototype
+      ctor.prototype = new TempCtor()
+      ctor.prototype.constructor = ctor
+    }
   }
 }
 
@@ -13731,115 +14126,6 @@ function isSlowBuffer (obj) {
 }
 
 },{}],58:[function(require,module,exports){
-var toString = {}.toString;
-
-module.exports = Array.isArray || function (arr) {
-  return toString.call(arr) == '[object Array]';
-};
-
-},{}],59:[function(require,module,exports){
-(function (process){
-var path = require('path');
-var fs = require('fs');
-var _0777 = parseInt('0777', 8);
-
-module.exports = mkdirP.mkdirp = mkdirP.mkdirP = mkdirP;
-
-function mkdirP (p, opts, f, made) {
-    if (typeof opts === 'function') {
-        f = opts;
-        opts = {};
-    }
-    else if (!opts || typeof opts !== 'object') {
-        opts = { mode: opts };
-    }
-    
-    var mode = opts.mode;
-    var xfs = opts.fs || fs;
-    
-    if (mode === undefined) {
-        mode = _0777 & (~process.umask());
-    }
-    if (!made) made = null;
-    
-    var cb = f || function () {};
-    p = path.resolve(p);
-    
-    xfs.mkdir(p, mode, function (er) {
-        if (!er) {
-            made = made || p;
-            return cb(null, made);
-        }
-        switch (er.code) {
-            case 'ENOENT':
-                mkdirP(path.dirname(p), opts, function (er, made) {
-                    if (er) cb(er, made);
-                    else mkdirP(p, opts, cb, made);
-                });
-                break;
-
-            // In the case of any other error, just see if there's a dir
-            // there already.  If so, then hooray!  If not, then something
-            // is borked.
-            default:
-                xfs.stat(p, function (er2, stat) {
-                    // if the stat fails, then that's super weird.
-                    // let the original error be the failure reason.
-                    if (er2 || !stat.isDirectory()) cb(er, made)
-                    else cb(null, made);
-                });
-                break;
-        }
-    });
-}
-
-mkdirP.sync = function sync (p, opts, made) {
-    if (!opts || typeof opts !== 'object') {
-        opts = { mode: opts };
-    }
-    
-    var mode = opts.mode;
-    var xfs = opts.fs || fs;
-    
-    if (mode === undefined) {
-        mode = _0777 & (~process.umask());
-    }
-    if (!made) made = null;
-
-    p = path.resolve(p);
-
-    try {
-        xfs.mkdirSync(p, mode);
-        made = made || p;
-    }
-    catch (err0) {
-        switch (err0.code) {
-            case 'ENOENT' :
-                made = sync(path.dirname(p), opts, made);
-                sync(p, opts, made);
-                break;
-
-            // In the case of any other error, just see if there's a dir
-            // there already.  If so, then hooray!  If not, then something
-            // is borked.
-            default:
-                var stat;
-                try {
-                    stat = xfs.statSync(p);
-                }
-                catch (err1) {
-                    throw err0;
-                }
-                if (!stat.isDirectory()) throw err0;
-                break;
-        }
-    }
-
-    return made;
-};
-
-}).call(this,require('_process'))
-},{"_process":69,"fs":42,"path":42}],60:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -13870,7 +14156,7 @@ module.exports = function(val, options) {
   var type = typeof val;
   if (type === 'string' && val.length > 0) {
     return parse(val);
-  } else if (type === 'number' && isNaN(val) === false) {
+  } else if (type === 'number' && isFinite(val)) {
     return options.long ? fmtLong(val) : fmtShort(val);
   }
   throw new Error(
@@ -13892,7 +14178,7 @@ function parse(str) {
   if (str.length > 100) {
     return;
   }
-  var match = /^((?:\d+)?\-?\d?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+  var match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
     str
   );
   if (!match) {
@@ -14003,7 +14289,7 @@ function plural(ms, msAbs, n, name) {
   return Math.round(ms / n) + ' ' + name + (isPlural ? 's' : '');
 }
 
-},{}],61:[function(require,module,exports){
+},{}],59:[function(require,module,exports){
 'use strict';
 
 var keysShim;
@@ -14037,6 +14323,8 @@ if (!Object.keys) {
 		$frames: true,
 		$innerHeight: true,
 		$innerWidth: true,
+		$onmozfullscreenchange: true,
+		$onmozfullscreenerror: true,
 		$outerHeight: true,
 		$outerWidth: true,
 		$pageXOffset: true,
@@ -14125,7 +14413,7 @@ if (!Object.keys) {
 }
 module.exports = keysShim;
 
-},{"./isArguments":63}],62:[function(require,module,exports){
+},{"./isArguments":61}],60:[function(require,module,exports){
 'use strict';
 
 var slice = Array.prototype.slice;
@@ -14159,7 +14447,7 @@ keysShim.shim = function shimObjectKeys() {
 
 module.exports = keysShim;
 
-},{"./implementation":61,"./isArguments":63}],63:[function(require,module,exports){
+},{"./implementation":59,"./isArguments":61}],61:[function(require,module,exports){
 'use strict';
 
 var toStr = Object.prototype.toString;
@@ -14178,7 +14466,7 @@ module.exports = function isArguments(value) {
 	return isArgs;
 };
 
-},{}],64:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 'use strict';
 
 // modified from https://github.com/es-shims/es6-shim
@@ -14221,7 +14509,7 @@ module.exports = function assign(target, source1) {
 	return objTarget;
 };
 
-},{"function-bind":52,"has-symbols/shams":53,"object-keys":62}],65:[function(require,module,exports){
+},{"function-bind":52,"has-symbols/shams":53,"object-keys":60}],63:[function(require,module,exports){
 'use strict';
 
 var defineProperties = require('define-properties');
@@ -14240,7 +14528,7 @@ defineProperties(polyfill, {
 
 module.exports = polyfill;
 
-},{"./implementation":64,"./polyfill":66,"./shim":67,"define-properties":47}],66:[function(require,module,exports){
+},{"./implementation":62,"./polyfill":64,"./shim":65,"define-properties":47}],64:[function(require,module,exports){
 'use strict';
 
 var implementation = require('./implementation');
@@ -14293,7 +14581,7 @@ module.exports = function getPolyfill() {
 	return Object.assign;
 };
 
-},{"./implementation":64}],67:[function(require,module,exports){
+},{"./implementation":62}],65:[function(require,module,exports){
 'use strict';
 
 var define = require('define-properties');
@@ -14309,11 +14597,12 @@ module.exports = function shimAssign() {
 	return polyfill;
 };
 
-},{"./polyfill":66,"define-properties":47}],68:[function(require,module,exports){
+},{"./polyfill":64,"define-properties":47}],66:[function(require,module,exports){
 (function (process){
 'use strict';
 
-if (!process.version ||
+if (typeof process === 'undefined' ||
+    !process.version ||
     process.version.indexOf('v0.') === 0 ||
     process.version.indexOf('v1.') === 0 && process.version.indexOf('v1.8.') !== 0) {
   module.exports = { nextTick: nextTick };
@@ -14357,7 +14646,7 @@ function nextTick(fn, arg1, arg2, arg3) {
 
 
 }).call(this,require('_process'))
-},{"_process":69}],69:[function(require,module,exports){
+},{"_process":67}],67:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -14543,10 +14832,10 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],70:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 module.exports = require('./lib/_stream_duplex.js');
 
-},{"./lib/_stream_duplex.js":71}],71:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":69}],69:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -14592,7 +14881,7 @@ var objectKeys = Object.keys || function (obj) {
 module.exports = Duplex;
 
 /*<replacement>*/
-var util = require('core-util-is');
+var util = Object.create(require('core-util-is'));
 util.inherits = require('inherits');
 /*</replacement>*/
 
@@ -14678,7 +14967,7 @@ Duplex.prototype._destroy = function (err, cb) {
 
   pna.nextTick(cb, err);
 };
-},{"./_stream_readable":73,"./_stream_writable":75,"core-util-is":44,"inherits":56,"process-nextick-args":68}],72:[function(require,module,exports){
+},{"./_stream_readable":71,"./_stream_writable":73,"core-util-is":44,"inherits":56,"process-nextick-args":66}],70:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -14711,7 +15000,7 @@ module.exports = PassThrough;
 var Transform = require('./_stream_transform');
 
 /*<replacement>*/
-var util = require('core-util-is');
+var util = Object.create(require('core-util-is'));
 util.inherits = require('inherits');
 /*</replacement>*/
 
@@ -14726,7 +15015,7 @@ function PassThrough(options) {
 PassThrough.prototype._transform = function (chunk, encoding, cb) {
   cb(null, chunk);
 };
-},{"./_stream_transform":74,"core-util-is":44,"inherits":56}],73:[function(require,module,exports){
+},{"./_stream_transform":72,"core-util-is":44,"inherits":56}],71:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -14794,7 +15083,7 @@ function _isUint8Array(obj) {
 /*</replacement>*/
 
 /*<replacement>*/
-var util = require('core-util-is');
+var util = Object.create(require('core-util-is'));
 util.inherits = require('inherits');
 /*</replacement>*/
 
@@ -15748,7 +16037,7 @@ function indexOf(xs, x) {
   return -1;
 }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./_stream_duplex":71,"./internal/streams/BufferList":76,"./internal/streams/destroy":77,"./internal/streams/stream":78,"_process":69,"core-util-is":44,"events":50,"inherits":56,"isarray":58,"process-nextick-args":68,"safe-buffer":83,"string_decoder/":85,"util":40}],74:[function(require,module,exports){
+},{"./_stream_duplex":69,"./internal/streams/BufferList":74,"./internal/streams/destroy":75,"./internal/streams/stream":76,"_process":67,"core-util-is":44,"events":50,"inherits":56,"isarray":77,"process-nextick-args":66,"safe-buffer":82,"string_decoder/":84,"util":40}],72:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -15819,7 +16108,7 @@ module.exports = Transform;
 var Duplex = require('./_stream_duplex');
 
 /*<replacement>*/
-var util = require('core-util-is');
+var util = Object.create(require('core-util-is'));
 util.inherits = require('inherits');
 /*</replacement>*/
 
@@ -15963,7 +16252,7 @@ function done(stream, er, data) {
 
   return stream.push(null);
 }
-},{"./_stream_duplex":71,"core-util-is":44,"inherits":56}],75:[function(require,module,exports){
+},{"./_stream_duplex":69,"core-util-is":44,"inherits":56}],73:[function(require,module,exports){
 (function (process,global,setImmediate){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -16031,7 +16320,7 @@ var Duplex;
 Writable.WritableState = WritableState;
 
 /*<replacement>*/
-var util = require('core-util-is');
+var util = Object.create(require('core-util-is'));
 util.inherits = require('inherits');
 /*</replacement>*/
 
@@ -16653,7 +16942,7 @@ Writable.prototype._destroy = function (err, cb) {
   cb(err);
 };
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("timers").setImmediate)
-},{"./_stream_duplex":71,"./internal/streams/destroy":77,"./internal/streams/stream":78,"_process":69,"core-util-is":44,"inherits":56,"process-nextick-args":68,"safe-buffer":83,"timers":86,"util-deprecate":87}],76:[function(require,module,exports){
+},{"./_stream_duplex":69,"./internal/streams/destroy":75,"./internal/streams/stream":76,"_process":67,"core-util-is":44,"inherits":56,"process-nextick-args":66,"safe-buffer":82,"timers":85,"util-deprecate":86}],74:[function(require,module,exports){
 'use strict';
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -16733,7 +17022,7 @@ if (util && util.inspect && util.inspect.custom) {
     return this.constructor.name + ' ' + obj;
   };
 }
-},{"safe-buffer":83,"util":40}],77:[function(require,module,exports){
+},{"safe-buffer":82,"util":40}],75:[function(require,module,exports){
 'use strict';
 
 /*<replacement>*/
@@ -16808,13 +17097,20 @@ module.exports = {
   destroy: destroy,
   undestroy: undestroy
 };
-},{"process-nextick-args":68}],78:[function(require,module,exports){
+},{"process-nextick-args":66}],76:[function(require,module,exports){
 module.exports = require('events').EventEmitter;
 
-},{"events":50}],79:[function(require,module,exports){
+},{"events":50}],77:[function(require,module,exports){
+var toString = {}.toString;
+
+module.exports = Array.isArray || function (arr) {
+  return toString.call(arr) == '[object Array]';
+};
+
+},{}],78:[function(require,module,exports){
 module.exports = require('./readable').PassThrough
 
-},{"./readable":80}],80:[function(require,module,exports){
+},{"./readable":79}],79:[function(require,module,exports){
 exports = module.exports = require('./lib/_stream_readable.js');
 exports.Stream = exports;
 exports.Readable = exports;
@@ -16823,13 +17119,13 @@ exports.Duplex = require('./lib/_stream_duplex.js');
 exports.Transform = require('./lib/_stream_transform.js');
 exports.PassThrough = require('./lib/_stream_passthrough.js');
 
-},{"./lib/_stream_duplex.js":71,"./lib/_stream_passthrough.js":72,"./lib/_stream_readable.js":73,"./lib/_stream_transform.js":74,"./lib/_stream_writable.js":75}],81:[function(require,module,exports){
+},{"./lib/_stream_duplex.js":69,"./lib/_stream_passthrough.js":70,"./lib/_stream_readable.js":71,"./lib/_stream_transform.js":72,"./lib/_stream_writable.js":73}],80:[function(require,module,exports){
 module.exports = require('./readable').Transform
 
-},{"./readable":80}],82:[function(require,module,exports){
+},{"./readable":79}],81:[function(require,module,exports){
 module.exports = require('./lib/_stream_writable.js');
 
-},{"./lib/_stream_writable.js":75}],83:[function(require,module,exports){
+},{"./lib/_stream_writable.js":73}],82:[function(require,module,exports){
 /* eslint-disable node/no-deprecated-api */
 var buffer = require('buffer')
 var Buffer = buffer.Buffer
@@ -16893,7 +17189,7 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   return buffer.SlowBuffer(size)
 }
 
-},{"buffer":43}],84:[function(require,module,exports){
+},{"buffer":43}],83:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17022,7 +17318,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"events":50,"inherits":56,"readable-stream/duplex.js":70,"readable-stream/passthrough.js":79,"readable-stream/readable.js":80,"readable-stream/transform.js":81,"readable-stream/writable.js":82}],85:[function(require,module,exports){
+},{"events":50,"inherits":56,"readable-stream/duplex.js":68,"readable-stream/passthrough.js":78,"readable-stream/readable.js":79,"readable-stream/transform.js":80,"readable-stream/writable.js":81}],84:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -17319,7 +17615,7 @@ function simpleWrite(buf) {
 function simpleEnd(buf) {
   return buf && buf.length ? this.write(buf) : '';
 }
-},{"safe-buffer":83}],86:[function(require,module,exports){
+},{"safe-buffer":82}],85:[function(require,module,exports){
 (function (setImmediate,clearImmediate){
 var nextTick = require('process/browser.js').nextTick;
 var apply = Function.prototype.apply;
@@ -17398,7 +17694,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
   delete immediateIds[id];
 };
 }).call(this,require("timers").setImmediate,require("timers").clearImmediate)
-},{"process/browser.js":69,"timers":86}],87:[function(require,module,exports){
+},{"process/browser.js":67,"timers":85}],86:[function(require,module,exports){
 (function (global){
 
 /**
@@ -17469,6 +17765,31 @@ function config (name) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{}],87:[function(require,module,exports){
+if (typeof Object.create === 'function') {
+  // implementation from standard node.js 'util' module
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    ctor.prototype = Object.create(superCtor.prototype, {
+      constructor: {
+        value: ctor,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+  };
+} else {
+  // old school shim for old browsers
+  module.exports = function inherits(ctor, superCtor) {
+    ctor.super_ = superCtor
+    var TempCtor = function () {}
+    TempCtor.prototype = superCtor.prototype
+    ctor.prototype = new TempCtor()
+    ctor.prototype.constructor = ctor
+  }
+}
+
 },{}],88:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
@@ -18066,10 +18387,10 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":88,"_process":69,"inherits":56}],90:[function(require,module,exports){
+},{"./support/isBuffer":88,"_process":67,"inherits":87}],90:[function(require,module,exports){
 module.exports={
   "name": "mocha",
-  "version": "6.1.4",
+  "version": "8.0.1",
   "homepage": "https://mochajs.org/",
   "notifyLogo": "https://ibin.co/4QuRuGjXvl36.png"
 }

@@ -1533,7 +1533,7 @@ a cite {
 	margin-left:10px
 }
 .layui-btn-container {
-	font-size:0
+	/*font-size:0*/
 }
 .layui-btn-container .layui-btn {
 	margin-right:10px;

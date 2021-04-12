@@ -1,4 +1,5 @@
 <?php
+
 namespace GuzzleHttp\Promise;
 
 /**
@@ -41,13 +42,13 @@ class Promise implements PromiseInterface
 
         // Return a fulfilled promise and immediately invoke any callbacks.
         if ($this->state === self::FULFILLED) {
-            $promise = promise_for($this->result);
+            $promise = Create::promiseFor($this->result);
             return $onFulfilled ? $promise->then($onFulfilled) : $promise;
         }
 
         // It's either cancelled or rejected, so return a rejected promise
         // and immediately invoke any callbacks.
-        $rejection = rejection_for($this->result);
+        $rejection = Create::rejectionFor($this->result);
         return $onRejected ? $rejection->then(null, $onRejected) : $rejection;
     }
 
@@ -68,7 +69,7 @@ class Promise implements PromiseInterface
                 return $this->result;
             }
             // It's rejected so "unwrap" and throw an exception.
-            throw exception_for($this->result);
+            throw Create::exceptionFor($this->result);
         }
     }
 
@@ -98,6 +99,7 @@ class Promise implements PromiseInterface
         }
 
         // Reject the promise only if it wasn't rejected in a then callback.
+        /** @psalm-suppress RedundantCondition */
         if ($this->state === self::PENDING) {
             $this->reject(new CancellationException('Promise has been cancelled'));
         }
@@ -146,14 +148,12 @@ class Promise implements PromiseInterface
         if (!is_object($value) || !method_exists($value, 'then')) {
             $id = $state === self::FULFILLED ? 1 : 2;
             // It's a success, so resolve the handlers in the queue.
-            queue()->add(static function () use ($id, $value, $handlers) {
+            Utils::queue()->add(static function () use ($id, $value, $handlers) {
                 foreach ($handlers as $handler) {
                     self::callHandler($id, $value, $handler);
                 }
             });
-        } elseif ($value instanceof Promise
-            && $value->getState() === self::PENDING
-        ) {
+        } elseif ($value instanceof Promise && Is::pending($value)) {
             // We can just merge our handlers onto the next promise.
             $value->handlers = array_merge($value->handlers, $handlers);
         } else {
@@ -179,8 +179,6 @@ class Promise implements PromiseInterface
      * @param int   $index   1 (resolve) or 2 (reject).
      * @param mixed $value   Value to pass to the callback.
      * @param array $handler Array of handler data (promise and callbacks).
-     *
-     * @return array Returns the next group to resolve.
      */
     private static function callHandler($index, $value, array $handler)
     {
@@ -189,13 +187,21 @@ class Promise implements PromiseInterface
 
         // The promise may have been cancelled or resolved before placing
         // this thunk in the queue.
-        if ($promise->getState() !== self::PENDING) {
+        if (Is::settled($promise)) {
             return;
         }
 
         try {
             if (isset($handler[$index])) {
-                $promise->resolve($handler[$index]($value));
+                /*
+                 * If $f throws an exception, then $handler will be in the exception
+                 * stack trace. Since $handler contains a reference to the callable
+                 * itself we get a circular reference. We clear the $handler
+                 * here to avoid that memory leak.
+                 */
+                $f = $handler[$index];
+                unset($handler);
+                $promise->resolve($f($value));
             } elseif ($index === 1) {
                 // Forward resolution values as-is.
                 $promise->resolve($value);
@@ -226,8 +232,9 @@ class Promise implements PromiseInterface
                 . 'wait on a promise.');
         }
 
-        queue()->run();
+        Utils::queue()->run();
 
+        /** @psalm-suppress RedundantCondition */
         if ($this->state === self::PENDING) {
             $this->reject('Invoking the wait callback did not resolve the promise');
         }

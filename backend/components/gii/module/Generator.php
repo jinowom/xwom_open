@@ -23,6 +23,7 @@ use yii\helpers\StringHelper;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $showName = 'Module Generator';
     public $moduleClass;
     public $moduleID;
 
@@ -32,7 +33,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Module Generator';
+        //return 'Module Generator';
+        return $this->showName;
     }
 
     /**
@@ -40,7 +42,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator helps you to generate the skeleton code needed by a Yii module.';
+        return '此Module模块生成器帮助您生成Yii模块所需的骨架代码。';
     }
 
     /**

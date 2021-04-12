@@ -43,11 +43,32 @@ class LoginForm extends Model
      */
     public function validatePassword($attribute, $params)
     {
-        if (!$this->hasErrors()) {
-            $user = $this->getUser();
-            if (!$user || !$user->validatePassword($this->password)) {
-                $this->addError($attribute, '账号或密码不正确');
+        if (!$this->hasErrors()) {//$this就是$model对象
+            // 私钥解密
+            $private_key = Yii::$app->params['private_key'];
+            $res=openssl_private_decrypt(base64_decode($this->password),$this->password,$private_key);//登录密码私钥解密
+            //openssl_private_decrypt(base64_decode($this->Passwd),$passwd,$private_key);//原密码私钥解密
+            if(!$res){//如果$res没有值，也就是说客户端浏览器没有传过来，说明网络错误
+                $this->addError($attribute, '网络错误');
+                return;
             }
+            // 完整性校验
+            $passArr = explode(',',$this->password);
+            $this->password = $passArr[0];
+            $md5Password = $passArr[1];
+            if($md5Password != md5($this->password)){
+                $this->addError($attribute, '信息保存失败');
+                return;
+            }
+
+            $user = $this->getUser();
+            //记录日志
+            if(!$user){
+                $this->addError($attribute, '用户名不存在');
+            }elseif(!$user->validatePassword($this->password)){
+                $this->addError($attribute, '用户名或密码错误');
+            }
+            //die;
         }
     }
 

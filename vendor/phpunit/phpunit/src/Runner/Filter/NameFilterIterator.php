@@ -92,8 +92,8 @@ final class NameFilterIterator extends RecursiveFilterIterator
                         $matches[1]
                     );
 
-                    $this->filterMin = $matches[2];
-                    $this->filterMax = $matches[3];
+                    $this->filterMin = (int) $matches[2];
+                    $this->filterMax = (int) $matches[3];
                 } else {
                     $filter = \sprintf(
                         '%s.*with data set #%s$',
@@ -114,11 +114,14 @@ final class NameFilterIterator extends RecursiveFilterIterator
 
             // Escape delimiters in regular expression. Do NOT use preg_quote,
             // to keep magic characters.
-            $filter = \sprintf('/%s/i', \str_replace(
-                '/',
-                '\\/',
-                $filter
-            ));
+            $filter = \sprintf(
+                '/%s/i',
+                \str_replace(
+                    '/',
+                    '\\/',
+                    $filter
+                )
+            );
         }
 
         $this->filter = $filter;

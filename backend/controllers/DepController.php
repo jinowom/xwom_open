@@ -324,9 +324,10 @@ class DepController extends BaseController
         $action = $this->get('type');
         $type = AdminAuthRelation::TYPE_DEP;
         $depId = $this->get('depId');
+        $authName = AdminDep::findValueByWhere(['depid'=>$depId],'auth_item_id',[]);
         if($action == 'batchExport'){
            $t = 'out';
         }
-        return $this->render('_memberList',['depId'=>$depId,'type'=>$type, 't'=>$t, 'action'=>$action]);
+        return $this->render('/auth/_adminlist',['depId'=>$depId,'type'=>$type, 't'=>$t, 'action'=>$action,'authName'=>$authName,'id'=>$depId]);
     }
 }

@@ -1,10 +1,24 @@
 Yii Framework 2 debug extension Change Log
 ==========================================
 
+2.1.15 November 13, 2020
+------------------------
+
+- Bug #443: Fix bug with fetching wrong URL rule name (bizley)
+
+
+2.1.14 November 10, 2020
+------------------------
+
+- Bug #434: Toolbar logo could have the wrong size (brandonkelly)
+- Enh #428: Extra routing data in Router panel (bizley)
+- Enh #433: Add ability for toolbar to skip URLs of AJAX requests from being displayed (naduvko)
+
+
 2.1.13 January 17, 2020
 -----------------------
 
-- Fix #427: Fix missing import yii\helpers\Html in DumpPanel (zhukovra)
+- Bug #427: Fix missing import yii\helpers\Html in DumpPanel (zhukovra)
 
 
 2.1.12 November 19, 2019

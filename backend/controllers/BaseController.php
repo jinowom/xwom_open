@@ -8,28 +8,35 @@
 
 namespace backend\controllers;
 
+use backend\actions\UploadAction;
+use backend\actions\XpaperAction;
+use  backend\modules\common\models\ConfigPageManage;
 use common\models\auth\AdminAuthRelation;
+use common\models\auth\AuthItem;
 use common\models\User;
 use common\traits\BaseTraits;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
 use yii\web\Controller;
-use yii\web\UnauthorizedHttpException;
+use common\helpers\Zip;
+use yii\web\UploadedFile;
+use Yii;
 
 class BaseController extends Controller
 {
     //继承公共方法
     use BaseTraits;
 
+    protected $userInfo;
+
     protected $actions = ['*']; //需要验证的方法
     protected $except = []; // 排查一些方法不需要验证
     protected $mustlogin = []; // 必须要验证的
     protected $verbs = []; // 指定该规则用于匹配哪种请求方法（例如GET，POST）。 这里的匹配大小写不敏感。
 
-    private $pageSize;//每页多少条
-    private $page = 1;//第几页
-    private $offset = 0;
+    protected $pageSize;//每页多少条
+    protected $page = 1;//第几页
     protected $sidx = 'id';//排序的字段
     protected $sord = 'desc';//正序或倒序
 
@@ -40,12 +47,16 @@ class BaseController extends Controller
     protected $team_id;
     protected $app_id;
 
-    public function init()
-    {
+    //规则
+    protected $uploadFileName = 'file'; //上传的表单名称
+    protected $limitRules = []; //附件的限制规则
+    protected $is = 1; //是否入库
+
+
+    public function init(){
         $userModel = new User();
-        $this->pageSize = $this->post('limit',\Yii::$app->params['pageSize']);
+        $this->pageSize = $this->post('pageSize', 10);
         $this->page = $this->post('page', 1);
-        $this->offset = ($this->page - 1) * $this->pageSize;
         $sidx = $this->post('sidx', $this->sidx);
         $this->sidx = empty($sidx) ? $this->sidx : $sidx;
         $sord = $this->post('sord', $this->sord);
@@ -56,7 +67,24 @@ class BaseController extends Controller
         $this->unit_id = $userModel->getdataByUser($this->user_id);
         $this->site_id = $userModel->getdataByUser($this->user_id,AdminAuthRelation::TYPE_SITE);
         $this->app_id = $userModel->getdataByUser($this->user_id,AdminAuthRelation::TYPE_APP);
+        $authManager = \Yii::$app->getAuthManager();
+        $permissions = $authManager->getPermissionsByUser($this->user_id);
+        $permissions = ArrayHelper::toArray($permissions);
+        $this->userInfo = $permissions;
         parent::init();
+    }
+
+    //获取分页数量
+    public function getPage(){
+        $page = ConfigPageManage::find()->select('num')->andWhere(['is_del'=>0,'type'=>2,'status'=>1])
+            ->andWhere(['controller'=>Yii::$app->controller->id])
+            ->andWhere(['action'=>Yii::$app->controller->action->id])
+            ->asArray()->one();
+        if(!empty($page)){
+            $this->pageSize = $page['num'];
+        }else{
+            $this->pageSize = 10;
+        }
     }
 
     public function behaviors()
@@ -88,7 +116,7 @@ class BaseController extends Controller
 
     public function beforeAction($action){
         if(\Yii::$app->user->isGuest){
-            return $this->redirect(['/site/login']);
+            return $this->redirect(['/site/login'])->send();
         }
         if (!parent::beforeAction($action)) {
             return false;
@@ -115,6 +143,39 @@ class BaseController extends Controller
 //        return '没有权限';
     }
 
+    public function getFieUrl($fileUrl=""){
+        if(empty($fileUrl)){
+            return "该文件目录不正确";
+        }
+        $suffix = substr(strrchr($fileUrl, '.'), 1);
+        //判断该文件属于哪个类型
+        if(Zip::isImage($suffix)){
+            $fileType = "image";
+        }else if(Zip::isVideo($suffix)){
+            $fileType = "video";
+        }else{
+            $fileType = 'file';
+        }
+        return \Yii::$app->controller->module->id.'/'.\Yii::$app->controller->id.'/'.$fileType.'/'.date("Ymd",time());
+    }
+
+    public function actions()
+    {
+        return [
+            //绑定上传功能
+            'upload' => [
+                'class' => UploadAction::className(),
+                'files' => UploadedFile::getInstanceByName($this->uploadFileName),
+                'limitRules' => $this->limitRules,
+                'is' => $this->is,
+            ],
+            //通过报纸获取期次和版面信息
+            'issueandpage' => [
+                'class' => XpaperAction::className(),
+                'pId' => $this->get('pId'),
+            ]
+        ];
+    }
     /**
      * @Function 获取Get数据
      * @Author Weihuaadmin@163.com
@@ -152,12 +213,20 @@ class BaseController extends Controller
         if(empty($isObj)){
             $listQuery->asArray();
         }
-        $list = $listQuery ->offset($this->offset)
+        $list = $listQuery ->offset(($this->page - 1) * $this->pageSize)
             ->limit($this->pageSize)
             ->orderBy("$this->sidx $this->sord")
             ->all();
         if (!empty($dealFunction)) {
             $list = $dealFunction($list);
+        }
+        foreach ($list as $key => $value) {
+            if(!empty($value['updated_at'])){
+                $list[$key]['updated_at'] = date('Y-m-d H:i',$value['updated_at']);
+            }
+            if(!empty($value['created_at'])){
+                $list[$key]['created_at'] = date('Y-m-d H:i',$value['created_at']);
+            }
         }
         //获取总数
         $count = $query->count();
@@ -167,6 +236,22 @@ class BaseController extends Controller
             'count' => (int)$count,
             'data' => $list,
         ]);
+    }
+
+    public static function getMenuName(){
+        $module = \Yii::$app->controller->module->id;
+        $controller = \Yii::$app->controller->id;
+        $action = \Yii::$app->controller->action->id;
+        $urlRoute = str_replace(\Yii::$app->id.'/','',$module.'/'.$controller.'/'.$action);
+        return AuthItem::findValueByWhere(['name' => $urlRoute],['description'],['name'=>SORT_DESC]);
+    }
+
+    public function returnSuccess($data , $msg = 'ok'){
+        $this->asJson(['code' => 200,'message' => $msg,'data' => $data]);
+    }
+
+    public function returnError($data = '', $msg = 'auth_error'){
+        $this->asJson(['code' => 400,'message' => $msg,'data' => $data]);
     }
      
 }

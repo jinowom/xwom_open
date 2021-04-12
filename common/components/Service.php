@@ -6,6 +6,7 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
 use common\traits\BaseAction;
+use backend\modules\common\models\ConfigPageManage;
 
 /**
  * Class Service
@@ -15,6 +16,9 @@ use common\traits\BaseAction;
 class Service extends Component
 {
     use BaseAction;
+//    protected $pageSize;//每页多少条
+    protected $sidx = 'id';//排序的字段
+    protected $sord = 'desc';//正序或倒序
 
     /**
      * 子服务

@@ -5,6 +5,7 @@ use common\utils\ToolUtil;
 $this->title = '添加菜单';
 $pageSize = \Yii::$app->params['pageSize'];
 $limitsJson = \Yii::$app->params['limitsJson'];
+$model = [];
 ?>
 <style>
     body{background: #ffffff;}

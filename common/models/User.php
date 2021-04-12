@@ -9,6 +9,7 @@ use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\web\IdentityInterface;
+use api\models\XportalMember;
 
 /**
  * User model
@@ -157,7 +158,9 @@ class User extends BaseModel implements IdentityInterface
      */
     public static function findIdentityByAccessToken($token, $type = null)
     {
-        throw new NotSupportedException('"findIdentityByAccessToken" is not implemented.');
+        return XportalMember::find()
+            ->where(['token' => $token, 'member_check_status' => XportalMember::MEMBER_CHECK_STATUS])
+            ->andWhere(['>', 'token_exptime', time()])->one();
     }
 
     /**
@@ -293,6 +296,16 @@ class User extends BaseModel implements IdentityInterface
         $this->password_reset_token = null;
     }
 
+    /**
+     * 生成access_token
+     * @return mixed|string
+     */
+    public static function generateAccessToken()
+    {
+        $access_token = Yii::$app->security->generateRandomString();
+
+        return $access_token;
+    }
 
 
     /**

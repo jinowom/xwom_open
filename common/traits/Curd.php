@@ -13,8 +13,6 @@ use common\helpers\ArrayHelper;
  * Trait Curd
  * @property \yii\db\ActiveRecord|\yii\base\Model $modelClass
  * @package common\traits
- * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-07 11:39 
  */
 trait Curd
 {

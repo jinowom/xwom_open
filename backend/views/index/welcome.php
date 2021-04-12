@@ -1,7 +1,9 @@
 <?php
 
 /* @var $this yii\web\View */
-
+use common\utils\ToolUtil;
+use yii\helpers\Html;
+use yii\helpers\Url;
 $this->title = Yii::$app->name.'后台登录,欢迎页';
 ?>
 <div class="layui-fluid">
@@ -115,8 +117,8 @@ $this->title = Yii::$app->name.'后台登录,欢迎页';
                 <div class="layui-card-body ">
                     <p class="layuiadmin-big-font">33,555</p>
                     <p>新下载
-                                <span class="layuiadmin-span-color">10%
-                                    <i class="layui-inline layui-icon layui-icon-face-smile-b"></i></span>
+                            <span class="layuiadmin-span-color">10%
+                                <i class="layui-inline layui-icon layui-icon-face-smile-b"></i></span>
                     </p>
                 </div>
             </div>

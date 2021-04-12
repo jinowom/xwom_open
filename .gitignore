@@ -41,6 +41,9 @@ phpunit.phar
 /backend/web/index.php
 /backend/web/index-test.php
 /backend/web/robots.txt
+/api/web/index.php
+/api/web/index-test.php
+/api/web/robots.txt
 
 /backend/config/codeception-local.php
 /backend/config/main-local.php
@@ -63,7 +66,9 @@ phpunit.phar
 /api/config/test-local.php
 #img itself is not needed
 /img
-/backend/modules/xedit
-/backend/modules/xpaper
-/backend/modules/xportal
-/backend/modules/
+#忽略/backend/web/upload/下所有
+/backend/web/upload/*
+/backend/web/uploads/*
+#忽略/backend/web/uploads/news_qecode/ 二维码所有
+
+

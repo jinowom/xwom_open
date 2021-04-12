@@ -145,8 +145,7 @@ class ActionColumn extends Column
         $this->initDefaultButton('view', 'eye-open');
         $this->initDefaultButton('update', 'pencil');
         $this->initDefaultButton('delete', 'trash', [
-            //'data-confirm' => Yii::t('yii', 'Are you sure you want to delete this item?'),
-            'data-confirm' => Yii::t('yii', '您确认要删除吗?'),
+            'data-confirm' => Yii::t('app', 'Are you sure you want to delete this item?'),
             'data-method' => 'post',
         ]);
     }
@@ -164,13 +163,13 @@ class ActionColumn extends Column
             $this->buttons[$name] = function ($url, $model, $key) use ($name, $iconName, $additionalOptions) {
                 switch ($name) {
                     case 'view':
-                        $title = Yii::t('yii', '浏览');
+                        $title = Yii::t('app', 'view');
                         break;
                     case 'update':
-                        $title = Yii::t('yii', '更新');
+                        $title = Yii::t('app', 'update');
                         break;
                     case 'delete':
-                        $title = Yii::t('yii', '删除');
+                        $title = Yii::t('app', 'delete');
                         break;
                     default:
                         $title = ucfirst($name);

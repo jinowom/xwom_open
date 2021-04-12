@@ -1,0 +1,23 @@
+{
+    "name": "jinowom/yii2-dysms",
+    "description": "Aliyun SMS SDK for Yii2",
+    "keywords": [ "aliyun", "SMS", "sdk", "Yii2"],
+    "type": "library",
+    "license": "Apache-2.0",
+    "homepage": "https://github.com/jinowom/yii2-dysms",
+    "authors": [
+        {
+            "name": "charles",
+            "homepage": "https://github.com/jinowom"
+        }
+    ],
+    "require": {
+        "php": ">=5.5.0",
+		"yiisoft/yii2": "~2.0.14"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\aliyun\\": "src/"
+        }
+    }
+}

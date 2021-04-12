@@ -133,8 +133,8 @@ $bg_color = json_decode(getVar('BGCOLOR',2),true);
             <div class="moduleBox figureStatistics" id="modelBox">
             </div>
 
-<!--            <div class="moduleBox figureStatistics">
-               <div class="titleTextBox"><span>站内短消息</span></div>
+            <div class="moduleBox figureStatistics">
+               <div class="titleTextBox"><span>版块示例一</span></div>
                 <ul class="layui-row layui-col-space10 layui-this x-admin-carousel x-admin-backlog">
                     <li class="layui-col-md2 layui-col-xs6">
                         <a href="javascript:;" class="x-admin-backlog-body">
@@ -182,7 +182,7 @@ $bg_color = json_decode(getVar('BGCOLOR',2),true);
             </div>
 
             <div class="moduleBox chartStatistics">
-                <div class="titleTextBox"><span>站内统计</span></div>
+                <div class="titleTextBox"><span>版块示例二</span></div>
                 <div class="layui-row">
                     <div class="layui-col-md6">
                        <div id="LineChart"></div>
@@ -193,7 +193,7 @@ $bg_color = json_decode(getVar('BGCOLOR',2),true);
                 </div>
             <div>
             </div>
-        </div>-->
+        </div>
     </div>
     <script type="text/javascript">
     layui.use(['laydate', 'laypage','form','upload'], function(){

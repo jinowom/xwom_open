@@ -386,4 +386,23 @@ class ArrayHelper extends BaseArrayHelper
         $xml .= "</xml>";
         return $xml;
     }
+
+    /**
+     * 对象转换数组
+     */
+    public static function object_array($array)
+    {
+        if (is_object($array)) {
+            $array = (array)$array;
+        }
+        if (is_array($array)) {
+            foreach ($array as $key => $value) {
+                $array[$key] = self::object_array($value);
+            }
+        }
+        return $array;
+    }
+
+
+
 }

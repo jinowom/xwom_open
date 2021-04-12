@@ -118,7 +118,7 @@ abstract class BaseListView extends Widget
             throw new InvalidConfigException('The "dataProvider" property must be set.');
         }
         if ($this->emptyText === null) {
-            $this->emptyText = Yii::t('yii', 'No results found.');
+            $this->emptyText = Yii::t('app', 'No results found.');
         }
         if (!isset($this->options['id'])) {
             $this->options['id'] = $this->getId();
@@ -203,7 +203,7 @@ abstract class BaseListView extends Widget
             $page = $pagination->getPage() + 1;
             $pageCount = $pagination->pageCount;
             if (($summaryContent = $this->summary) === null) {
-                return Html::tag($tag, Yii::t('yii', 'Showing <b>{begin, number}-{end, number}</b> of <b>{totalCount, number}</b> {totalCount, plural, one{item} other{items}}.', [
+                return Html::tag($tag, Yii::t('app', 'Showing <b>{begin, number}-{end, number}</b> of <b>{totalCount, number}</b> {totalCount, plural, one{item} other{items}}.', [
                         'begin' => $begin,
                         'end' => $end,
                         'count' => $count,
@@ -216,7 +216,7 @@ abstract class BaseListView extends Widget
             $begin = $page = $pageCount = 1;
             $end = $totalCount = $count;
             if (($summaryContent = $this->summary) === null) {
-                return Html::tag($tag, Yii::t('yii', 'Total <b>{count, number}</b> {count, plural, one{item} other{items}}.', [
+                return Html::tag($tag, Yii::t('app', 'Total <b>{count, number}</b> {count, plural, one{item} other{items}}.', [
                     'begin' => $begin,
                     'end' => $end,
                     'count' => $count,

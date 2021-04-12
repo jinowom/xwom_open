@@ -24,8 +24,8 @@ use yii\helpers\ArrayHelper;
 /**
  * Schema is the class for retrieving metadata from an Oracle database.
  *
- * @property string $lastInsertID The row ID of the last row inserted, or the last value retrieved from the
- * sequence object. This property is read-only.
+ * @property-read string $lastInsertID The row ID of the last row inserted, or the last value retrieved from
+ * the sequence object. This property is read-only.
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
@@ -614,7 +614,7 @@ SQL;
                 $phName = QueryBuilder::PARAM_PREFIX . (count($params) + count($returnParams));
                 $returnParams[$phName] = [
                     'column' => $name,
-                    'value' => null,
+                    'value' => '',
                 ];
                 if (!isset($columnSchemas[$name]) || $columnSchemas[$name]->phpType !== 'integer') {
                     $returnParams[$phName]['dataType'] = \PDO::PARAM_STR;

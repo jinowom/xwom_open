@@ -1,0 +1,44 @@
+/*登录*/
+.loginHtml{
+    height:100%;
+    background-color: white;
+}
+.loginBody{
+    width: 800px;
+    height: 500px;
+    background-color: white;
+    margin: 0 auto;
+    position:absolute;
+    top: 80px;
+    left: 20%;
+    right: 20%;
+    border-radius: 5px;
+    box-shadow: 0 0 50px #1E9FFF;
+}
+.left-desc{
+    width: 70%;
+    background-image: url("/images/login.jpg");
+    background-repeat: no-repeat;
+    background-position: center ;
+    background-size:100% 100%;
+    -moz-background-size:100% 100%;
+    position: absolute;
+    top:0;
+    bottom: 0;
+}
+.right-desc{
+    width: 30%;
+    padding-left: 70%;
+    position: absolute;
+}
+.login-form{
+    position: relative;
+    padding: 20px;
+}
+.user-area{
+    margin-top: 100px;
+}
+.user-doctor{
+    margin-top: 40px;
+    text-align: center;
+}

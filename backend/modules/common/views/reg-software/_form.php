@@ -55,6 +55,8 @@ use kartik\form\ActiveForm;
 
     <?= $form->field($model, 'sortOrder')->textInput() ?>
 
+    <?= $form->field($model, 'is_del')->textInput() ?>
+
   
 	<?php if (!Yii::$app->request->isAjax){ ?>
 	  	<div class="form-group">

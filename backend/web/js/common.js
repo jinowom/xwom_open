@@ -94,3 +94,14 @@ function getColumn(a,c){
     return r;
 }
 
+/**
+ *  table refresh
+ * @param t table
+ * @param e ele
+ * @param o option
+ */
+function tReload(t,e,o){
+    var o = (o == null || o == '') ? {page: { curr: 1 }} : o;
+    t.reload(e, o, 'data');
+}
+

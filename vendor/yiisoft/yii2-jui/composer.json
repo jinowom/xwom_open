@@ -15,26 +15,11 @@
         {
             "name": "Qiang Xue",
             "email": "qiang.xue@gmail.com"
-        },
-        {
-            "name": "Alexander Kochetov",
-            "email": "creocoder@gmail.com"
-        },
-        {
-            "name": "Carsten Brandt",
-            "email": "mail@cebe.cc"
-        },
-        {
-            "name": "Alexander Makarov",
-            "email": "sam@rmcreative.ru"
         }
     ],
     "require": {
         "yiisoft/yii2": "~2.0.4",
         "bower-asset/jquery-ui": "~1.12.1"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "<7"
     },
     "repositories": [
         {
@@ -44,7 +29,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "yii\\jui\\": "src"
+            "yii\\jui\\": ""
         }
     },
     "extra": {

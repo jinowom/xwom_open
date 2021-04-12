@@ -37,7 +37,7 @@ class AuthRule extends \common\models\BaseModel
             [['name'], 'unique'],
         ];
     }
-
+    
     /**
      * {@inheritdoc}
      */

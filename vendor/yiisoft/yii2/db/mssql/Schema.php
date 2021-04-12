@@ -364,6 +364,7 @@ SQL;
         $column->enumValues = []; // mssql has only vague equivalents to enum
         $column->isPrimaryKey = null; // primary key will be determined in findColumns() method
         $column->autoIncrement = $info['is_identity'] == 1;
+        $column->isComputed = (bool)$info['is_computed'];
         $column->unsigned = stripos($column->dbType, 'unsigned') !== false;
         $column->comment = $info['comment'] === null ? '' : $info['comment'];
 
@@ -436,6 +437,7 @@ SELECT
  END AS 'data_type',
  [t1].[column_default],
  COLUMNPROPERTY(OBJECT_ID([t1].[table_schema] + '.' + [t1].[table_name]), [t1].[column_name], 'IsIdentity') AS is_identity,
+ COLUMNPROPERTY(OBJECT_ID([t1].[table_schema] + '.' + [t1].[table_name]), [t1].[column_name], 'IsComputed') AS is_computed,
  (
     SELECT CONVERT(VARCHAR, [t2].[value])
 		FROM [sys].[extended_properties] AS [t2]
@@ -595,7 +597,12 @@ WHERE [t].[table_schema] = :schema AND [t].[table_type] = 'VIEW'
 ORDER BY [t].[table_name]
 SQL;
 
-        return $this->db->createCommand($sql, [':schema' => $schema])->queryColumn();
+        $views = $this->db->createCommand($sql, [':schema' => $schema])->queryColumn();
+        $views = array_map(static function ($item) {
+            return '[' . $item . ']';
+        }, $views);
+
+        return $views;
     }
 
     /**
@@ -750,5 +757,39 @@ SQL;
         }
 
         return parent::quoteColumnName($name);
+    }
+
+    /**
+     * Retrieving inserted data from a primary key request of type uniqueidentifier (for SQL Server 2005 or later)
+     * {@inheritdoc}
+     */
+    public function insert($table, $columns)
+    {
+        $command = $this->db->createCommand()->insert($table, $columns);
+        if (!$command->execute()) {
+            return false;
+        }
+
+        $isVersion2005orLater = version_compare($this->db->getSchema()->getServerVersion(), '9', '>=');
+        $inserted = $isVersion2005orLater ? $command->pdoStatement->fetch() : [];
+
+        $tableSchema = $this->getTableSchema($table);
+        $result = [];
+        foreach ($tableSchema->primaryKey as $name) {
+            if ($tableSchema->columns[$name]->autoIncrement) {
+                $result[$name] = $this->getLastInsertID($tableSchema->sequenceName);
+                break;
+            }
+            // @see https://github.com/yiisoft/yii2/issues/13828 & https://github.com/yiisoft/yii2/issues/17474
+            if (isset($inserted[$name])) {
+                $result[$name] = $inserted[$name];
+            } elseif (isset($columns[$name])) {
+                $result[$name] = $columns[$name];
+            } else {
+                $result[$name] = $tableSchema->columns[$name]->defaultValue;
+            }
+        }
+
+        return $result;
     }
 }

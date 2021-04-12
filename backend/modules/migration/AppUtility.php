@@ -72,6 +72,8 @@ class AppUtility
             $this->string .= ($this->array['allowNull']) ? ' NULL' : ' NOT NULL';
         if (isset($this->array['defaultValue']))
             $this->string .= (empty($this->array['defaultValue'])) ? '' : " DEFAULT \'{$this->array['defaultValue']}\'";
+         if (isset($this->array['comment'])) 
+             $this->string .= ($this->array['comment']) ? ' COMMENT "'. $this->array['comment'] . '"' : '';
 
     }
 
@@ -104,6 +106,10 @@ class AppUtility
             } else {
                 $this->string .= (empty($this->array['defaultValue'])) ? '' : " DEFAULT " . $this->array['defaultValue']['expression'] . " ";
             }
+         //添加表结构字段的注释
+         if (isset($this->array['comment'])) 
+//             $this->string .= ($this->array['comment']) ? ' COMMENT "'. $this->array['comment'] . '"' : ' COMMENT ""';
+             $this->string .= ($this->array['comment']) ? ' COMMENT "'. $this->array['comment'] . '"' : '';
     }
 
     private function runSqlite()

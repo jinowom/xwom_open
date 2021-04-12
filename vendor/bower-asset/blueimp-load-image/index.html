@@ -20,7 +20,7 @@
     <title>JavaScript Load Image</title>
     <meta
       name="description"
-      content="JavaScript Load Image is a library to load images provided as File or Blob objects or via URL. It returns an optionally scaled and/or cropped HTML img or canvas element. It also provides methods to parse image meta data to extract IPTC and Exif tags as well as embedded thumbnail images and to restore the complete image header after resizing."
+      content="JavaScript Load Image is a library to load images provided as File or Blob objects or via URL. It returns an optionally scaled, cropped or rotated HTML img or canvas element. It also provides methods to parse image metadata to extract IPTC and Exif tags as well as embedded thumbnail images, to overwrite the Exif Orientation value and to restore the complete image header after resizing."
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!--
@@ -28,6 +28,14 @@
     -->
     <link rel="stylesheet" href="css/vendor/jquery.Jcrop.css" />
     <link rel="stylesheet" href="css/demo.css" />
+    <!--[if lt IE 9]>
+      <script>
+        // Basic HTML5 elements support:
+        'figure figcaption'.replace(/\w+/g, function (n) {
+          document.createElement(n)
+        })
+      </script>
+    <![endif]-->
   </head>
   <body>
     <h1>JavaScript Load Image Demo</h1>
@@ -36,24 +44,31 @@
         >JavaScript Load Image</a
       >
       is a library to load images provided as
-      <a href="https://developer.mozilla.org/en/DOM/File">File</a> or
-      <a href="https://developer.mozilla.org/en/DOM/Blob">Blob</a> objects or
-      via URL.<br />
-      It returns an optionally <strong>scaled</strong> and/or
-      <strong>cropped</strong> HTML
-      <a href="https://developer.mozilla.org/en/docs/HTML/Element/Img">img</a>
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/File">File</a>
       or
-      <a href="https://developer.mozilla.org/en/docs/HTML/Canvas">canvas</a>
-      element.<br />
-      It also provides a method to parse image meta data to extract
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Blob">Blob</a>
+      objects or via URL.<br />
+      It returns an optionally <strong>scaled</strong>,
+      <strong>cropped</strong> or <strong>rotated</strong> HTML
+      <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Element/Img"
+        >img</a
+      >
+      or
+      <a href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API"
+        >canvas</a
+      >
+      element.
+    </p>
+    <p>
+      It also provides methods to parse image metadata to extract
       <a href="https://iptc.org/standards/photo-metadata/">IPTC</a> and
       <a href="https://en.wikipedia.org/wiki/Exif">Exif</a> tags as well as
-      embedded thumbnail images and to restore the complete image header after
-      resizing.
+      embedded thumbnail images, to overwrite the Exif Orientation value and to
+      restore the complete image header after resizing.
     </p>
     <ul id="navigation">
       <li>
-        <a href="https://github.com/blueimp/JavaScript-Load-Image/tags"
+        <a href="https://github.com/blueimp/JavaScript-Load-Image/releases"
           >Download</a
         >
       </li>
@@ -75,34 +90,53 @@
     <p>
       <input type="file" id="file-input" />
     </p>
-    <p>Or enter an image URL into the following field:</p>
     <p>
+      <label for="url">Or enter an image URL into the following field:</label>
       <input type="url" id="url" placeholder="Image URL" />
     </p>
     <p>Or <strong>drag &amp; drop</strong> an image file onto this webpage.</p>
-    <h2>Result</h2>
-    <p id="actions" style="display:none;">
-      <button type="button" id="edit">Edit</button>
-      <button type="button" id="crop">Crop</button>
-      <button type="button" id="cancel">Cancel</button>
+    <h3>Options</h3>
+    <p>
+      <label for="orientation">Orientation:</label>
+      <select id="orientation">
+        <option value="-1">undefined: Browser default</option>
+        <option value="0" selected>true: Automatic</option>
+        <option value="1">1: Original</option>
+        <option value="2">2: Horizontal flip</option>
+        <option value="3">3: Rotate 180° CCW</option>
+        <option value="4">4: Vertical flip</option>
+        <option value="5">5: Vertical flip + Rotate 90° CW</option>
+        <option value="6">6: Rotate 90° CW</option>
+        <option value="7">7: Horizontal flip + Rotate 90° CW</option>
+        <option value="8">8: Rotate 90° CCW</option>
+      </select>
     </p>
-    <div id="result">
-      <p>
-        This demo works only in browsers with support for the
-        <a href="https://developer.mozilla.org/en/DOM/window.URL">URL</a> or
-        <a href="https://developer.mozilla.org/en/DOM/FileReader">FileReader</a>
+    <p>
+      <input type="checkbox" id="image-smoothing" checked />
+      <label for="image-smoothing">Image smoothing</label>
+    </p>
+    <h2>Result</h2>
+    <p id="actions" style="display: none;">
+      <button type="button" id="edit">Edit</button>
+      <button type="submit" id="crop">Crop</button>
+      <button type="reset" id="cancel">Cancel</button>
+    </p>
+    <figure id="result">
+      <figcaption style="display: none;">
+        Loading images from File objects requires support for the
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/URL">URL</a>
+        or
+        <a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader"
+          >FileReader</a
+        >
         API.
-      </p>
+      </figcaption>
+    </figure>
+    <div id="meta" style="display: none;">
+      <h3>Image metadata</h3>
+      <figure id="thumbnail" style="display: none;"></figure>
     </div>
-    <div id="exif" style="display:none;">
-      <h3>Exif meta data</h3>
-      <p id="thumbnail" style="display:none;"></p>
-      <table></table>
-    </div>
-    <div id="iptc" style="display:none;">
-      <h3>IPTC meta data</h3>
-      <table></table>
-    </div>
+    <script src="js/vendor/canvas-to-blob.js"></script>
     <script src="js/load-image.js"></script>
     <script src="js/load-image-scale.js"></script>
     <script src="js/load-image-meta.js"></script>

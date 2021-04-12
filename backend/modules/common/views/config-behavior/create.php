@@ -7,7 +7,7 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'Create Config Behavior');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Config Behaviors'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="layui-card-body">
     <div class="create config-behavior-create">

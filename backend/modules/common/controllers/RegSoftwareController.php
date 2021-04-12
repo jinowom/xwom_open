@@ -2,7 +2,7 @@
 /**
  * Class name  is RegSoftwareController * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-04-02 15:34 
+ * @DateTime 2020-04-09 18:20 
  */
 
 namespace backend\modules\common\controllers;
@@ -98,8 +98,8 @@ class RegSoftwareController extends BaseController
                     'content' => $this->renderAjax('view', [
                         'model' => $this->findModel($id),
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                            Html::a('编辑', ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a(Yii::t('app', 'Edit'), ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
                 ];    
         }else{
             return $this->render('view', [
@@ -120,38 +120,40 @@ class RegSoftwareController extends BaseController
         $model = new RegSoftware();  
 
         if($request->isAjax){
+            echo 111;exit;
             Yii::$app->response->format = Response::FORMAT_JSON;
             if($request->isGet){
                 return [
-                    'title' => "Create new RegSoftware",
+                    'title' => Yii::t('app','Create new').Yii::t('app','RegSoftware'),
                     'content' => $this->renderAjax('create', [
                         'model' => $model,
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button(Yii::t('app', 'Save'), ['class' => 'btn btn-primary','type' => "submit"])
         
                 ];         
             }else if($model->load($request->post()) && $model->save()){
                 return [
                     'forceReload' => '#crud-datatable-pjax',
-                    'title' => "Create new RegSoftware",
+                    'title' => Yii::t('app','Create new').Yii::t('app','RegSoftware'),
                     'content' => '<span class="text-success">Create RegSoftware success</span>',
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                            Html::a('添加更多', ['create'], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a(Yii::t('app', 'Create'), ['create'], ['class' => 'btn btn-primary','role' => 'modal-remote'])
         
                 ];         
             }else{           
                 return [
-                    'title' => "Create new RegSoftware",
+                    'title' => Yii::t('app','Create new').Yii::t('app','RegSoftware'),
                     'content' => $this->renderAjax('create', [
                         'model' => $model,
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button(Yii::t('app', 'Save'), ['class' => 'btn btn-primary','type' => "submit"])
         
                 ];         
             }
         }else{
+            //echo 222;exit;
             if ($model->load($request->post()) && $model->save()) {
                 return $this->redirect(['view', 'id' => $model->id]);
             } else {
@@ -185,8 +187,8 @@ class RegSoftwareController extends BaseController
                     'content' => $this->renderAjax('update', [
                         'model' => $model,
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button(Yii::t('app', 'Save'), ['class' => 'btn btn-primary','type' => "submit"])
                 ];         
             }else if($model->load($request->post()) && $model->save()){
                 return [
@@ -195,8 +197,8 @@ class RegSoftwareController extends BaseController
                     'content' => $this->renderAjax('view', [
                         'model' => $model,
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                            Html::a('编辑修改', ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                            Html::a(Yii::t('app', 'Edit'), ['update','id' => $id], ['class' => 'btn btn-primary','role' => 'modal-remote'])
                 ];    
             }else{
                  return [
@@ -204,8 +206,8 @@ class RegSoftwareController extends BaseController
                     'content' => $this->renderAjax('update', [
                         'model' => $model,
                     ]),
-                    'footer' => Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                                Html::button('保存', ['class' => 'btn btn-primary','type' => "submit"])
+                    'footer' => Html::button(Yii::t('app', 'Close'), ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
+                                Html::button(Yii::t('app', 'Save'), ['class' => 'btn btn-primary','type' => "submit"])
                 ];        
             }
         }else{
@@ -287,47 +289,6 @@ class RegSoftwareController extends BaseController
         }
     }
 
-    public function actionTest($id)
-    {
-        $request = Yii::$app->request;
-        $model = $this->findModel($id);
-
-        if($request->isAjax){
-            Yii::$app->response->format = Response::FORMAT_JSON;
-            if($request->isGet){
-                return [
-                'title' => "test RegSoftware #".$id,
-                    'content' => $this->renderAjax('test', [
-                    'model' => $model,
-                ]),
-                'footer' =>
-                    Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                    Html::button('test', ['class' => 'btn btn-primary', 'type' => "submit"]),
-                ];
-            }elseif($model->load($request->post()) && $model->validate()){
-                # TO DO test
-                return ['forceClose' => true,'forceReload' => '#crud-datatable-pjax'];
-            }else{
-                return [
-                    'title' => "test RegSoftware #".$id,
-                    'content' => $this->renderAjax('test', [
-                    'model' => $model,
-                ]),
-                'footer' =>
-                    Html::button('关闭', ['class' => 'btn btn-default pull-left','data-dismiss' => "modal"]).
-                    Html::button('test', ['class' => 'btn btn-primary', 'type' => "submit"]),
-                ];
-            }
-        }else{
-            if ($model->load($request->post())) {
-                return $this->redirect(['view', 'id' => $model->id]);
-            } else {
-                return $this->render('test', [
-                    'model' => $model,
-                ]);
-            }
-        }
-    }
 
     /**
      * Finds the RegSoftware model based on its primary key value.

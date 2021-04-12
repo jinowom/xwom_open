@@ -37,23 +37,27 @@ use yii\helpers\Url;
  *
  * For more details and usage information on Response, see the [guide article on responses](guide:runtime-responses).
  *
- * @property CookieCollection $cookies The cookie collection. This property is read-only.
- * @property string $downloadHeaders The attachment file name. This property is write-only.
- * @property HeaderCollection $headers The header collection. This property is read-only.
- * @property bool $isClientError Whether this response indicates a client error. This property is read-only.
- * @property bool $isEmpty Whether this response is empty. This property is read-only.
- * @property bool $isForbidden Whether this response indicates the current request is forbidden. This property
- * is read-only.
- * @property bool $isInformational Whether this response is informational. This property is read-only.
- * @property bool $isInvalid Whether this response has a valid [[statusCode]]. This property is read-only.
- * @property bool $isNotFound Whether this response indicates the currently requested resource is not found.
- * This property is read-only.
- * @property bool $isOk Whether this response is OK. This property is read-only.
- * @property bool $isRedirection Whether this response is a redirection. This property is read-only.
- * @property bool $isServerError Whether this response indicates a server error. This property is read-only.
- * @property bool $isSuccessful Whether this response is successful. This property is read-only.
+ * @property-read CookieCollection $cookies The cookie collection. This property is read-only.
+ * @property-write string $downloadHeaders The attachment file name. This property is write-only.
+ * @property-read HeaderCollection $headers The header collection. This property is read-only.
+ * @property-read bool $isClientError Whether this response indicates a client error. This property is
+ * read-only.
+ * @property-read bool $isEmpty Whether this response is empty. This property is read-only.
+ * @property-read bool $isForbidden Whether this response indicates the current request is forbidden. This
+ * property is read-only.
+ * @property-read bool $isInformational Whether this response is informational. This property is read-only.
+ * @property-read bool $isInvalid Whether this response has a valid [[statusCode]]. This property is
+ * read-only.
+ * @property-read bool $isNotFound Whether this response indicates the currently requested resource is not
+ * found. This property is read-only.
+ * @property-read bool $isOk Whether this response is OK. This property is read-only.
+ * @property-read bool $isRedirection Whether this response is a redirection. This property is read-only.
+ * @property-read bool $isServerError Whether this response indicates a server error. This property is
+ * read-only.
+ * @property-read bool $isSuccessful Whether this response is successful. This property is read-only.
  * @property int $statusCode The HTTP status code to send with the response.
- * @property \Exception|\Error $statusCodeByException The exception object. This property is write-only.
+ * @property-write \Exception|\Error|\Throwable $statusCodeByException The exception object. This property is
+ * write-only.
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @author Carsten Brandt <mail@cebe.cc>
@@ -62,15 +66,15 @@ use yii\helpers\Url;
 class Response extends \yii\base\Response
 {
     /**
-     * @event ResponseEvent an event that is triggered at the beginning of [[send()]].
+     * @event \yii\base\Event an event that is triggered at the beginning of [[send()]].
      */
     const EVENT_BEFORE_SEND = 'beforeSend';
     /**
-     * @event ResponseEvent an event that is triggered at the end of [[send()]].
+     * @event \yii\base\Event an event that is triggered at the end of [[send()]].
      */
     const EVENT_AFTER_SEND = 'afterSend';
     /**
-     * @event ResponseEvent an event that is triggered right after [[prepare()]] is called in [[send()]].
+     * @event \yii\base\Event an event that is triggered right after [[prepare()]] is called in [[send()]].
      * You may respond to this event to filter the response content before it is sent to the client.
      */
     const EVENT_AFTER_PREPARE = 'afterPrepare';
@@ -295,7 +299,7 @@ class Response extends \yii\base\Response
 
     /**
      * Sets the response status code based on the exception.
-     * @param \Exception|\Error $e the exception object.
+     * @param \Exception|\Error|\Throwable $e the exception object.
      * @throws InvalidArgumentException if the status code is invalid.
      * @return $this the response object itself
      * @since 2.0.12
@@ -411,8 +415,10 @@ class Response extends \yii\base\Response
                     'sameSite' => !empty($cookie->sameSite) ? $cookie->sameSite : null,
                 ]);
             } else {
+                // Work around for setting sameSite cookie prior PHP 7.3
+                // https://stackoverflow.com/questions/39750906/php-setcookie-samesite-strict/46971326#46971326
                 if (!is_null($cookie->sameSite)) {
-                    throw new InvalidConfigException(get_class($cookie) . '::sameSite is not supported by PHP versions < 7.3.0 (set it to null in this environment)');
+                    $cookie->path .= '; samesite=' . $cookie->sameSite;
                 }
                 setcookie($cookie->name, $value, $cookie->expire, $cookie->path, $cookie->domain, $cookie->secure, $cookie->httpOnly);
             }
@@ -430,9 +436,8 @@ class Response extends \yii\base\Response
             return;
         }
 
-        if (function_exists('set_time_limit')) {
-            set_time_limit(0); // Reset time limit for big files
-        } else {
+        // Try to reset time limit for big files
+        if (!function_exists('set_time_limit') || !@set_time_limit(0)) {
             Yii::warning('set_time_limit() is not available', __METHOD__);
         }
 
@@ -440,7 +445,12 @@ class Response extends \yii\base\Response
 
         if (is_array($this->stream)) {
             list($handle, $begin, $end) = $this->stream;
-            fseek($handle, $begin);
+
+            // only seek if stream is seekable
+            if ($this->isSeekable($handle)) {
+                fseek($handle, $begin);
+            }
+
             while (!feof($handle) && ($pos = ftell($handle)) <= $end) {
                 if ($pos + $chunkSize > $end) {
                     $chunkSize = $end - $pos + 1;
@@ -582,8 +592,12 @@ class Response extends \yii\base\Response
         if (isset($options['fileSize'])) {
             $fileSize = $options['fileSize'];
         } else {
-            fseek($handle, 0, SEEK_END);
-            $fileSize = ftell($handle);
+            if ($this->isSeekable($handle)) {
+                fseek($handle, 0, SEEK_END);
+                $fileSize = ftell($handle);
+            } else {
+                $fileSize = 0;
+            }
         }
 
         $range = $this->getHttpRange($fileSize);
@@ -1087,5 +1101,21 @@ class Response extends \yii\base\Response
                 throw new InvalidArgumentException('Response content must be a string or an object implementing __toString().');
             }
         }
+    }
+
+    /**
+     * Checks if a stream is seekable
+     *
+     * @param $handle
+     * @return bool
+     */
+    private function isSeekable($handle)
+    {
+        if (!is_resource($handle)) {
+            return true;
+        }
+
+        $metaData = stream_get_meta_data($handle);
+        return isset($metaData['seekable']) && $metaData['seekable'] === true;
     }
 }

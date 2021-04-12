@@ -2,6 +2,10 @@
 
 namespace common\models\auth;
 
+use common\models\AdminDep;
+use common\models\AdminTeam;
+use common\models\AdminUnit;
+use common\models\reg\RegSoftware;
 use common\models\User;
 use common\utils\ToolUtil;
 use Yii;
@@ -19,17 +23,17 @@ use yii\db\ActiveRecord;
  * @property string $siteid 子站点Id
  * @property string $adminid Admin Id
  * @property int $status 状态 10 可用 11 不可用
- * @property int $type 类型 0 单位 1 部门 2 团队 3 子系统 4 子站点
+ * @property int $type 类型 3 单位 4 部门 5 团队 6 子系统 7 子站点
  * @property string $inputtime 创建时间
  * @property string $updatetime 更新时间
  */
 class AdminAuthRelation extends \common\models\BaseModel
 {
-    const TYPE_UNIT = '0';
-    const TYPE_DEP = '1';
-    const TYPE_TEAM = '2';
-    const TYPE_APP = '3';
-    const TYPE_SITE = '4';
+    const TYPE_UNIT = '3';
+    const TYPE_DEP = '4';
+    const TYPE_TEAM = '5';
+    const TYPE_APP = '6';
+    const TYPE_SITE = '7';
 
 
     /**
@@ -113,6 +117,7 @@ class AdminAuthRelation extends \common\models\BaseModel
                 ->where(['teamid' => $teamId, 'type' => self::TYPE_TEAM])
                 ->asArray()->all();
     }
+
     /**
      * 通过部门ID获取users信息
      */

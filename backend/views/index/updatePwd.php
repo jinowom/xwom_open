@@ -29,7 +29,7 @@ $this->title = '修改密码';
                            autocomplete="off" class="layui-input">
                 </div>
                 <div class="layui-form-mid layui-word-aux">
-                    6到16个字符
+                     密码要求 以字母(大小写)或数字开头，至少包含字母、数字、特殊字符(上式举例“@#%”)中的两种字符
                 </div>
             </div>
             <div class="layui-form-item">
@@ -66,8 +66,8 @@ $tableJs = <<<JS
         
         //自定义验证规则
         form.verify({
-            Lpass: [/(.+){6,12}$/, '密码必须6到12位'],
-            pass: [/(.+){6,12}$/, '密码必须6到12位'],
+            Lpass: [/(.+){0,20}$/, '密码必须0到20位'],
+            pass: [/^(([a-zA-Z]+[0-9]+)|([0-9]+[a-zA-Z]+)|([a-z]+[@#%])|([0-9]+[@#%]))([a-zA-Z0-9@#%]*){8,20}$/, '密码要求 以字母(大小写)或数字开头，至少包含字母、数字、特殊字符(上式举例“@#%”)中的两种字符,长度必须8到20位'],
             repass: function(value) {
                 if ($('#N_pass').val() != $('#L_repass').val()) {
                     return '两次密码不一致';

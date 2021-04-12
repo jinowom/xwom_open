@@ -17,7 +17,7 @@ $actionParams = $generator->generateActionParams();
 $editableFields = $generator->generateEditableFields();
 $dateRangeFields = $generator->generateDateRangeFields();
 $thumbImageFields = $generator->generateThumbImageFields();
-$statusField = $generator->statusField;
+$statusFields = $generator->statusFields;
 
 $urlParams = $generator->generateUrlParams();
 $nameAttribute = $generator->getNameAttribute();
@@ -139,7 +139,7 @@ CrudAsset::register($this);
                         return Html::a(Html::img($m-><?=$name ?>, ['alt' => '缩略图', 'width' => 120]), $m-><?=$name ?>);
                     },
                 ],
-                <?php elseif ($name == $statusField): ?>[
+                <?php elseif ($name == $statusFields): ?>[
                     'class' => EnumColumn::class,
                     'attribute' => "<?=$name ?>",
                     'hAlign' => GridView::ALIGN_CENTER,

@@ -22,6 +22,7 @@ use yii\gii\CodeFile;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $showName = 'Extension Generator';
     public $vendorName;
     public $packageName = "yii2-";
     public $namespace;
@@ -40,7 +41,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Extension Generator';
+        return $this->showName;//return 'Extension Generator';
     }
 
     /**
@@ -48,7 +49,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator helps you to generate the files needed by a Yii extension.';
+        return '此Extension生成器帮助您生成Yii扩展所需的文件。';
     }
 
     /**

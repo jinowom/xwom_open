@@ -1,217 +1,226 @@
 <?php
 
-use yii\helpers\Html;
-use yii\helpers\Url;
-use backend\assets\AppAsset;
-use backend\grid\GridView;
-use backend\widgets\Pjax; 
-AppAsset::register($this); 
-//$this->registerJs($this->render('js/index.js'));
 /* @var $this yii\web\View */
-/* @var $searchModel common\models\log\ConfigBehaviorlogSearch */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-$this->title = Yii::t('app', 'Config Behaviorlogs');
-$this->params['breadcrumbs'][] = $this->title;
+
+$this->title = '栏目管理';
 ?>
-<!-- 面包屑 -->
+ <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>
 <!-- 面包屑 -->
-        <div class="layui-fluid">
-            <div class="layui-row layui-col-space15">
-                <div class="layui-col-md12">
-                    <div class="layui-card">
-                        <div class="layui-card-body ">
-                            <form class="layui-form layui-col-space5">
-                                <!--下面不需要，则需要删除-->
-                                <!--<div class="layui-inline layui-show-xs-block">
-                                    <input class="layui-input"  autocomplete="off" placeholder="开始日" name="start" id="start">
-                                </div>
-                                <div class="layui-inline layui-show-xs-block">
-                                    <input class="layui-input"  autocomplete="off" placeholder="截止日" name="end" id="end">
-                                </div>
-                                <div class="layui-inline layui-show-xs-block">
-                                    <input type="text" name="username"  placeholder="请输入用户名" autocomplete="off" class="layui-input">
-                                </div>
-                                <div class="layui-inline layui-show-xs-block">
-                                    <button class="layui-btn"  lay-submit="" lay-filter="sreach"><i class="layui-icon">&#xe615;</i></button>
-                                </div>
-                                -->
-                                
-                                    <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
-                                
+<div class="layui-fluid">
+    <div class="layui-row layui-col-space15">
+        <div class="layui-col-md12">
+            <div class="layui-card">
+                <div class="layui-card-body ">
+                    <div class="demoTable" style="margin: 1px 0;margin-left: 0.5%;">
+                        <form class="layui-form" action="">
+                            查询：
+                        <div class="layui-inline" style="margin-right: 10px;">
+                            <input class="layui-input" name="parames" id="parames" autocomplete="off" placeholder="请输入搜索条件">
+                        </div>
+                            行为类型:  
+                            <div class="layui-input-inline"> 
+                                <select name="behavior" id="behavior"  lay-search="" >
+                                    <option value=""></option>
+                                    <option value="1">页面浏览</option>
+                                    <option value="2">查询数据</option>
+                                    <option value="3">增加数据</option>
+                                    <option value="4">修改数据</option>
+                                    <option value="5">删除数据</option>
+                                </select>
+                            </div>
+                            类型:  
+                            <div class="layui-input-inline"> 
+                                <select name="status" id="status"  lay-search="" >
+                                    <option value=""></option>
+                                    <option value="0">全局</option>
+                                    <option value="1">前台</option>
+                                    <option value="2">后台</option>
+                                    <option value="3">API</option>
+                                </select>
+                            </div>
+                            <a title="搜索" class="layui-btn" data-type="reload"><i class="layui-icon" style="font-size: 20px;">&#xe615;</i></a>
                             </form>
-                        </div>
-                        <div class="layui-card-header">
-                            <button class="layui-btn layui-btn-danger" onclick="delAll()"><i class="layui-icon"></i>批量删除</button>
-                            <?= Html::Button('<i class="layui-icon"></i>添加',
-                                    [
-                                       'onclick' => 'xadmin.open("添加", "'.Url::toRoute(['create']).'",500,550)',
-                                       'data-target' => '#create-modal',
-                                       'class' => 'layui-btn',
-                                       'id' => 'modalButton',
-   
-                                    ]
-                                ) 
-                            ?>
-                            <!--<?= Html::a(Yii::t('app', '<i class= layui-icon></i>添加 Config Behaviorlog'), ['create'], ['class' => 'layui-btn layui-default-add']) ?> -->                        </div>
-                        <div class="layui-card-body layui-table-body layui-table-main">
-<?php Pjax::begin(); ?>    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-		'options' => ['class' => 'layui-table-box ','style'=>'overflow:auto', 'id' => 'grid'],
-                //'layout'=> '{items}<div class="layui-table-page"><div id="layui-table-page1"><div class="layui-box layui-laypage layui-laypage-default" id="layui-laypage-1">{pager}</div></div></div>',
-                'layout'=> '{items}<div style="margin: 10px 0 0 10px;">{pager}</div>',
-		'tableOptions'=> ['class'=>'layui-table','style'=>'width: 100%; '],
-		'pager' => [
-                        //'options'=>['class'=>'hidden'],//关闭自带分页
-			'options'=>['class'=>'layuipage pull-left'],
-				'prevPageLabel' => '上一页',
-				'nextPageLabel' => '下一页    ',
-				'firstPageLabel'=>'首页    ',
-				'lastPageLabel'=>'尾页',
-				'maxButtonCount'=>5,
-                ],
-                //GridView控制行样式 rowOptions属性
-                
-                //'showFooter'=>true,//显示底部（就是多了一栏），默认是关闭的
-                //'filterModel' => $searchModel,
-		'columns' => [
-                        //['class' => 'yii\grid\SerialColumn'],
-			[
-				'class' => 'backend\grid\CheckboxColumn',
-				'checkboxOptions' => ['lay-skin'=>'primary','lay-filter'=>'choose'],
-				'headerOptions' => ['width'=>'20','style'=> 'text-align: center;'],
-				'contentOptions' => ['style'=> 'text-align: center;']
-			],
-                                             'id',
-                     'merchant_id',
-                     'app_id',
-                     'user_id',
-                     'behavior',
-                     'method',
-                     'module',
-                     'controller',
-                     'action',
-                     // 'url:url',
-                     // 'get_data',
-                     // 'post_data',
-                     // 'header_data',
-                     // 'ip',
-                     // 'addons_name',
-                     // 'remark',
-                     // 'country',
-                     // 'provinces',
-                     // 'city',
-                     // 'device',
-                     // 'status',
-                     // 'created_at',
-                     // 'updated_at',
-
-            [
-            'header' => '<div class="layui-table-cell">操作</div>',
-				'class' => 'yii\grid\ActionColumn',
-				'headerOptions' => [
-					'width' => '20%'
-				],
-                                'template' =>'<div class="layui-table-cell"> {view} {update} {delete} </div>',
-				'buttons' => [
-                                        'view' => function ($url, $model, $key){
-                                            //return Html::a('查看', Url::to(['view','id'=>$model->id]), ['class' => "layui-btn layui-btn-xs layui-default-view"]);
-                                            return Html::Button('查看',
-                                                    [
-                                                    'onclick' => 'xadmin.open("查看", "'.$url.'",500,550)',
-                                                    'data-target' => '#view-modal',
-                                                    'class' => 'layui-btn layui-btn-xs layui-default-view',
-                                                    'id' => 'modalButton',
-                                                    ]
-                                                ); 
-                                                    
-                                        },
-                                        'update' => function ($url, $model, $key) {
-                                            //return Html::a('修改', Url::to(['update','id'=>$model->id]), ['class' => "layui-btn layui-btn-normal layui-btn-xs layui-default-update"]);
-                                            return Html::Button('修改',
-                                                    [
-                                                    'onclick' => 'xadmin.open("修改", "'.$url.'",500,550)',
-                                                    'data-target' => '#update-modal',
-                                                    'class' => 'layui-btn layui-btn-normal layui-btn-xs layui-default-update',
-                                                    'id' => 'modalButton',
-                                                    ]
-                                                );  
-                                                    
-                                        },
-
-                                        'delete'=>function($url,$model,$key)
-                                            {
-                                                $options=[
-                                                    'title'=>Yii::t('yii', '删除'),
-                                                    'aria-label'=>Yii::t('yii','删除'),
-                                                    'data-confirm'=>Yii::t('yii','Are you sure you want to delete this item?'),
-                                                    'data-method'=>'post',
-                                                    'data-pjax'=>'0',
-                                                    'class'=>'layui-btn layui-btn-danger layui-btn-xs layui-default-delete'
-                                                    ];
-                                                    return Html::a('删除',$url,$options); 
-                                                //if($model->status == 0){//不同的视图，需要修改这里字段名称 或者不用判断，直接 return
-                                                    //return Html::a('删除',$url,$options); 
-                                                    //} else {
-                                                     //  return Html::a('已审',$url,$options);  
-                                                   // }
-                                            },
-				]
-            ],
-        ],
-    ]); ?>
-<?php Pjax::end(); ?>   
-                        </div>
-
                     </div>
+                    <script type="text/html" id="toolbarDemo">
+                        <div class="layui-btn-container">
+                            <button class="layui-btn layui-btn-danger layui-btn-xs" lay-event="getCheckData">批量删除</button>
+                        </div>
+                    </script>
+                    <table id="demo" lay-filter="test"></table>
                 </div>
             </div>
-        </div> 
-
-    <script>
-      layui.use(['laydate','form'], function(){
-        var laydate = layui.laydate;
-        var  form = layui.form;
-
-
-        // 监听全选
-        form.on('checkbox(checkall)', function(data){
-
-          if(data.elem.checked){
-            $('tbody input').prop('checked',true);
-          }else{
-            $('tbody input').prop('checked',false);
-          }
-          form.render('checkbox');
-        }); 
-        
-        //执行一个laydate实例
-        laydate.render({
-          elem: '#start' //指定元素
-        });
-
-        //执行一个laydate实例
-        laydate.render({
-          elem: '#end' //指定元素
-        });
-
-
-      });
-      /*用户-删除*/
-      function delAll (argument) {
-        var ids = [];
-
-        // 获取选中的id 
-        $('tbody input').each(function(index, el) {
-            if($(this).prop('checked')){
-               ids.push($(this).val())
+        </div>
+    </div>
+</div>
+<input name="_csrf" type="hidden" id="_csrf" value="<?= Yii::$app->request->getCsrfToken() ?>">
+<!-- 操作列 -->
+<script type="text/html" id="auth_state">
+    <a class="layui-btn layui-btn-xs" lay-event="view"><i class="layui-icon">&#xe63c;</i> </a>
+</script>
+<script type="text/javascript">
+layui.use(['table','form'], function(){
+    var table = layui.table
+       ,form = layui.form;
+    table.render({
+    elem: '#demo'
+    ,toolbar: '#toolbarDemo'
+    ,url: "index" //数据接口
+    ,page: true //开启分页
+    ,id:'testReload'
+    ,cols : [[
+        {type: 'checkbox', fixed: 'left'},                      
+        {field: 'user_id', title: '用户ID', width: '120', align:'center'},            
+        {field: 'behavior', title: '行为类别', width: '120', align:'center',templet:function(d){
+            if(d.behavior == 1){
+                return "页面浏览"
+            }else if(d.behavior == 2){
+                return "查询数据"
+            }else if(d.behavior == 3){
+                return "添加数据"
+            }else if(d.behavior == 4){
+                return "修改数据"
+            }else if(d.behavior == 5){
+                return "删除数据"
             }
+        }},            
+        {field: 'method', title: '提交方式', width: '120', align:'center'},            
+        {field: 'module', title: '模块', width: '120', align:'center'},            
+        {field: 'controller', title: '控制器', width: '120', align:'center'},            
+        {field: 'action', title: '方法', width: '120', align:'center'},            
+        {field: 'url', title: '地址', width: '120', align:'center'},                       
+        {field: 'ip', title: 'Ip', width: '120', align:'center'},                                
+        {field: 'status', title: '类型', width: '120', align:'center',templet:function(d){
+            if(d.status == 0){
+                return "全局"
+            }else if(d.status == 1){
+                return "前台"
+            }else if(d.status == 2){
+                return "后台"
+            }else if(d.status == 3){
+                return "API"
+            }
+        }},                             
+        {field: 'remark', title: '日志备注', width: '200', align:'center'},
+        {field: 'created_at', title: '添加时间', width: '200', align:'center'},                      
+        {title: '操作', width:80, templet:'#auth_state',fixed:"right", align:"center"}
+    ]]
+  });
+  var $ = layui.$, active = {
+        reload: function(){
+        var parames = $('#parames');
+        var behavior = $('#behavior')
+        var status = $('#status')
+        //执行重载
+        table.reload('testReload', {
+            page: {
+                curr: 1 //重新从第 1 页开始
+            }
+            ,where: {
+                parames:parames.val(),
+                behavior:behavior.val(),
+                status:status.val(),
+            }
+            });
+        }
+    };
+    //点击搜索按钮
+    $('.demoTable .layui-btn').on('click', function(){
+        var type = $(this).data('type');
+        active[type] ? active[type].call(this) : '';
+    });
+         //头工具栏事件
+    table.on('toolbar(test)', function(obj){
+        var checkStatus = table.checkStatus(obj.config.id);
+        switch(obj.event){
+        case 'getCheckData':
+            var data = checkStatus.data;
+            var str = ""
+            $.each(data,function(i,val){
+                str+=','+val.id
+            })
+            layer.confirm('确定批量删除吗？',{offset: 't'}, function(index){
+                    var index = layer.load('删除中',1, {shade: false, offset: '300px'});
+                    $.get("delete-all", { id : str }, function(res){
+                    layer.close(index);
+                    if(res.code==200){
+                        layer.msg('删除成功', {
+                            time: 2000,//3s后自动关闭
+                        },function(){
+                            $(".layui-laypage-btn")[0].click();
+                        });
+                        }else{
+                            layer.alert("删除失败"+res.message, {icon: 5 ,offset: 't'},function () {
+                                $(".layui-laypage-btn")[0].click();
+                            });
+                        }
+                    })
+                });
+        break;
+        }
+    });
+
+    //监听工具条
+    table.on('tool(test)', function(obj){ //注：tool是工具条事件名，test是table原始容器的属性 lay-filter="对应的值"
+        var data = obj.data; //获得当前行数据
+        var layEvent = obj.event; //获得 lay-event 对应的值（也可以是表头的 event 参数对应的值）
+        var tr = obj.tr; //获得当前行 tr 的DOM对象
+        var id = data.id;
+        if(layEvent === 'del'){ //删除
+            var csrfToken = $('#_csrf').val();
+            var csrd={_csrf:csrfToken};
+            var send={id:id};
+            Object.assign(send,csrd);
+            layer.confirm('确定删除么',{offset: 't'}, function(index){
+                var index = layer.load('删除中',1, {shade: false, offset: '300px'});
+                $.post("delete", send,function(res){
+                 layer.close(index);
+                if(res.code==200){
+                    layer.msg('删除成功', {
+                         time: 2000,//3s后自动关闭
+                     },function(){
+                         $(".layui-laypage-btn")[0].click();
+                     });
+                    }else{
+                        layer.msg("删除失败"+res.message, {
+                            icon: 5 ,
+                            offset: 't',
+                            time: 3000,//3s后自动关闭
+                        },function () {
+                            $(".layui-laypage-btn")[0].click();
+                        });
+                    }
+                })
+            //向服务端发送删除指令
+            });
+        }else if(layEvent ==='edit'){
+            layer.open({
+                type: 2,
+                offset: 't',
+                content: "update?id="+id,
+                area:['60%','80%'],
+                title:'修改'
+            });
+        }else if(layEvent === 'view'){
+            layer.open({
+                type: 2,
+                offset: 't',
+                content: "view?id="+id,
+                area:['60%','80%'],
+                title:'查看'
+            });
+        }
+    })
+    // 模板添加
+    $(document).on('click','#create',function(){
+        layer.open({
+            type: 2,
+            offset: 't',
+            content: "create",
+            area:['60%','80%'],
+            title:'添加'
         });
-  
-        layer.confirm('确认要删除吗？'+ids.toString(),function(index){
-            //捉到所有被选中的，发异步进行删除
-            layer.msg('删除成功', {icon: 1});
-            $(".layui-form-checked").not('.header').parents('tr').remove();
-        });
-      }
-    </script>
+    })
+});
+
+</script>

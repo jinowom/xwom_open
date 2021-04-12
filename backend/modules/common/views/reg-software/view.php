@@ -53,6 +53,7 @@ $this->params['breadcrumbs'][] = $this->title;
             'created_id',
             'updated_id',
             'sortOrder',
+            'is_del',
         ],
     ]) ?>
 

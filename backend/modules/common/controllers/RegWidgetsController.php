@@ -2,7 +2,7 @@
 /**
  * Class name  is RegWidgetsController * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-30 09:58 
+ * @DateTime 2020-04-05 18:12 
  */
 
 namespace backend\modules\common\controllers;

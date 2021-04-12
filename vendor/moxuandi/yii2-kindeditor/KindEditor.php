@@ -6,7 +6,6 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
-use yii\web\View;
 use yii\widgets\InputWidget;
 
 /**
@@ -64,8 +63,8 @@ class KindEditor extends InputWidget
         $this->hasModel() ? $this->id = $this->options['id'] : $this->id = $this->options['id'] = $this->id . '_' . $this->name;
         $this->editorOptions = array_merge([
             'allowFileManager' => true,  // 显示浏览远程服务器按钮
-            'uploadJson' => Url::to(['Kupload', 'action'=>'uploadJson']),  // 指定上传文件的服务器端程序
-            'fileManagerJson' => Url::to(['Kupload', 'action'=>'fileManagerJson']),  // 指定浏览远程图片的服务器端程序
+            'uploadJson' => Url::to(['file-upload', 'action'=>'uploadJson']),  // 指定上传文件的服务器端程序
+            'fileManagerJson' => Url::to(['file-upload', 'action'=>'fileManagerJson']),  // 指定浏览远程图片的服务器端程序
             'width' => '100%',
             'height' => 300,
         ], $this->editorOptions);
@@ -328,6 +327,6 @@ EOT;
                 $script = "KindEditor.ready(function(K){K.create('#{$this->id}', " . Json::encode($this->editorOptions) . ")});";
                 break;
         }
-        $this->view->registerJs($script,View::POS_END);
+        $this->view->registerJs($script);
     }
 }

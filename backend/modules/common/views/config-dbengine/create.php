@@ -7,7 +7,7 @@ use yii\helpers\Html;
 
 $this->title = Yii::t('app', 'Create Config Dbengine');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Config Dbengines'), 'url' => ['index']];
-$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <div class="layui-card-body">
     <div class="create config-dbengine-create">

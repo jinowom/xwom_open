@@ -4,7 +4,7 @@
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
  * @license http://www.yiiframework.com/license/
- * @author Qiang Xue <qiang.xue@gmail.com>
+ * @author Qiang Xue 
  * @since 2.0
  */
 
@@ -297,7 +297,7 @@ window.yii = (function ($) {
             for (var i = 0, len = pairs.length; i < len; i++) {
                 var pair = pairs[i].split('=');
                 var name = decodeURIComponent(pair[0].replace(/\+/g, '%20'));
-                var value = decodeURIComponent(pair[1].replace(/\+/g, '%20'));
+                var value = pair.length > 1 ? decodeURIComponent(pair[1].replace(/\+/g, '%20')) : '';
                 if (!name.length) {
                     continue;
                 }

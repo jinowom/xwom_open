@@ -86,7 +86,7 @@ class ToolUtil
      * @param array $expandArr 拓展返回值
      * @return array
      */
-    public static function returnAjaxMsg($status, $msg, $expandArr = [])
+    public static function returnAjaxMsg($status, $msg = '', $expandArr = [])
     {
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return ArrayHelper::merge([
@@ -154,35 +154,37 @@ class ToolUtil
     public static function menuListHtml($lists){
         $h = '';
         foreach ($lists as $k => $list){
-//            $class = ($k == 0 ** empty($list['parentName']) && $list['level']== 1) ? "open" : '';
-            $h .= "<li class=''>";
-            if(empty($list['parentName']) && empty($list['children'])){
-                $h .= '<a href="javascript:;"><i class="iconfont left-nav-li" lay-tips="'.$list["description"].'"></i>';
-                $h .= '<cite>'.$list["description"].'</cite></a>';
-            }else{
-                if($list['children']){
+            if($list['status'] == 1){
+                $h .= "<li class=''>";
+                if(empty($list['parentName']) && empty($list['children'])){
                     $px = $list['level'] * 20;
-                    $h .= '<a href="javascript:;" style="padding-left: '.$px.'px;">';
-                    if(empty($list['parentName'])){
-                        $h .= '<i class="iconfont left-nav-li" lay-tips="'.$list["description"].'">&#xe6b8;</i>';
-                    }else{
-                        $h .= '<i class="layui-icon '.$list['icon'].'" lay-tips="'.$list["description"].'"></i>';
-                    }
-                    $h .= '<cite>'.$list["description"].'</cite>' ;
-                    $h .= "<i class='iconfont nav_right'></i>";
-                    $h .= "</a>";
-                    $h .= '<ul class="sub-menu">';
-                    $h .= self::menuListHtml($list['children']);
-                    $h .= '</ul>';
-                }else{
-                    $px = $list['level'] * 20;
-                    $toRoute = Url::toRoute($list['name']);
-                    $icon = !empty($list['icon']) ? $list['icon'] : 'layui-icon-left';
-                    $h .= '<a style="padding-left: '.$px.'px;" onclick="xadmin.add_tab(\''.$list["description"].'\',\''.$toRoute.'\')"><i class="layui-icon '.$icon.'"></i>';
+                    $h .= '<a href="javascript:;" style="padding-left: '.$px.'px;"><i class="iconfont left-nav-li" lay-tips="'.$list["description"].'"></i>';
                     $h .= '<cite>'.$list["description"].'</cite></a>';
+                }else{
+                    if($list['children']){
+                        $px = $list['level'] * 20;
+                        $h .= '<a href="javascript:;" style="padding-left: '.$px.'px;">';
+                        if(empty($list['parentName'])){
+                            $h .= '<i class="iconfont left-nav-li" lay-tips="'.$list["description"].'">&#xe6b8;</i>';
+                        }else{
+                            $h .= '<i class="layui-icon '.$list['icon'].'" lay-tips="'.$list["description"].'"></i>';
+                        }
+                        $h .= '<cite>'.$list["description"].'</cite>' ;
+                        $h .= "<i class='iconfont nav_right'></i>";
+                        $h .= "</a>";
+                        $h .= '<ul class="sub-menu">';
+                        $h .= self::menuListHtml($list['children']);
+                        $h .= '</ul>';
+                    }else{
+                        $px = $list['level'] * 20;
+                        $toRoute = Url::toRoute($list['name']);
+                        $icon = !empty($list['icon']) ? $list['icon'] : 'layui-icon-left';
+                        $h .= '<a style="padding-left: '.$px.'px;" onclick="xadmin.add_tab(\''.$list["description"].'\',\''.$toRoute.'\')"><i class="layui-icon '.$icon.'"></i>';
+                        $h .= '<cite>'.$list["description"].'</cite></a>';
+                    }
                 }
+                $h .= "</li>";
             }
-            $h .= "</li>";
         }
         return $h;
     }

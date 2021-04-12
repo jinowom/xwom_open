@@ -1,12 +1,24 @@
 Change Log: `yii2-grid`
 =======================
 
-## Version 3.3.5
+## Version 3.3.6
 
 **Date:** _under development_
 
+- (enh #971): Correct `kv-grid-group.js` version.
+- (enh #969): Update Fontawesome CDN version.
+- (enh #968): Update Ukraine Translations.
+- (bug #959): Correct `filterOptions` column seq setting in ColumnTrait.
+- (bug #958): Correct ExpandRowColumn expand all & collapse all.
+- (enh #956): Update Portugese Brazilian Translations.
+
+## Version 3.3.5
+
+**Date:** 27-Mar-2020
+
 - (enh #948): New property `ExpandRowColumn::msgDetailLoading`.
 - (enh #947): Enhance behavior for initial rows expanded set via GridView::ROW_EXPANDED.
+- (enh #940): Set dependency on `kartik-v/yii2-bootstrap4-dropdown`.
 - (enh #934, #938): Correct ternary operator for PHP 7.4 support.
 - (enh #932): Correct Expand Row container parsing for nested expand row columns.
 - (enh #929): Enhance Expand Row Column plugin and correct expand one only.

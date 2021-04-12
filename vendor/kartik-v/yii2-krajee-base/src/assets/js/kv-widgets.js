@@ -1,7 +1,7 @@
 /*!
  * @package    yii2-krajee-base
  * @subpackage yii2-widget-activeform
- * @author     Kartik Visweswaran <kartikv2@gmail.com>
+ * @author     Kartik Visweswaran <kartikv2#gmail.com>
  * @copyright  Copyright &copy; Kartik Visweswaran, Krajee.com, 2014 - 2019
  * @version    2.0.5
  *

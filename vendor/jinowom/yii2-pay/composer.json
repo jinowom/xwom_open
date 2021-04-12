@@ -1,0 +1,49 @@
+{
+    "name": "jinowom/yii2-pay",
+    "keywords": [
+        "pay",
+        "alipay",
+        "wechat"
+    ],
+    "description": "适配于 Yii 的 alipay 和 wechat 的支付扩展包",
+    "support": {
+        "issues": "https://github.com/jinowom/yii2-pay/issues",
+        "source": "https://github.com/jinowom/yii2-pay"
+    },
+    "type": "library",
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jinowom",
+            "email": "chareler@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.1.3",
+        "ext-openssl": "*",
+        "ext-simplexml":"*",
+        "ext-libxml": "*",
+        "ext-json": "*",
+        "ext-bcmath": "*",
+        "jinowom/yii2-pay-supports": "*",
+        "symfony/http-foundation": "^4.0 || ^5.0.7",
+        "symfony/event-dispatcher": "^4.0 || ^5.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^7.5",
+        "mockery/mockery": "^1.2",
+        "friendsofphp/php-cs-fixer": "^2.15"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\Pay\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "jinowom\\Pay\\Tests\\": "tests"
+        }
+    },
+    "license": "MIT"
+}

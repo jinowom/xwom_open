@@ -1,0 +1,25 @@
+{
+    "name": "jinowom/yii2-layui-gii",
+    "description": "yii2-layui-gii",
+    "type": "yii2-extension",
+    "keywords": "["yii2","extension","layui"]",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "jinowom",
+            "email": "18418105@qq.com",
+            "homepage": "https://www.jinostart.com/"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.0"
+    },
+    "require-dev": {
+        
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\layui\\crud\\": "src"
+        }
+    }
+}

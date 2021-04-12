@@ -20,6 +20,15 @@ use yii\behaviors\TimestampBehavior;
  */
 class VerifyCodeHistory extends \common\models\BaseModel
 {
+    //短信类型
+    const CODE_TYPE_REGISTERED = 1;//注册
+    const CODE_TYPE_NEW_CLUES = 2;//新建线索
+    const CODE_TYPE_EDIT_CLUES = 3;//编辑线索
+    const CODE_TYPE_PASSWORD = 4;//忘记密码
+    const CODE_TYPE_LOGIN = 5;//登录
+    const CODE_TYPE_UPDATE = 6;//修改密码
+    const CODE_TYPE_BINDING = 7;//绑定手机号和更换手机号
+    const CODE_TYPE_UNLOCK = 8;//解绑手机号
     /**
      * {@inheritdoc}
      */
@@ -83,7 +92,8 @@ class VerifyCodeHistory extends \common\models\BaseModel
         try {
             $ssender = new SmsSingleSender($appId, $appKey);
 //            $result = $ssender->send(0, "86", $phoneNumbers,$sendMsg, "", "");
-            $params = [$smsSign, $code, 5];
+            // $params = [$smsSign, $code, 5];
+            $params = [$code, 5];
 
             $result = $ssender->sendWithParam("86", $phoneNumbers, $tempId,$params, $smsSign, "", "");
             $rsp = json_decode($result,true);
@@ -118,7 +128,7 @@ class VerifyCodeHistory extends \common\models\BaseModel
      * @param int $len
      * @return string
      */
-    private static function RandCode($len=4){
+    public static function RandCode($len=4){
         $chars = str_repeat('0123456789', 3);
         // 位数过长重复字符串一定次数
         $chars = str_repeat($chars, $len);
@@ -144,5 +154,20 @@ class VerifyCodeHistory extends \common\models\BaseModel
             self::updateAll(['status' => 2]," mobile = :mobile AND type = :type",[":type" => $type, ':mobile' => $type]);
         }
         return $return;
+    }
+
+    /**
+     * 验证手机号是否过期
+     * @param $phone 接收短信手机号码
+     * @param int $type 短信用途 1注册 4忘记密码 5登录 6修改密码
+     */
+    public static function timeoutIsSms($phone,$type = 1)
+    {
+        $getCode = self::find()->where(['mobile' => $phone, 'type' => $type])->orderBy(['id' => SORT_DESC])->asArray()->one();
+        $created = $getCode['created_at'] + getVar('APPCODETIME',3);
+        if($created > time()){
+            return false;
+        }
+        return true;
     }
 }

@@ -169,7 +169,7 @@ $tableJs = <<<JS
                 if(obj.event === 'del'){
                     rowDel(obj,data);
                 } else if(obj.event === 'edit'){
-                    xadmin.open('修改角色','$addAdmin&name='+data.name,500,550)
+                    xadmin.open('修改角色','$addAdmin?name='+data.name,500,550)
                 } else if(obj.event === 'member_stop'){
                     member_stop(obj);
                 }

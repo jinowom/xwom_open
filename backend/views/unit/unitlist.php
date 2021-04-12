@@ -170,7 +170,7 @@ $tableJs = <<<JS
                 if(obj.event === 'del'){
                     rowDel(obj,data);
                 } else if(obj.event === 'edit'){
-                    xadmin.open('修改单位信息','$addUnit&ids='+data.unitid,500,260);
+                    xadmin.open('修改单位信息','$addUnit?ids='+data.unitid,500,260);
                 } else if(obj.event === 'member_stop'){
                     member_stop(obj);
                 }

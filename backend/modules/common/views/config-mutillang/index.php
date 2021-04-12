@@ -11,7 +11,7 @@ AppAsset::register($this);
 /* @var $searchModel common\models\config\ConfigMutillangSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 $this->title = Yii::t('app', 'Config Mutillangs');
-$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>
@@ -129,9 +129,9 @@ $this->params['breadcrumbs'][] = $this->title;
                                         'delete'=>function($url,$model,$key)
                                             {
                                                 $options=[
-                                                    'title'=>Yii::t('yii', '删除'),
-                                                    'aria-label'=>Yii::t('yii','删除'),
-                                                    'data-confirm'=>Yii::t('yii','Are you sure you want to delete this item?'),
+                                                    'title'=>Yii::t('app', '删除'),
+                                                    'aria-label'=>Yii::t('app','删除'),
+                                                    'data-confirm'=>Yii::t('app','Are you sure you want to delete this item?'),
                                                     'data-method'=>'post',
                                                     'data-pjax'=>'0',
                                                     'class'=>'layui-btn layui-btn-danger layui-btn-xs layui-default-delete'

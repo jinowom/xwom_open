@@ -1,0 +1,8 @@
+{
+    "name": "phpqrcode/phpqrcode",
+    "description": "二维码生成组件",
+    "keywords": [
+        "Qrcode",
+        "PHPQrcode"
+    ]
+}

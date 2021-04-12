@@ -28,7 +28,7 @@ class Generator extends \yii\gii\Generator
     const RELATIONS_NONE = 'none';
     const RELATIONS_ALL = 'all';
     const RELATIONS_ALL_INVERSE = 'all-inverse';
-
+    public $showName = 'Model Generator';
     public $db = 'db';
     public $ns = 'app\models';
     public $tableName;
@@ -52,7 +52,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Model Generator';
+        //return 'Model Generator';
+        return $this->showName;
     }
 
     /**
@@ -60,7 +61,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator generates an ActiveRecord class for the specified database table.';
+        return '这个脚手架可以帮助快速选择database table，使用 ActiveRecord class 生成Model模型。';
     }
 
     /**
@@ -95,13 +96,13 @@ class Generator extends \yii\gii\Generator
     public function attributeLabels()
     {
         return array_merge(parent::attributeLabels(), [
-            'ns' => 'Namespace',
+            'ns' => Yii::t('app','Namespace'),
             'db' => 'Database Connection ID',
-            'tableName' => 'Table Name',
+            'tableName' => Yii::t('app','Table Name'),
             'standardizeCapitals' => 'Standardize Capitals',
             'singularize' => 'Singularize',
-            'modelClass' => 'Model Class Name',
-            'baseClass' => 'Base Class',
+            'modelClass' => Yii::t('app', 'Model Class Name'),
+            'baseClass' => Yii::t('app','Base Class'),
             'generateRelations' => 'Generate Relations',
             'generateRelationsFromCurrentSchema' => 'Generate Relations from Current Schema',
             'generateLabelsFromComments' => 'Generate Labels from DB Comments',

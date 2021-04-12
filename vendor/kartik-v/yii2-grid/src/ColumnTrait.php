@@ -4,7 +4,7 @@
  * @package   yii2-grid
  * @author    Kartik Visweswaran <kartikv2@gmail.com>
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014 - 2020
- * @version   3.3.5
+ * @version   3.3.6
  */
 
 namespace kartik\grid;
@@ -224,7 +224,7 @@ trait ColumnTrait
         if ($this->grid->filterModel !== null && $this->mergeHeader && $this->grid->filterPosition === GridView::FILTER_POS_BODY) {
             return null;
         }
-        $this->headerOptions['data-col-seq'] = array_search($this, $this->grid->columns);
+        $this->filterOptions['data-col-seq'] = array_search($this, $this->grid->columns);
         /** @noinspection PhpUndefinedClassInspection */
         /** @noinspection PhpUndefinedMethodInspection */
         return parent::renderFilterCell();

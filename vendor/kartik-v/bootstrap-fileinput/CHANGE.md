@@ -1,10 +1,100 @@
 Change Log: `bootstrap-fileinput`
 =================================
 
+## version 5.1.4
+
+**Date**: _under development_
+
+- (enh #1664): Enhance upload stats and add bitrate update delay.
+- (enh #1663): Correct upload bitrate.
+- (enh #1657, #1659): Update Hungarian Translations.
+- (bug #1656): Correct error in `_getThumbFileId`.
+- (bug #1652): Correct thumb parsing error for events when `showPreview` is false.
+- (enh #1651): Pass file id in `fileuploaded` event for non-resumable ajax async uploads.
+- (enh #1650): Update Ukranian Translations.
+- (bug #1649): Correct image size validation.
+- (enh #1648): New plugin method `getFilesSize` to return sum of bytes of all files.
+- (enh #1645): Update Polish Translations.
+- (bug #1123): Fix clickable zone behavior on file validation error.
+
+## version 5.1.3
+
+**Date**: 24-Oct-2020
+
+- (enh #1644): Fix problem with outlook deleting email after drag and drop.
+- (enh #1643): Update Arabic Translations.
+- (enh #1640): Update Greek Translations.
+- (enh #1639): Update Greek Translations.
+- (enh #1638): Correct zoom cache to prevent duplicate thumb frames display.
+- (enh #1637): Remove dependency on DOM Purify Plugin.
+- (enh #1636): Enhance preview for PDF, Text & HTML.
+- (enh #1635): Enhance Text & HTML files initial preview to be read as links.
+- (bug #1632): Correct preview for plain text content.
+- (bug #1631): Correct modal dialog `aria-labelledby` binding.
+- (enh #1630): New `preProcessUpload` callback that can convert / encrypt file content before upload.
+- (enh #1627): Add bootstrap 4 progress bar animation.
+- (enh #1625): Default `minFileSize` to -1 to allow zero byte files to be uploaded.
+- (enh #1617): Better encoded file id generation.
+- (enh #1612, #1614): Remove unsupported script-inline from template and CSP buffer.
+
+## version 5.1.2
+
+**Date**: 15-Jul-2020
+
+- (enh #1604): Correct upload stats time calculation for sync uploads.
+- (enh #1603): Add Serbian Latin Translations.
+- (enh #1602): Enhance zoom cache sanitization by parsing all inputs.
+- (enh #1595): Enhance styling for drop zone to maintain consistent size during file selections.
+- (bug #1594): Correct `removeThumb` validation for in readFiles `throwError` method.
+- (enh #1593): Correct resumable test upload validation.
+- (enh #1591): Parse arguments as an array via vanilla JS.
+- (enh #1589): Correct msgPlaceholder for de & uz translations.
+- (enh #1588): Enhance duplicate validation for recently uploaded thumbs.
+
+## version 5.1.1
+
+**Date:** 20-Jun-2020
+
+- (enh #1587): Enhance resumable ajax error trapping.
+- (bug #1585): Correct file sorting and zoom cache handling.
+
+## version 5.1.0
+
+**Date:** 11-Jun-2020
+
+- (enh #1584): Revamp Krajee Explorer Themes.
+- (bug #1583): Correct cspBuffer stash html content store.
+- (enh #1582): Set `showConsoleLogs` to `false` as default.
+- (enh #1581): Enhance Sortable Behavior & Styles.
+    - Update to use latest release of Rubaxa Sortable Plugin
+    - Fix errors in sortable init
+    - Update drag handle styles to show correct grab cursor
+- (enh #1580): Validate drop zone title by correctly checking if native input has files.
+- (enh #1578): Enhance progress bar styling.
+- (enh #1577): Use `&hellip;` instead of three dots.
+- (enh #1576): Update French Translations.
+
 ## version 5.0.9
 
-**Date:** _under development_
+**Date:** 02-Jun-2020
 
+- (enh #1574): Enhance filezoom events to fire correctly only once for the source file input.
+    - fixes issue when multiple file input plugins are initialized on the same page
+- (enh #1573): Update French Translations.
+- (enh #1572): Correct image auto orientation based on browser support.
+- (bug #1565, #1571): Implement CSP compliance for HTML markup via templates.
+- (bug #1569): Correctly validate persistent file validation errors and display them.
+- (enh #1568): Correct timeout and resumable validation for async uploads.
+- (enh #1536, #1567): Parse response as string in `_parseError` function.
+- (enh #1525, #1566): Handle `filebeforeload` event abort when returning `false`.
+- (enh #1563): Update Català Translations.
+- (enh #1561): Correct triggering of events for cancelled & paused scenarios.
+- (enh #1557, #1559): Enhance and fix resumable and ajax queues.
+- (enh #1552, #1553): More correct full screen exit.
+- (bug #1551): Correct MIME Type detection for PNG.
+- (enh #1548): Correct `filebatchselected` trigger for single file uploads.
+- (enh #1545, #1546): Enhance file path for folder drag.
+- (enh #1540): Better validation of `required` property.
 - (bug #1518, #1522): Initial preview rendering correction when preview returned by server immediately after upload.
 
 ## version 5.0.8

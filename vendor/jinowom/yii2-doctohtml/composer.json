@@ -1,0 +1,30 @@
+{
+    "name": "jinowom/yii2-doctohtml",
+    "description": "Xwom-Yii2的doctohtml扩展",
+    "support": {
+        "issues": "https://github.com/jinowom/doctohtml/issues",
+        "source": "https://github.com/jinowom/doctohtml"
+    },
+    "type": "yii2-extension",
+    "keywords": ["yii2","doctohtml","Xwom"],
+    "minimum-stability": "dev",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "jinowom",
+            "email": "chareler@163.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "~2.0.14",
+        "phpoffice/phpspreadsheet": "^1.16.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\doctohtml\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": { "jinowom\\doctohtml\\": "src/" }
+    }
+}

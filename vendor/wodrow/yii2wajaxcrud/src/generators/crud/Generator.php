@@ -33,8 +33,9 @@ class Generator extends \yii\gii\Generator
     public $editableFields;
     public $dateRangeFields;
     public $thumbImageFields;
+    public $roundSwitchFields;
     public $isDesc = true;
-    public $statusField = 'status';
+    public $statusFields = 'status';
 
     /**
      * @inheritdoc
@@ -48,9 +49,8 @@ class Generator extends \yii\gii\Generator
      * @inheritdoc
      */
     public function getDescription()
-    {
-        return 'This generator generates a controller and views that implement CRUD (Create, Read, Update, Delete)
-            operations for the specified data model with template for Single Page Ajax Administration';
+   {
+        return '这套CRUD 模板支持增删改查；支持选定字段在线修改；支持折叠详细内容浏览；支持日历控件、支持开关变量控件；支持导出xml、xls、pdf；支持缩略图展示;支持批量删除。';
     }
 
     /**
@@ -59,7 +59,7 @@ class Generator extends \yii\gii\Generator
     public function rules()
     {
         return array_merge(parent::rules(), [
-            [['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass', 'viewPath', 'editableFields', 'dateRangeFields', 'thumbImageFields', 'statusField'], 'filter', 'filter' => 'trim'],
+            [['controllerClass', 'modelClass', 'searchModelClass', 'baseControllerClass', 'viewPath', 'editableFields', 'dateRangeFields', 'thumbImageFields', 'roundSwitchFields','statusFields'], 'filter', 'filter' => 'trim'],
             [['modelClass', 'controllerClass', 'baseControllerClass'], 'required'],
             [['searchModelClass'], 'compare', 'compareAttribute' => 'modelClass', 'operator' => '!==', 'message' => 'Search Model Class must not be equal to Model Class.'],
             [['modelClass', 'controllerClass', 'baseControllerClass', 'searchModelClass'], 'match', 'pattern' => '/^[\w\\\\]*$/', 'message' => 'Only word characters and backslashes are allowed.'],
@@ -76,7 +76,8 @@ class Generator extends \yii\gii\Generator
             ['editableFields', 'validateEditableFields'],
             ['dateRangeFields', 'validateDateRangeFields'],
             ['thumbImageFields', 'validateThumbImageFields'],
-            ['statusField', 'validateStatusField'],
+            ['roundSwitchFields', 'validateRoundSwitchFields'],
+            ['statusFields', 'validateStatusFields'],
         ]);
     }
 
@@ -93,8 +94,9 @@ class Generator extends \yii\gii\Generator
             'searchModelClass' => 'Search Model Class',
             'editableFields' => 'Editable Fields',
             'dateRangeFields' => 'Date Range Fields',
-            'thumbIamgeFields' => 'Thumb Image Fields',
-            'statusFields' => 'Status Field',
+            'thumbImageFields' => 'Thumb Image Fields',
+            'roundSwitchFields' => 'Round Switch Fields',
+            'statusFields' => 'Status Fields',
         ]);
     }
 
@@ -118,6 +120,11 @@ class Generator extends \yii\gii\Generator
                 You should provide a fully qualified class name, e.g., <code>yii\web\Controller</code>.',
             'searchModelClass' => 'This is the name of the search model class to be generated. You should provide a fully
                 qualified namespaced class name, e.g., <code>app\models\PostSearch</code>.',
+            'editableFields' => '这里填写需要在线编辑的字段 <code>譬如：title,brief_introduction,description,author</code>.',
+            'dateRangeFields' => '这里填写需要显示日期字段 <code>譬如：created_at,updated_at</code>.',
+            'thumbImageFields' => '这里是填写需要展示缩略图字段 <code>譬如：thumb,banner</code>.',
+            'roundSwitchFields' => '这里填写需要布尔逻辑值 <code>譬如：emphasis,status</code>.',
+            'statusFields' => '这里填写状态字段 <code>譬如：status</code>.',
         ]);
     }
 
@@ -150,17 +157,17 @@ class Generator extends \yii\gii\Generator
         }
     }
 
-    public function validateStatusField()
+    public function validateStatusFields()
     {
         $class = $this->modelClass;
-        $field = $this->statusField;
+        $field = $this->statusFields;
         $field = trim($field);
         $pk = $class::primaryKey();
         if (in_array($field, $pk)) {
-            $this->addError('dateRangeFields', "primary key(s) can not be status");
+            $this->addError('statusFields', "primary key(s) can not be status");
         }
         if (!in_array($field, (new $class)->attributes())) {
-            $this->addError('dateRangeFields', "field '{$field}' not found!");
+            $this->addError('statusFields', "field '{$field}' not found!");
         }
     }
 
@@ -223,15 +230,36 @@ class Generator extends \yii\gii\Generator
             }
         }
     }
+    
+    public function validateRoundSwitchFields()
+    {
+        $class = $this->modelClass;
+        $fields = explode(',', $this->roundSwitchFields);
+        $pk = $class::primaryKey();
+        foreach ($fields as $k => $v) {
+            if (!$v)continue;
+            $v = trim($v);
+            if (in_array($v, $pk)) {
+                $this->addError('roundSwitchFields', "primary key(s) can not be roundSwitch");
+            }
+            if (!in_array($v, (new $class)->attributes())) {
+                $this->addError('roundSwitchhFields', "field '{$v}' not found!");
+            }
+            if (!$this->checkResuing()) {
+                $this->addError('roundSwitchFields', "can not be roundSwitch");
+            }
+        }
+    }
 
     public function checkResuing()
     {
         $a = $this->generateDateRangeFields();
         $b = $this->generateEditableFields();
         $c = $this->generateThumbImageFields();
-        $d = $this->statusField?[$this->statusField]:[];
-        $x = array_merge(array_merge(array_merge($a, $b), $c), $d);
-        $t1 = count($a) + count($b) + count($c) + count($d);
+        $d = $this->generateRoundSwitchFields();
+        $e = $this->statusFields?[$this->statusFields]:[];
+        $x = array_merge(array_merge(array_merge(array_merge($a, $b), $c), $d), $e);
+        $t1 = count($a) + count($b) + count($c) + count($d) + count($e);
         $t2 = count($x);
         if ($t1 > $t2){
             return false;
@@ -339,6 +367,16 @@ class Generator extends \yii\gii\Generator
         return $fields;
     }
 
+    public function generateRoundSwitchFields()
+    {
+        $fields = explode(',', $this->roundSwitchFields);
+        foreach ($fields as $k => $v) {
+            if (!$v){
+                unset($fields[$k]);
+            }
+        }
+        return $fields;
+    }
     /**
      * Generates code for active field
      * @param string $attribute

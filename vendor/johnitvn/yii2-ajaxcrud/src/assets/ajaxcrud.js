@@ -30,14 +30,7 @@ $(document).ready(function () {
 
         // Collect all selected ID's
         var selectedIds = [];
-        
-        // See if we have a selector set
-        var selection = 'selection';
-        if ($(this).data("selector") != null) {
-        	selection = $(this).data("selector");
-        }
-        
-        $('input:checkbox[name="' + selection + '[]"]').each(function () {
+        $('input:checkbox[name="selection[]"]').each(function () {
             if (this.checked)
                 selectedIds.push($(this).val());
         });

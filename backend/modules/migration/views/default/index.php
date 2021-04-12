@@ -15,7 +15,7 @@ AppAsset::register($this);
 /** @var ActiveForm $form */
 
 $this->title = Yii::t('app', '全栈数据迁移');
-$this->params['breadcrumbs'][] = $this->title;
+
 ?>
 <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>
@@ -34,8 +34,8 @@ $this->params['breadcrumbs'][] = $this->title;
 	</div>
 </div>
 
-<?= $form->field($model, "tableSchemas")->checkboxList(MigrationUtility::getTableNames())->label("迁移表结构")->hint(Html::a("全选",'javascript:void(0)',['class'=>"select-all"]))?>
-<?= $form->field($model, "tableDatas")->checkboxList(MigrationUtility::getTableNames())->label("迁移表数据")->hint(Html::a("全选",'javascript:void(0)',['class'=>"select-all"]))?>
+<?= $form->field($model, "tableSchemas")->checkboxList(MigrationUtility::getTableNames())->label("迁移表结构(【提示】：请反选[migration]数据表)")->hint(Html::a("全选",'javascript:void(0)',['class'=>"select-all"]))?>
+<?= $form->field($model, "tableDatas")->checkboxList(MigrationUtility::getTableNames())->label("迁移表数据(【提示】：请反选[migration]数据表)")->hint(Html::a("全选",'javascript:void(0)',['class'=>"select-all"]))?>
 
 <div class="form-group">
      <?= Html::submitButton('迁移', ['class' => 'btn btn-primary btn-block ', 'name' => 'button-submit', 'id' => 'button-submit'])?>

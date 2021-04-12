@@ -50,9 +50,8 @@ class Generator extends \yii\gii\Generator
      * @inheritdoc
      */
     public function getDescription()
-    {
-        return 'This generator generates a controller and views that implement CRUD (Create, Read, Update, Delete)
-            operations for the specified data model with template for Single Page Ajax Administration';
+   {
+        return '这套CRUD 模板支持增删改查；支持选定字段在线修改；支持折叠详细内容浏览；支持日历控件、支持开关变量控件；支持导出xml、xls、pdf；支持缩略图展示;支持批量删除。';
     }
 
     /**
@@ -96,7 +95,7 @@ class Generator extends \yii\gii\Generator
             'searchModelClass' => 'Search Model Class',
             'editableFields' => 'Editable Fields',
             'dateRangeFields' => 'Date Range Fields',
-            'thumbIamgeFields' => 'Thumb Image Fields',
+            'thumbImageFields' => 'Thumb Image Fields',
             'roundSwitchFields' => 'Round Switch Fields',
             'statusFields' => 'Status Fields',
         ]);
@@ -122,6 +121,11 @@ class Generator extends \yii\gii\Generator
                 You should provide a fully qualified class name, e.g., <code>yii\web\Controller</code>.',
             'searchModelClass' => 'This is the name of the search model class to be generated. You should provide a fully
                 qualified namespaced class name, e.g., <code>app\models\PostSearch</code>.',
+            'editableFields' => '这里填写需要在线编辑的字段 <code>譬如：title,brief_introduction,description,author</code>.',
+            'dateRangeFields' => '这里填写需要显示日期字段 <code>譬如：created_at,updated_at</code>.',
+            'thumbImageFields' => '这里是填写需要展示缩略图字段 <code>譬如：thumb,banner</code>.',
+            'roundSwitchFields' => '这里填写需要布尔逻辑值 <code>譬如：emphasis,status</code>.',
+            'statusFields' => '这里填写状态字段 <code>譬如：status</code>.',
         ]);
     }
 

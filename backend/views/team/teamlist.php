@@ -154,7 +154,7 @@ $getTeamList = \yii\helpers\Url::toRoute(['get-team-list']);
                 if(unitId == ''){
                     layer.msg('请选择一个单位进行添加');return false;
                 }else{
-                    xadmin.open('添加团队','<?=\yii\helpers\Url::toRoute(['team/team-edit'])?>&unit_id='+unitId,500,260)
+                    xadmin.open('添加团队','<?=\yii\helpers\Url::toRoute(['team/team-edit'])?>?unit_id='+unitId,500,260)
                 }
             });
         });
@@ -299,7 +299,7 @@ $tableJs = <<<JS
                 if(obj.event === 'del'){
                     rowDel(obj,data);
                 } else if(obj.event === 'edit'){
-                    xadmin.open('团队信息修改','$addTeam&teamId='+data.teamid,500,320)
+                    xadmin.open('团队信息修改','$addTeam?teamId='+data.teamid,500,320)
                     /*layer.prompt({
                         formType: 2
                         ,value: data.email
@@ -312,7 +312,7 @@ $tableJs = <<<JS
                 } else if(obj.event === 'member_stop'){
                     member_stop(obj);
                 } else if(obj.event === 'authSet'){
-                    xadmin.open('团队权限管理','$teamAuth&description='+data.name+'&authId='+data.auth_item_id,500,400)
+                    xadmin.open('团队权限管理','$teamAuth?description='+data.name+'&authId='+data.auth_item_id,500,400)
                 }
             });
             $(function(){
@@ -321,14 +321,14 @@ $tableJs = <<<JS
                    if(teamId ==''){
                        layer.msg('请选择要移入的团队'); return false;
                    }
-                  xadmin.open('批量移入人员','$batchImport&type=batchImport&teamId='+teamId,850,600);
+                  xadmin.open('批量移入人员','$batchImport?type=batchImport&teamId='+teamId,850,600);
                }); 
                $('body').on('click','#batchExport',function(){
                    var teamId = $('#currentTeamid').val();
                    if(teamId ==''){
                        layer.msg('请选择要移出的团队'); return false;
                    }
-                   xadmin.open('批量移出人员','$batchExport&type=batchExport&teamId='+teamId,850,600);
+                   xadmin.open('批量移出人员','$batchExport?type=batchExport&teamId='+teamId,850,600);
                }); 
                $('body').on('click','#addChildTeam',function(){
                    var teamId = $('#currentTeamid').val();
@@ -336,7 +336,7 @@ $tableJs = <<<JS
                    if(teamId ==''  || teamId == 1 || unidId ==''){
                        layer.msg('请选择父级团队'); return false;
                    }
-                   xadmin.open('添加子团队','$addChildTeam&teamId='+teamId+'&unit_id='+unidId,500,280);
+                   xadmin.open('添加子团队','$addChildTeam?teamId='+teamId+'&unit_id='+unidId,500,280);
                });
             });
             form.on('checkbox(lockDemo)', function(obj){

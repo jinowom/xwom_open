@@ -456,6 +456,38 @@ class Yii2 extends Client
     }
 
     /**
+     * Return an assoc array with the client context: cookieJar, history.
+     *
+     * @return array
+     */
+    public function getContext()
+    {
+        return [
+            'cookieJar' => $this->cookieJar,
+            'history' => $this->history,
+        ];
+    }
+
+    /**
+     * Reset the client context: empty cookieJar and history.
+     */
+    public function removeContext()
+    {
+        parent::restart();
+    }
+
+    /**
+     * Set the context, see getContext().
+     *
+     * @param array $context
+     */
+    public function setContext(array $context)
+    {
+        $this->cookieJar = $context['cookieJar'];
+        $this->history = $context['history'];
+    }
+
+    /**
      * This functions closes the session of the application, if the application exists and has a session.
      * @internal
      */

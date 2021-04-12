@@ -1,11 +1,13 @@
 <?php
 
 use yii\helpers\Html;
-use backend\widgets\ActiveForm;
+use yii\widgets\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $model common\models\reg\RegModuleSearch */
-/* @var $form yii\widgets\ActiveForm */
+/**
+ * @var yii\web\View $this
+ * @var common\models\reg\RegModuleSearch $model
+ * @var yii\widgets\ActiveForm $form
+ */
 ?>
 
 <div class="reg-module-search">
@@ -13,20 +15,17 @@ use backend\widgets\ActiveForm;
     <?php $form = ActiveForm::begin([
         'action' => ['index'],
         'method' => 'get',
-        'options' => [
-            'data-pjax' => 1
-        ],
     ]); ?>
 
     <?= $form->field($model, 'id') ?>
 
     <?= $form->field($model, 'title') ?>
 
-    <?php // echo $form->field($model, 'name') ?>
+    <?= $form->field($model, 'name') ?>
 
-    <?php // echo $form->field($model, 'title_initial') ?>
+    <?= $form->field($model, 'title_initial') ?>
 
-    <?php // echo $form->field($model, 'bootstrap') ?>
+    <?= $form->field($model, 'bootstrap') ?>
 
     <?php // echo $form->field($model, 'service') ?>
 
@@ -81,7 +80,7 @@ use backend\widgets\ActiveForm;
  <!--用法示例，开发调试后，请删除如上，end-->
     <div class="form-group">
         <?= Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-outline-secondary']) ?>
+        <?= Html::resetButton(Yii::t('app', 'Reset'), ['class' => 'btn btn-default']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

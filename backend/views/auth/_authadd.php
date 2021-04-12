@@ -58,14 +58,14 @@ $update = \yii\helpers\Url::toRoute(['auth/update-admin-status']);
 $_csrfBackend = \Yii::$app->request->csrfToken;
 $jsStr = <<<STR
     function(value){
-        var patt1 = new RegExp(/(.+){6,12}$/);
+        var patt1 = new RegExp(/(.+){8,20}$/);
         if(value != '' && (patt1.test(value) == false)){
-            // return [/(.+){6,12}$/, '密码必须6到12位'];                    
+            // return [/(.+){8,20}$/, '密码必须8到20位'];                    
             return '密码必须6到12位';                    
         }
     }
 STR;
-$jsStr = isset($userInfo['password_hash']) ? $jsStr : "[/(.+){6,12}$/, '密码必须6到12位']";
+$jsStr = isset($userInfo['password_hash']) ? $jsStr : "[/(.+){8,20}$/, '密码必须8到20位']";
 
 $tableJs = <<<JS
     layui.use(['tree','form', 'layer'],function() {

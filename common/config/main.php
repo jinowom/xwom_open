@@ -119,8 +119,8 @@ return [
          */
         'aliyun' => [
             'class' => 'jinowom\aliyun\Sms',
-            'accessKeyId' => 'LTAI4G31WrCap6cG2bkWNUwY',
-            'accessKeySecret' => 'a5C6JiA4cfrrpYRuW4VUoyAxGpq5GQ'
+            'accessKeyId' => '',
+            'accessKeySecret' => ''
           ],
 
         /*

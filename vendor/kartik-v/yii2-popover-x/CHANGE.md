@@ -3,7 +3,7 @@ Change Log: `yii2-popover-x`
 
 ## Version 1.3.5
 
-**Date:** 14-Sep-2018
+**Date:** 02-Apr-2020
 
 - Enhancement to parse `pluginOptions` correctly when only `toggleButton` is configured.
 - Move all source code to `src` directory.

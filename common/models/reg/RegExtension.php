@@ -3,7 +3,7 @@
  * This is the model class for table "RegExtension";
  * @package common\models\reg;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-07 16:57 */
+ * @DateTime 2020-04-05 17:37 */
 namespace common\models\reg;
 
 use Yii;
@@ -17,7 +17,7 @@ use Yii;
  * @property string $title_initial 首字母简写
  * @property string $bootstrap 启用文件路径
  * @property string $service 服务调用类路径
- * @property string $cover 封面图标
+ * @property string $cover 封面
  * @property string $brief_introduction 简单介绍
  * @property string $description 扩展描述
  * @property string $author 作者
@@ -25,8 +25,8 @@ use Yii;
  * @property int $is_setting 设置
  * @property int $is_rule 是否要嵌入规则
  * @property int $is_merchant_route_map 路由映射
- * @property array $default_config 默认配置
- * @property array $console 控制台
+ * @property string $default_config 默认配置
+ * @property string $console 控制台
  * @property int $status 状态[-1:删除;0:禁用;1启用]
  * @property int $created_at 创建时间
  * @property int $updated_at 修改时间
@@ -51,7 +51,7 @@ class RegExtension extends \yii\db\ActiveRecord
     {
         return [
             [['is_setting', 'is_rule', 'is_merchant_route_map', 'status', 'created_at', 'updated_at', 'created_id', 'updated_id'], 'integer'],
-            [['default_config', 'console'], 'safe'],
+            [['default_config', 'console'], 'string'],
             [['title', 'version'], 'string', 'max' => 20],
             [['name'], 'string', 'max' => 100],
             [['title_initial'], 'string', 'max' => 50],
@@ -74,7 +74,7 @@ class RegExtension extends \yii\db\ActiveRecord
             'title_initial' => Yii::t('app', '首字母简写'),
             'bootstrap' => Yii::t('app', '启用文件路径'),
             'service' => Yii::t('app', '服务调用类路径'),
-            'cover' => Yii::t('app', '封面图标'),
+            'cover' => Yii::t('app', '封面'),
             'brief_introduction' => Yii::t('app', '简单介绍'),
             'description' => Yii::t('app', '扩展描述'),
             'author' => Yii::t('app', '作者'),
@@ -147,6 +147,24 @@ class RegExtension extends \yii\db\ActiveRecord
     		return false;
     	}
     }
+    /**
+    * @var array 开关变量字段示例，如果已经开启，需要把字段赋值以数组形式列出
+    */
+   public $switchValues = [
+       'status' => [
+           'on' => 1,
+           'off' => 0,
+       ],
+   //    'emphasis' => [
+   //        'on' => 1,
+   //        'off' => 0,
+   //    ],
+   //   //也可以是非 1，0 譬如，如下
+   //   'isRecommend' => [
+   //     'on' => 10,
+   //     'off' => 0,
+   //   ],
+   ];
     /*
     * afterSave 保存之后的事件  示例
     */

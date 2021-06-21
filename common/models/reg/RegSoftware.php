@@ -3,7 +3,7 @@
  * This is the model class for table "RegSoftware";
  * @package common\models\reg;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-04-02 15:33 */
+ * @DateTime 2020-04-10 09:58 */
 namespace common\models\reg;
 
 use Yii;
@@ -15,25 +15,26 @@ use Yii;
  * @property string $title 中文名
  * @property string $name 应用名或标识
  * @property string $title_initial 首字母简写
- * @property string|null $bootstrap 启用文件路径
- * @property string|null $service 服务调用类路径
- * @property string|null $cover 封面
- * @property string|null $brief_introduction 简单介绍
- * @property string|null $description 应用描述
- * @property string|null $author 作者
- * @property string|null $version 版本号
- * @property int|null $is_setting 设置
- * @property int|null $is_rule 是否要嵌入规则
- * @property string|null $parent_rule_name 父级路由权限标识
- * @property string|null $route_map 路由映射标识
- * @property string|null $default_config 默认配置
- * @property string|null $console 控制台
- * @property int|null $status 状态[-1:删除;0:禁用;1启用]
- * @property int|null $created_at 创建时间
- * @property int|null $updated_at 修改时间
- * @property int|null $created_id 添加者
- * @property int|null $updated_id 修改者
- * @property int|null $sortOrder 排序
+ * @property string $bootstrap 启用文件路径
+ * @property string $service 服务调用类路径
+ * @property string $cover 封面
+ * @property string $brief_introduction 简单介绍
+ * @property string $description 应用描述
+ * @property string $author 作者
+ * @property string $version 版本号
+ * @property int $is_setting 设置
+ * @property int $is_rule 是否要嵌入规则
+ * @property string $parent_rule_name 父级路由权限标识
+ * @property string $route_map 路由映射标识
+ * @property string $default_config 默认配置
+ * @property string $console 控制台
+ * @property int $status 状态[0:禁用;1启用]
+ * @property int $created_at 创建时间
+ * @property int $updated_at 修改时间
+ * @property int $created_id 添加者
+ * @property int $updated_id 修改者
+ * @property int $sortOrder 排序
+ * @property int $is_del 是否删除 0否 1是
  */
 class RegSoftware extends \yii\db\ActiveRecord
 {
@@ -52,7 +53,7 @@ class RegSoftware extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['is_setting', 'is_rule', 'status', 'created_at', 'updated_at', 'created_id', 'updated_id', 'sortOrder'], 'integer'],
+            [['is_setting', 'is_rule', 'status', 'created_at', 'updated_at', 'created_id', 'updated_id', 'sortOrder', 'is_del'], 'integer'],
             [['default_config', 'console'], 'string'],
             [['title', 'author'], 'string', 'max' => 80],
             [['name', 'route_map'], 'string', 'max' => 100],
@@ -88,12 +89,13 @@ class RegSoftware extends \yii\db\ActiveRecord
             'route_map' => Yii::t('app', '路由映射标识'),
             'default_config' => Yii::t('app', '默认配置'),
             'console' => Yii::t('app', '控制台'),
-            'status' => Yii::t('app', '状态[-1:删除;0:禁用;1启用]'),
+            'status' => Yii::t('app', '状态[0:禁用;1启用]'),
             'created_at' => Yii::t('app', '创建时间'),
             'updated_at' => Yii::t('app', '修改时间'),
             'created_id' => Yii::t('app', '添加者'),
             'updated_id' => Yii::t('app', '修改者'),
             'sortOrder' => Yii::t('app', '排序'),
+            'is_del' => Yii::t('app', '是否删除 0否 1是'),
         ];
     }
     
@@ -160,11 +162,15 @@ class RegSoftware extends \yii\db\ActiveRecord
            'on' => 1,
            'off' => 0,
        ],
-      //也可以是非 1，0 譬如，如下
-//      'isRecommend' => [
-//        'on' => 10,
-//        'off' => 0,
-//      ],
+   //    'emphasis' => [
+   //        'on' => 1,
+   //        'off' => 0,
+   //    ],
+   //   //也可以是非 1，0 譬如，如下
+   //   'isRecommend' => [
+   //     'on' => 10,
+   //     'off' => 0,
+   //   ],
    ];
     /*
     * afterSave 保存之后的事件  示例

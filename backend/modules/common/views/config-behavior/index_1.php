@@ -8,7 +8,7 @@ use yii\widgets\Pjax;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = Yii::t('app', 'Config Behaviors');
-$this->params['breadcrumbs'][] = $this->title;
+
 $pageSize = \Yii::$app->params['pageSize'];
 $limitsJson = \Yii::$app->params['limitsJson'];
 ?>

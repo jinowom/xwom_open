@@ -53,7 +53,6 @@ class Command
         'useDefaultConfiguration' => true,
         'loadedExtensions'        => [],
         'notLoadedExtensions'     => [],
-        'warnings'                => [],
     ];
 
     /**
@@ -147,6 +146,11 @@ class Command
     ];
 
     /**
+     * @var @psalm-var list<string>
+     */
+    private $warnings = [];
+
+    /**
      * @var bool
      */
     private $versionStringPrinted = false;
@@ -197,7 +201,7 @@ class Command
         unset($this->arguments['test'], $this->arguments['testFile']);
 
         try {
-            $result = $runner->doRun($suite, $this->arguments, $exit);
+            $result = $runner->doRun($suite, $this->arguments, $this->warnings, $exit);
         } catch (Exception $e) {
             print $e->getMessage() . \PHP_EOL;
         }
@@ -273,7 +277,7 @@ class Command
     protected function handleArguments(array $argv): void
     {
         try {
-            $this->options = Getopt::getopt(
+            $this->options = Getopt::parse(
                 $argv,
                 'd:c:hv',
                 \array_keys($this->longOptions)
@@ -381,6 +385,7 @@ class Command
                 case 'h':
                 case '--help':
                     $this->showHelp();
+
                     exit(TestRunner::SUCCESS_EXIT);
 
                     break;
@@ -663,6 +668,7 @@ class Command
 
                 case '--version':
                     $this->printVersionString();
+
                     exit(TestRunner::SUCCESS_EXIT);
 
                     break;
@@ -769,7 +775,7 @@ class Command
                     }
 
                     if (isset($handler) && \is_callable([$this, $handler])) {
-                        $this->$handler($option[1]);
+                        $this->{$handler}($option[1]);
                     }
             }
         }
@@ -785,7 +791,7 @@ class Command
             \substr($this->options[1][0], -4, 4) !== '.php' &&
             \substr($this->options[1][0], -1, 1) !== '/' &&
             !\is_dir($this->options[1][0])) {
-            $this->arguments['warnings'][] = 'Invocation with class name is deprecated';
+            $this->warnings[] = 'Invocation with class name is deprecated';
         }
 
         if (!isset($this->arguments['test'])) {
@@ -868,6 +874,7 @@ class Command
                 );
             } catch (Throwable $t) {
                 print $t->getMessage() . \PHP_EOL;
+
                 exit(TestRunner::FAILURE_EXIT);
             }
 
@@ -939,6 +946,7 @@ class Command
 
         if (!isset($this->arguments['test'])) {
             $this->showHelp();
+
             exit(TestRunner::EXCEPTION_EXIT);
         }
     }
@@ -1321,7 +1329,7 @@ class Command
                     break;
 
                 default:
-                    $this->exitWithErrorMessage("unrecognized --order-by option: $order");
+                    $this->exitWithErrorMessage("unrecognized --order-by option: {$order}");
             }
         }
     }

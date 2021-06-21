@@ -174,4 +174,9 @@ class Status extends ActiveRecord
         return parent::beforeDelete();
     }
 
+    //根据工作流id获取工作流程节点数据
+    public static function getStatusLest($workflow_id){
+        return self::find()->andWhere(['workflow_id'=>$workflow_id])->orderBy("sort_order ASC")->asArray()->all();
+    }
+
 }

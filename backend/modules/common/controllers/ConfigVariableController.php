@@ -1,131 +1,108 @@
 <?php
 /**
  * Class name  is ConfigVariableController * @package backend\modules\common\controllers;
- * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-06 18:51 
+ * @author  whaibo  email:1316177158@qq.com
+ * @DateTime 2020/12/10 10:13
  */
 namespace backend\modules\common\controllers;
 
 use Yii;
 use common\models\config\ConfigVariable;
-use common\models\config\ConfigVariableSearch;
 use backend\controllers\BaseController;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-
-/**
- * ConfigVariableController implements the CRUD actions for ConfigVariable model.
- */
-class ConfigVariableController extends BaseController
-{
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Lists all ConfigVariable models.
-     * @return mixed
-     */
-    public function actionIndex()
-    {
-        $searchModel = new ConfigVariableSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
-     * Displays a single ConfigVariable model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new ConfigVariable model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new ConfigVariable();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+class ConfigVariableController extends BaseController{
+    //设置全局变量首页
+    public function actionIndex(){
+        if (Yii::$app->request->isAjax) {
+            $this->getConfigVariableLest();
+        }else{
+            return $this->render('index');
         }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
     }
-
-    /**
-     * Updates an existing ConfigVariable model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+    //获取全局变量列表
+    public function getConfigVariableLest(){
+        $this->pageSize = Yii::$app->request->get('limit',5);
+        $this->page = Yii::$app->request->get('page',1);
+        $parames = Yii::$app->request->get('parames',"");
+        $query = ConfigVariable::getVariableList($parames);
+        $this->sidx = 'created_at';
+        return $this->getJqTableData($query,"");
+    }
+    //添加全局变量
+    public function actionCreate(){
+        if (Yii::$app->request->isAjax) {
+            $request = Yii::$app->request->post();
+            $res = ConfigVariable::createDo($request);
+            if($res === true){
+                $this->returnSuccess('','success');
+            }else{
+                $this->returnError('',$res);
+            }
+        }else{
+            return $this->render('create');
         }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
     }
-
-    /**
-     * Deletes an existing ConfigVariable model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the ConfigVariable model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return ConfigVariable the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = ConfigVariable::findOne($id)) !== null) {
-            return $model;
+    //全局变量修改
+    public function actionUpdate(){
+        if (Yii::$app->request->isAjax) {
+            $request = Yii::$app->request->post();
+            $res = ConfigVariable::updateDo($request);
+            if($res === true){
+                $this->returnSuccess('','success');
+            }else{
+                $this->returnError('',$res);
+            }
+        }else{
+            $id = Yii::$app->request->get('id',"");
+            $model = ConfigVariable::findOne($id);
+            return $this->render('update',['data'=>$model]);
         }
-
-        throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+    }
+    //修改使用状态
+    public function actionUpdateStatus(){
+        $id = Yii::$app->request->post('id',"");
+        $status = Yii::$app->request->post('status',"0");
+        $model = ConfigVariable::findOne($id);
+        $model->status = $status;
+        if ($model->save()) {
+            $this->returnSuccess('','success');
+        } else {
+            $this->returnError('',json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE));
+        }
+    }
+    //删除全局变量 --修改is_del状态（0可用 1删除）
+    public function actionDelete(){
+        $id = Yii::$app->request->post('id',"");
+        $exam = ConfigVariable::find()->where(['is_del'=>0,'id'=>$id,'status'=>1])->one();
+        $model = ConfigVariable::findOne($id);
+        $model->is_del = 1;
+        if(!empty($exam)){
+            $this->returnError('','该变量正在被使用不可删除');
+        }else{
+            if ($model->save()) {
+                $this->returnSuccess('','success');
+            } else {
+                $this->returnError('',json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE));
+            }
+        }
+    }
+    //批量删除
+    public function actionDeleteAll(){
+        $id = Yii::$app->request->get('id',"");
+        $array = explode(',',$id);
+        unset($array[0]);
+        if(!empty($array)){
+            foreach ($array as $key => $value) {
+                //判断有没有频道或者栏目在使用
+                $isUser = ConfigVariable::find()->where(['is_del'=>0,'id'=>$value,'status'=>1])->one();
+                if(empty($isUser)) {
+                    $model = ConfigVariable::findOne($value);
+                    $model->is_del = 1;
+                    $model->save();
+                }
+            }   
+            $this->returnSuccess('','success');
+        }else{
+            $this->returnError('','请选择要删除的数据');
+        }
     }
 }

@@ -92,7 +92,7 @@ $limitsJson = \Yii::$app->params['limitsJson'];
                            autocomplete="off" class="layui-input">
                 </div>
                 <div class="layui-form-mid layui-word-aux">
-                    6到16个字符 <?= (isset($userInfo['password_hash']))? "<span class='x-red'>(注：更新操作密码不必填，填写则会更新密码！！)</span>" : ""?>
+                    8到20个字符 <?= (isset($userInfo['password_hash']))? "<span class='x-red'>(注：更新操作密码不必填，填写则会更新密码！！)</span>" : ""?>
                 </div>
             </div>
             <div class="layui-form-item">
@@ -125,12 +125,12 @@ $jsStr = <<<STR
     function(value){
         var patt1 = new RegExp(/(.+){6,12}$/);
         if(value != '' && (patt1.test(value) == false)){
-            // return [/(.+){6,12}$/, '密码必须6到12位'];                    
+            // return [/(.+){8,20}$/, '密码必须8到20位'];                    
             return '密码必须6到12位';                    
         }
     }
 STR;
-$jsStr = isset($userInfo['password_hash']) ? $jsStr : "[/(.+){6,12}$/, '密码必须6到12位']";
+$jsStr = isset($userInfo['password_hash']) ? $jsStr : "[/(.+){8,20}$/, '密码必须8到20位']";
 
 $tableJs = <<<JS
     layui.use(['form', 'layer'],function() {

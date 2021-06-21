@@ -1,0 +1,21 @@
+{
+    "name": "jinowom/yii2-api",
+    "description": "基于yii2的restful组件.一个基于yii2的restful接口组织方案，自动生成在线文档供前端工程师阅读",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "frank",
+            "email": "chareler@163.com"
+        }
+    ], 
+    "require": {      
+        "yiisoft/yii2": "~2.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\api\\": "src/",
+            "jinowom\\demo\\": "demo/"
+        }
+    }
+}

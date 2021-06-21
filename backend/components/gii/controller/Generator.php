@@ -27,6 +27,7 @@ use yii\helpers\StringHelper;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $showName = 'Controller Generator';
     /**
      * @var string the controller class name
      */
@@ -50,7 +51,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Controller Generator';
+        //return 'Controller Generator';
+        return $this->showName;
     }
 
     /**
@@ -58,8 +60,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator helps you to quickly generate a new controller class with
-            one or several controller actions and their corresponding views.';
+        return '这个Generator脚手架可以帮助快速生成Controller 控制器，以及相应的行为动作、视图。';
     }
 
     /**

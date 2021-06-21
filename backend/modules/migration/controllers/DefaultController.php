@@ -75,41 +75,50 @@ class DefaultController extends BaseController
     public function getTableName($name)
     {
         $prefix = \Yii::$app->db->tablePrefix;
-        
+
         return str_replace($prefix, '', $name);
+    }
+    public function getTableComment ($name)
+    {
+//        print_r("<pre>");print_r(\Yii::$app->db);die;
+        $sql = "SELECT TABLE_COMMENT FROM INFORMATION_SCHEMA.TABLES  WHERE TABLE_NAME = '$name' AND TABLE_SCHEMA = 'xwom_all2020'";//获取 xwom_all2020 数据库中 $name 表 的注释。
+//        $sql = "show table status";//可以获得数据库所有表的信息，包括COMMENT注释信息
+        $res = Yii::$app->db->createCommand($sql)->queryAll();
+        $table_comment =  $res[0]['TABLE_COMMENT'];
+        return $table_comment;
     }
 
     public function generalTableSchemas($tables, $tableOption)
     {
+        //$tableOption = 'CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci ENGINE=InnoDB';//$tableOption 并没有从模型里获得
         $initialTabLevel = 0;
         $upStr = new OutputString([
             'tabLevel' => $initialTabLevel
         ]);
-        
         $upStr->addStr('$this->execute(\'SET foreign_key_checks = 0\');');
         $upStr->addStr(' ');
         foreach ($tables as $table) {
             $upStr->tabLevel = $initialTabLevel;
             
             $tablePrepared = $this->getTableName($table);
-            
-            // 添加表结构
+            // 添加表结构以及字段的注释
             $upStr->addStr('$this->createTable(\'{{%' . $tablePrepared . '}}\', [');
             $upStr->tabLevel ++;
             $tableSchema = \Yii::$app->db->getTableSchema($table);
-            
             foreach ($tableSchema->columns as $column) {
-                $appUtility = new AppUtility($column);
-                $upStr->addStr($appUtility->string . "',");
+                $appUtility = new AppUtility($column);//构造数据表结构
+                $upStr->addStr($appUtility->string . "',");                
             }
             if (! empty($tableSchema->primaryKey)) {
                 $upStr->addStr("'PRIMARY KEY (`" . implode("`,`", $tableSchema->primaryKey) . "`)'");
             }
             
             $upStr->tabLevel --;
-            $upStr->addStr('], "' . $tableOption . '");');
+            //添加  $tableOption、表名注释 由于添加表注释后，无法迁移入库，就在暂时不添加了
+            $tableComment = $this->getTableComment($table);
+            $upStr->addStr('], "' . $tableOption . '");');//$upStr->addStr('], "' . $tableOption . '");');//$upStr->addStr('], "' . $tableOption);
+            //$upStr->addStr('], "' . $tableOption . "  COMMENT = '" . $tableComment ."'" . '");');//添加上表注释 migrate/up 报错，估计需要修改migrate/up
             
-
             // 添加索引
             $tableIndexes = Yii::$app->db->createCommand('SHOW INDEX FROM `' . $table . '`')->queryAll();
             $indexs = [];
@@ -193,7 +202,6 @@ class DefaultController extends BaseController
         foreach ($tables as $table) {
             
             $tablePrepared = $this->getTableName($table);
-            
             $upStr->addStr('/* Table ' . $table . ' */');
             $tableSchema = \Yii::$app->db->getTableSchema($table);
             $data = Yii::$app->db->createCommand('SELECT * FROM `' . $table . '`')->queryAll();

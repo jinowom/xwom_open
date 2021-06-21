@@ -8,7 +8,7 @@ use yii\widgets\Pjax;
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
 $this->title = Yii::t('app', 'Config Sysinfos');
-$this->params['breadcrumbs'][] = $this->title;
+
 $pageSize = \Yii::$app->params['pageSize'];
 $limitsJson = \Yii::$app->params['limitsJson'];
 ?>
@@ -78,9 +78,9 @@ $limitsJson = \Yii::$app->params['limitsJson'];
                                         'approve' => function ($url, $model, $key)
                                         {
                                             $options = [
-                                                'title' => Yii::t('yii', '审核'),
-                                                'arid-label' => Yii::t('yii', '审核'),
-                                               // 'data-confirm' => Yii::t('yii', '你确定要通过这条评论吗？'),
+                                                'title' => Yii::t('app', '审核'),
+                                                'arid-label' => Yii::t('app', '审核'),
+                                               // 'data-confirm' => Yii::t('app', '你确定要通过这条评论吗？'),
                                                 'data-method' => 'post',
                                                 'data-ajax' => '0',
                                             ];

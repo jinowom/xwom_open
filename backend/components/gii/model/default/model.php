@@ -199,4 +199,8 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') . 
             // self::SCENARIO_DEFAULT => self::OP_INSERT
         ];
     }
+    // 获取列表
+    public static function getList($parames){
+        return self::find()->andWhere(['is_del'=>0]);
+    }
 }

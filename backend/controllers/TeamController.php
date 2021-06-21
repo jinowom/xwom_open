@@ -326,9 +326,10 @@ class TeamController extends BaseController
         $teamId = $this->get('teamId');
         $action = $this->get('type');
         $type = AdminAuthRelation::TYPE_TEAM;
+        $authName = AdminTeam::findValueByWhere(['teamid'=>$teamId],'auth_item_id',[]);
         if($action == 'batchExport'){
             $t = 'out';
         }
-        return $this->render('_memberList',['teamId'=>$teamId,'type'=>$type,'t'=>$t,'action'=>$action]);
+        return $this->render('/auth/_adminlist',['teamId'=>$teamId,'type'=>$type,'t'=>$t,'action'=>$action,'authName'=>$authName,'id'=>$teamId]);
     }
 }

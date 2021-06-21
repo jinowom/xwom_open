@@ -1,7 +1,12 @@
 {
-    "name": "yiixwom/yii-xwom",
-    "description": "From Yii 2 Advanced Project Template",
-    "keywords": ["xwom","融媒体","yii2", "framework", "advanced", "project template"],
+    "name": "yiisoft/yii2-app-advanced",
+    "description": "Yii 2 Advanced Project Template",
+    "keywords": [
+        "yii2",
+        "framework",
+        "advanced",
+        "project template"
+    ],
     "homepage": "http://www.yiiframework.com/",
     "type": "project",
     "license": "BSD-3-Clause",
@@ -18,20 +23,29 @@
         "yiisoft/yii2": "~2.0.14",
         "yiisoft/yii2-bootstrap": "~2.0.0",
         "yiisoft/yii2-swiftmailer": "~2.0.0 || ~2.1.0",
+        "hightman/xunsearch": "1.4.15",
         "qcloudsms/qcloudsms_php": "^0.1.4",
         "moxuandi/yii2-kindeditor": "v2.2.0.2",
-        "pendalf89/yii2-filemanager": "dev-master",
-        "kartik-v/bootstrap-fileinput": "^5.0@dev",
-        "kartik-v/yii2-widget-fileinput": "^1.0@dev",
-        "yiisoft/yii2-jui": "^2.0@dev",
-        "kartik-v/yii2-widget-datepicker": "^1.4@dev",
-        "kartik-v/yii2-widget-datetimepicker": "^1.4@dev",
-        "jinostart/yii2-workflow-manager": "dev-master",
+        "kartik-v/bootstrap-fileinput": "^5.1@dev",
+        "yiisoft/yii2-jui": "2.0.7",
+        "kartik-v/yii2-widgets": "v3.4.1",
+        "jinostart/yii2-workflow-manager": "v1.0.1",
         "warrence/yii2-kartikgii": "dev-master",
         "oonne/yii2-sortable-grid-view": "dev-master",
-        "wodrow/yii2wajaxcrud": "^3.0.14",
-        "johnitvn/yii2-ajaxcrud": "*",
-        "nick-denry/yii2-round-switch-column": "dev-master"
+        "johnitvn/yii2-ajaxcrud": "2.1.3",
+        "nick-denry/yii2-round-switch-column": "dev-master",
+        "chillerlan/php-qrcode": "3.3.0",
+        "phpqrcode/phpqrcode": "dev-master",
+        "wodrow/yii2wajaxcrud": "3.0.14",
+        "jinowom/yii2-filemanager": "^1.0",
+        "jinowom/layui-gii": "dev-master",
+        "jinowom/yii2-api": "^1.0",
+        "jinowom/yii2-dysms": "dev-master",
+        "aliyuncs/oss-sdk-php": "dev-master",
+        "philippfrenzel/yii2fullcalendar": "3.9.*",
+        "jinowom/yii2-ueditor": "dev-master",
+        "jinowom/yii2-doctohtml": "dev-master",
+        "jinowom/yii2-pay": "dev-master"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
@@ -50,10 +64,14 @@
             "enabled": false
         }
     },
-    "repositories": [
-        {
+    "repositories": {
+        "packagist": {
             "type": "composer",
             "url": "https://packagist.phpcomposer.com"
+        },
+        "0": {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
         }
-    ]
+    }
 }

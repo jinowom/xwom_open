@@ -11,11 +11,9 @@ namespace backend\controllers;
 use Yii;
 use common\helpers\FileHelper;
 use backend\controllers\BaseController;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
-
-use common\models\User;
-use common\models\VerifyCodeHistory;
+use common\models\auth\{AuthItemChild};
+use common\models\config\{ConfigMessageMap};
+use common\models\{VerifyCodeHistory,User};
 use common\utils\ToolUtil;
 use yii\helpers\ArrayHelper;
 
@@ -30,20 +28,18 @@ class IndexController extends BaseController
      * @return string
      */
     public function actionIndex(){
-        $authManager = \Yii::$app->getAuthManager();
-        $permissions = $authManager->getPermissionsByUser($this->user_id);
-        $permissions = ArrayHelper::toArray($permissions);
-        $permissions = ToolUtil::arrToTree($permissions,null);
-        $permissions = ToolUtil::menuListHtml($permissions);
-        //print_r(\Yii::$app->getUser()->getIdentity()->real_name);exit;
+        $permissionsList = ToolUtil::arrToTree($this->userInfo,null);
+        $mesCount = ConfigMessageMap::find()->select('user_id')->andWhere(['is_del'=>0,'user_type'=>2])
+                                                ->andWhere(['user_id'=>$this->user_id,'is_read'=>0])->count();
         return $this->render('index',[
-            'permissions' => $permissions
+            'permissionsList' => $permissionsList,
+            'mesCount' => $mesCount
         ]);
     }
 
 
     /**
-     * @Function 后台首页
+     * @Function 系统探针
      * @Author Weihuaadmin@163.com
      * @return string
      */
@@ -112,6 +108,44 @@ class IndexController extends BaseController
     public function actionSendSms(){
         $phone = $this->post('phone');
         return $this->asJson(VerifyCodeHistory::sendSMS($phone,\Yii::$app->params['SMS']['MODIFY_CODE']));
+    }
+
+    /**
+     * @Function 工作台
+     */
+    public function actionDashboard(){
+        $name = $this->get('name','');
+        $data =  $this->findItem($name);
+        if (Yii::$app->request->isAjax) {
+           $this->returnSuccess($data,'success');
+        }else{
+            switch ($name) {
+                case 'XportalSystem_00':
+                    return $this->render('dashboard/xportal-dashboard',['data'=>$data]);
+                    break;
+                case 'XwomSystem_00':
+                    return $this->render('dashboard/xwom-dashboard',['data'=>$data]);
+                    break;
+                default:
+                    return $this->render('dashboard',['data'=>$data]);
+                    break;
+            }
+        }
+    }
+
+    //获取子菜单
+    public function findItem($name){
+        $role = User::find()->select('role_id')->Where(['user_id'=>$this->user_id])->asArray()->one()['role_id'];
+        $role = explode(',',$role);
+        $data = AuthItemChild::find()->from(AuthItemChild::tableName() . ' Child')
+                             ->select('item.name,item.order_sort,item.description,item.icon')
+                             ->leftJoin('auth_item as item','item.name = Child.child')
+                             ->andWhere(['in','Child.parent',$role])
+                             ->andWhere(['item.parent_name' => $name,'status'=>1,'is_menu'=>1])
+                             ->orderBy("item.order_sort desc")
+                             ->limit(6)
+                             ->asArray()->all();
+        return $data;
     }
 
 }

@@ -1,131 +1,102 @@
 <?php
-/**
- * Class name  is ConfigBehaviorlogController * @package backend\modules\common\controllers;
- * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-07 15:19 
- */
+
 namespace backend\modules\common\controllers;
 
 use Yii;
 use common\models\log\ConfigBehaviorlog;
-use common\models\log\ConfigBehaviorlogSearch;
+use yii\db\Query;
+use yii\data\ActiveDataProvider;
 use backend\controllers\BaseController;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+//use app\...\helpers\RequestHelper;//根据情况引用RequestHelper助手类，并需要自行封装
 
 /**
  * ConfigBehaviorlogController implements the CRUD actions for ConfigBehaviorlog model.
  */
 class ConfigBehaviorlogController extends BaseController
 {
-    /**
-     * {@inheritdoc}
-     */
-    public function behaviors()
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::className(),
-                'actions' => [
-                    'delete' => ['POST'],
-                ],
-            ],
-        ];
-    }
-
-    /**
-     * Lists all ConfigBehaviorlog models.
-     * @return mixed
-     */
-    public function actionIndex()
-    {
-        $searchModel = new ConfigBehaviorlogSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
-
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
-    }
-
-    /**
-     * Displays a single ConfigBehaviorlog model.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-            'model' => $this->findModel($id),
-        ]);
-    }
-
-    /**
-     * Creates a new ConfigBehaviorlog model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new ConfigBehaviorlog();
-
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+    public function actionIndex(){
+        if (Yii::$app->request->isAjax) {
+            $this->getList();
+        }else{
+            return $this->render('index');
         }
-
-        return $this->render('create', [
-            'model' => $model,
-        ]);
     }
 
-    /**
-     * Updates an existing ConfigBehaviorlog model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
+    //获取列表
+    public function getList(){
+        $this->pageSize = Yii::$app->request->get('limit',5);
+        $this->page = Yii::$app->request->get('page',1);
+        $parames = Yii::$app->request->get();
+        $query = ConfigBehaviorlog::getList($parames);
+        $this->sidx = 'created_at';
+        return $this->getJqTableData($query,"");
+    }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+    //添加
+    public function actionCreate(){
+        if (Yii::$app->request->isAjax) {
+            $request = Yii::$app->request->post();
+            $res = ConfigBehaviorlog::createDo($request);
+            if($res === true){
+                $this->returnSuccess('','success');
+            }else{
+                $this->returnError('',$res);
+            }
+        }else{
+            return $this->render('create');
         }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
     }
 
-    /**
-     * Deletes an existing ConfigBehaviorlog model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param integer $id
-     * @return mixed
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    public function actionDelete($id)
-    {
-        $this->findModel($id)->delete();
-
-        return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the ConfigBehaviorlog model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return ConfigBehaviorlog the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = ConfigBehaviorlog::findOne($id)) !== null) {
-            return $model;
+    //修改
+    public function actionUpdate(){
+        if (Yii::$app->request->isAjax) {
+            $request = Yii::$app->request->post();
+            $res = ConfigBehaviorlog::updateDo($request);
+            if($res === true){
+                $this->returnSuccess('','success');
+            }else{
+                $this->returnError('',$res);
+            }
+        }else{
+            $id = Yii::$app->request->get('id',"");
+            $model = ConfigBehaviorlog::findOne($id);
+            return $this->render('update',['model'=>$model]);
         }
+    }
 
-        throw new NotFoundHttpException(Yii::t('app', 'The requested page does not exist.'));
+    //删除 --修改is_del状态（0可用 1删除）
+    public function actionDelete(){
+        $id = Yii::$app->request->post('id',"");
+        $model = ConfigBehaviorlog::findOne($id);
+        $model->is_del = 1;
+        if ($model->save()) {
+            $this->returnSuccess('','success');
+        } else {
+            $this->returnError('',json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE));
+        }
+    }
+    
+    //查看
+    public function actionView(){
+        $id = Yii::$app->request->get('id',"");
+        $model = ConfigBehaviorlog::findOne($id);
+        return $this->render('view',['model'=>$model]);
+    }
+
+    //批量删除父级目录
+    public function actionDeleteAll(){
+        $id = Yii::$app->request->get('id',"");
+        $array = explode(',',$id);
+        unset($array[0]);
+        if(!empty($array)){
+            foreach ($array as $key => $value) {
+                $model = ConfigBehaviorlog::findOne($value);
+                $model->is_del = 1;
+                $model->save();
+            }   
+            $this->returnSuccess('','success');
+        }else{
+            $this->returnError('','请选择要删除的数据');
+        }
     }
 }

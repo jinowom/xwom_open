@@ -23,7 +23,7 @@ $pks = $class::primaryKey();
 $urlParams = $generator->generateUrlParams();
 $actionParams = $generator->generateActionParams();
 $actionParamComments = $generator->generateActionParamComments();
-$statusField = $generator->statusField;
+$statusFields = $generator->statusFields;
 
 echo "<?php\n";
 ?>
@@ -268,8 +268,8 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
             case 'hard':
                 $model->delete();
                 break;
-            <?php if($statusField): ?>case 'soft':
-                $model-><?= $statusField ?> = Status::STATUS_DEL;
+            <?php if($statusFields): ?>case 'soft':
+                $model-><?= $statusFields ?> = Status::STATUS_DEL;
                 $model->save();
                 break;
             <?php endif; ?>default:
@@ -301,8 +301,8 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
                 case 'hard':
                     $model->delete();
                     break;
-                <?php if($statusField): ?>case 'soft':
-                    $model-><?= $statusField ?> = Status::STATUS_DEL;
+                <?php if($statusFields): ?>case 'soft':
+                    $model-><?= $statusFields ?> = Status::STATUS_DEL;
                     $model->save();
                     break;
                 <?php endif; ?>default:

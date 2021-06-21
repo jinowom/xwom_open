@@ -2,8 +2,10 @@
 Yii::setAlias('@common', dirname(__DIR__));//配置层路径设置
 Yii::setAlias('@frontend', dirname(dirname(__DIR__)) . '/frontend');//前台路径设置
 Yii::setAlias('@backend', dirname(dirname(__DIR__)) . '/backend');//后台业务路径设置
+Yii::setAlias('@supper', dirname(dirname(__DIR__)) . '/supper');//supper业务路径设置
 Yii::setAlias('@console', dirname(dirname(__DIR__)) . '/console');//控制台路径设置
 Yii::setAlias('@services', dirname(dirname(__DIR__)) . '/services');//服务层路径设置
+Yii::setAlias('@vendor', dirname(dirname(__DIR__)) . '/vendor');//vendor路径设置
 //接下来下面这些都要用到
 Yii::setAlias('@api', dirname(dirname(__DIR__)) . '/api');//api接口
 Yii::setAlias('@html5', dirname(dirname(__DIR__)) . '/html5');//html5
@@ -18,6 +20,7 @@ Yii::setAlias('@attachment', dirname(dirname(__DIR__)) . '/backend/web'); // 本
 Yii::setAlias('@attachurl', ''); // 资源目前相对路径，可以带独立域名
 Yii::setAlias('@backendUrl', '');
 Yii::setAlias('@frontendUrl', '');
+Yii::setAlias('@supperUrl', '');
 Yii::setAlias('@html5Url', '');
 Yii::setAlias('@apiUrl', '');
 Yii::setAlias('@storageUrl', '');

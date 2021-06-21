@@ -1,0 +1,76 @@
+2021-02-19 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-29 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-29 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-29 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-17 Version: 3.6.3
+- Support manual scan interface.
+
+2020-12-17 Version: 3.6.3
+- Support manual scan interface.
+
+2020-12-08 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-08 Version: 3.6.2
+- Supported webpage scan.
+
+2020-12-04 Version: 3.6.3
+- Support manual scan interface.
+
+2020-11-18 Version: 3.6.2
+- Supported webpage scan.
+
+2020-08-03 Version: 3.6.1
+- Fix Some API Response Define.
+
+2020-08-03 Version: 3.6.0
+- Add Voice Synchronous Scan API.
+
+2020-03-19 Version: 3.5.3
+- UploadImageToLib add Urls.
+
+2020-03-19 Version: 3.5.2
+- UploadImageToLib add Urls.
+
+2019-10-09 Version: 3.5.1
+- Add VideoCancelScan Api.
+
+2019-08-12 Version: 3.5.0
+- Support Defect Face API.
+
+2019-07-05 Version: 3.4.4
+- Supported library managment for simillarity scene.
+- Remove the local file uploader code which can be downloaded from yundun content security document.
+
+2018-11-22 Version: 3.4.1
+1, bugfix for delete client upload tmp file
+
+2018-11-22 Version: 3.4.0
+1, api for custom keyword lib、similartext lib、voice keyword lib
+2, api for custom image lib
+3, support client file detect for image detection scenes、voice detection scenes、video detection scenes、file detection scenes
+
+2018-09-27 Version: 3.3.2
+1, modify getFaces Api
+
+2018-09-27 Version: 3.3.2
+1, modify getFaces Api
+
+2018-09-03 Version: 3.3.0
+1, voice identify interface
+2, client upload credentials interface
+
+2018-05-28 Version: 3.2.0
+1, Add face 1-N,1-1 scan interface.
+
+2018-04-08 Version: 3.1.0
+1, Add voice asynchronous scan interface.
+

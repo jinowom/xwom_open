@@ -2,38 +2,45 @@
 /**
  * Class name is ConfigBaseSearch * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-05 16:42 
+ * @DateTime 2020-04-15 01:50 
  */
 
 namespace common\models\config;
 
+use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
+use yii\db\Expression;
+use yii\helpers\ArrayHelper;
 use common\models\config\ConfigBase;
 
 /**
- * ConfigBaseSearch represents the model behind the search form of `common\models\config\ConfigBase`.
+ * ConfigBaseSearch represents the model behind the search form about `common\models\config\ConfigBase`.
  */
 class ConfigBaseSearch extends ConfigBase
 {
+    const EMPTY_STRING = "(空字符)";
+    const NO_EMPTY = "(非空)";
+    const SCENARIO_EDITABLE = 'editable';
+
+    public function scenarios()
+    {
+        return ArrayHelper::merge(parent::scenarios(), [
+            self::SCENARIO_EDITABLE => ['title','name','description','sort'],
+        ]);
+    }
+
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'is_hide_des', 'sort', 'status', 'created_at', 'updated_at', 'created_id', 'updated_id'], 'integer'],
-            [['title', 'name', 'app_id', 'type', 'extra', 'description', 'default_value'], 'safe'],
+            [['id', 'sort', 'created_id', 'updated_id'], 'integer'],
+            [['title', 'name', 'app_id', 'type', 'extra', 'description', 'is_hide_des', 'default_value', 'status'], 'safe'],
+            [['created_at', 'updated_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
     /**
      * 创建时间  如果不需要或者该数据模型 没有 created_at 字段，您应该删除
@@ -50,52 +57,70 @@ class ConfigBaseSearch extends ConfigBase
         }
         return $createAt;
     }
+    
     /**
      * Creates data provider instance with search query applied
-     *
      * @param array $params
-     *
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = ConfigBase::find();
-
-        // add conditions that should always apply here
-
-        $dataProvider = new ActiveDataProvider([
-            'pagination' => ['pageSize' => 10,],
-            'query' => $query,
-        ]);
-
+        $query = self::find();
         $this->load($params);
-
-        if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
-            return $dataProvider;
+        if ( ! is_null($this->created_at) && strpos($this->created_at, ' - ') !== false ) {
+            list($s, $e) = explode(' - ', $this->created_at);
+            $query->andFilterWhere(['between', 'created_at', strtotime($s), strtotime($e)]);
         }
-
-        // grid filtering conditions
+        if ( ! is_null($this->updated_at) && strpos($this->updated_at, ' - ') !== false ) {
+            list($s, $e) = explode(' - ', $this->updated_at);
+            $query->andFilterWhere(['between', 'updated_at', strtotime($s), strtotime($e)]);
+        }
         $query->andFilterWhere([
             'id' => $this->id,
-            'is_hide_des' => $this->is_hide_des,
             'sort' => $this->sort,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
             'created_id' => $this->created_id,
             'updated_id' => $this->updated_id,
         ]);
-
-        $query->andFilterWhere(['like', 'title', $this->title])
-            ->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'app_id', $this->app_id])
-            ->andFilterWhere(['like', 'type', $this->type])
-            ->andFilterWhere(['like', 'extra', $this->extra])
-            ->andFilterWhere(['like', 'description', $this->description])
-            ->andFilterWhere(['like', 'default_value', $this->default_value]);
-
+        $this->filterLike($query, 'title');
+        $this->filterLike($query, 'name');
+        $this->filterLike($query, 'app_id');
+        $this->filterLike($query, 'type');
+        $this->filterLike($query, 'extra');
+        $this->filterLike($query, 'description');
+        $this->filterLike($query, 'is_hide_des');
+        $this->filterLike($query, 'default_value');
+        $this->filterLike($query, 'status');;
+        $dataProvider = new ActiveDataProvider([
+            //'pagination' => ['pageSize' => 3,],
+            'query' => $query,
+            'sort' => ['defaultOrder' => ['id' => SORT_DESC]],
+            ]);
+        if (!$this->validate()) {
+            return $dataProvider;
+        }
         return $dataProvider;
+    }
+
+    /**
+     * @param ActiveQuery $query
+     * @param $attribute
+     */
+    protected function filterLike(&$query, $attribute)
+    {
+        $this->$attribute = trim($this->$attribute);
+        switch($this->$attribute){
+            case \Yii::t('app', '(not set)'):
+                $query->andFilterWhere(['IS', $attribute, new Expression('NULL')]);
+                break;
+            case self::EMPTY_STRING:
+                $query->andWhere([$attribute => '']);
+                break;
+            case self::NO_EMPTY:
+                $query->andWhere(['IS NOT', $attribute, new Expression('NULL')])->andWhere(['<>', $attribute, '']);
+                break;
+            default:
+                $query->andFilterWhere(['like', $attribute, $this->$attribute]);
+                break;
+        }
     }
 }

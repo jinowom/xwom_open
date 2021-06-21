@@ -31,7 +31,8 @@ use yii\web\Controller;
  * @since 2.0
  */
 class Generator extends \yii\gii\Generator
-{
+{   
+    public $showName = 'Kartik CRUD Generator111';
     public $modelClass;
     public $controllerClass;
     public $viewPath;
@@ -55,7 +56,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'CRUD Generator';
+        //return 'CRUD Generator';
+        return $this->showName;
     }
 
     /**
@@ -63,8 +65,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator generates a controller and views that implement CRUD (Create, Read, Update, Delete)
-            operations for the specified data model.';
+        return '这套CRUD 模板支持增删改查；目前不支持批量删除。';
     }
 
     /**

@@ -86,10 +86,10 @@ $limitsJson = \Yii::$app->params['limitsJson'];
 $getAdminList = \yii\helpers\Url::toRoute(['get-admin-list']);
 $update = \yii\helpers\Url::toRoute(['auth/update-admin-status']);
 $_csrfBackend = \Yii::$app->request->csrfToken;
-
+$base = \Yii::$app->urlManager->baseUrl.'/lib/layui/lay/modules/';
 $tableJs = <<<JS
     layui.config({
-        base: 'lib/layui/lay/modules/'
+        base: '$base'
     }).use(['form', 'layer','iconPicker'],function() {
         $ = layui.jquery,iconPicker=layui.iconPicker;  var form = F(layui.form), layer = layui.layer;
         //自定义验证规则

@@ -139,4 +139,41 @@ class ArithmeticHelper
         unset ($proArr);
         return $result;
     }
+    /**
+    * 处理无限极分类
+    */
+    public static function getTree($array,$son,$parent,$children="children"){
+        $items = array();
+        foreach($array as $value){
+          $items[$value[''.$son.'']] = $value;
+        }
+        $tree = array();
+        foreach($items as $key => $value){
+            if(isset($items[$value[''.$parent.'']])){
+               $items[$value[''.$parent.'']][''.$children.''][] = &$items[$key];
+            }else{
+               $tree[] = &$items[$key];
+            }
+        }
+        return json_encode($tree,JSON_UNESCAPED_UNICODE);
+    }
+    /**
+     * 读取某文件内容并转换为字符串
+    */
+    public static function getStrToFile($filename){
+        if(file_exists($filename)){
+            $handle = fopen($filename, "r");//读取二进制文件时，需要将第二个参数设置成'rb'
+            if(!empty(filesize ($filename))){
+                //通过filesize获得文件大小，将整个文件一下子读到一个字符串中
+                $contents = fread($handle, filesize ($filename));
+                fclose($handle);
+                return $contents;
+            }else{
+                return "";
+            }
+        }else{
+            echo '未找到改文件';
+        }
+    }
+        
 }

@@ -95,7 +95,7 @@ class Filesystem extends CodeceptionModule
     public function deleteFile($filename)
     {
         if (!file_exists($this->absolutizePath($filename))) {
-            \PHPUnit\Framework\Assert::fail('file not found');
+            \Codeception\PHPUnit\TestCase::fail('file not found');
         }
         unlink($this->absolutizePath($filename));
     }
@@ -204,7 +204,7 @@ class Filesystem extends CodeceptionModule
     public function seeFileContentsEqual($text)
     {
         $file = str_replace("\r", '', $this->file);
-        \PHPUnit\Framework\Assert::assertEquals($text, $file);
+        \Codeception\PHPUnit\TestCase::assertEquals($text, $file);
     }
 
     /**
@@ -249,7 +249,7 @@ class Filesystem extends CodeceptionModule
     {
         if ($path === '' && file_exists($filename)) {
             $this->openFile($filename);
-            \PHPUnit\Framework\Assert::assertFileExists($filename);
+            \Codeception\PHPUnit\TestCase::assertFileExists($filename);
             return;
         }
 
@@ -260,7 +260,7 @@ class Filesystem extends CodeceptionModule
         }
 
         $this->openFile($found);
-        \PHPUnit\Framework\Assert::assertFileExists($found);
+        \Codeception\PHPUnit\TestCase::assertFileExists($found);
     }
 
     /**
@@ -272,7 +272,7 @@ class Filesystem extends CodeceptionModule
     public function dontSeeFileFound($filename, $path = '')
     {
         if ($path === '') {
-            \PHPUnit\Framework\Assert::assertFileNotExists($filename);
+            \Codeception\PHPUnit\TestCase::assertFileNotExists($filename);
             return;
         }
 
@@ -280,11 +280,11 @@ class Filesystem extends CodeceptionModule
 
         if ($found === false) {
             //this line keeps a count of assertions correct
-            \PHPUnit\Framework\Assert::assertTrue(true);
+            \Codeception\PHPUnit\TestCase::assertTrue(true);
             return;
         }
 
-        \PHPUnit\Framework\Assert::assertFileNotExists($found);
+        \Codeception\PHPUnit\TestCase::assertFileNotExists($found);
     }
 
     /**

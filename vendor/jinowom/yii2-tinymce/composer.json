@@ -1,0 +1,22 @@
+{
+    "name": "jinowom/yii2-tinymce",
+    "description": "Yii2 TinyMCE widget",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "charles",
+            "email": "chareler@163.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable" : true,
+    "require": {
+        "yiisoft/yii2": "*",
+        "tinymce/tinymce": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\tinymce\\": ""
+        }
+    }
+}

@@ -1890,7 +1890,7 @@ abstract class Assert
      *
      * @psalm-template ExpectedType of object
      * @psalm-param class-string<ExpectedType> $expected
-     * @psalm-assert ExpectedType $actual
+     * @psalm-assert =ExpectedType $actual
      */
     public static function assertInstanceOf(string $expected, $actual, string $message = ''): void
     {
@@ -3436,7 +3436,7 @@ abstract class Assert
                 $attribute = $reflector->getProperty($attributeName);
 
                 if (!$attribute || $attribute->isPublic()) {
-                    return $object->$attributeName;
+                    return $object->{$attributeName};
                 }
 
                 $attribute->setAccessible(true);
@@ -3460,6 +3460,8 @@ abstract class Assert
      * Mark the test as incomplete.
      *
      * @throws IncompleteTestError
+     *
+     * @psalm-return never-return
      */
     public static function markTestIncomplete(string $message = ''): void
     {
@@ -3471,6 +3473,8 @@ abstract class Assert
      *
      * @throws SkippedTestError
      * @throws SyntheticSkippedError
+     *
+     * @psalm-return never-return
      */
     public static function markTestSkipped(string $message = ''): void
     {

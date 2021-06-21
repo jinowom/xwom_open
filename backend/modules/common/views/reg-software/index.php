@@ -2,7 +2,7 @@
 /**
  * This is the view;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-04-02 15:34
+ * @DateTime 2020-04-09 18:20
  */
 use kartik\grid\GridView;
 use kartik\grid\DataColumn;
@@ -28,7 +28,7 @@ use nickdenry\grid\toggle\components\RoundSwitchColumn;
 
 $this->title = Yii::t('app', 'Reg Softwares');
 //$this->params['breadcrumbs'][] = ['label' => Yii::t('app', 'Xp Specials'), 'url' => ['/xpaper/xp-special/index']];//上级菜单示例
-//$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $this->title;
 CrudAsset::register($this);
 
 ?>
@@ -314,6 +314,12 @@ CrudAsset::register($this);
                // 'hAlign' => GridView::ALIGN_CENTER,
                // 'vAlign' => GridView::ALIGN_MIDDLE,
            // ],
+           // [
+               // 'class' => DataColumn::class,
+               // 'attribute' => 'is_del',
+               // 'hAlign' => GridView::ALIGN_CENTER,
+               // 'vAlign' => GridView::ALIGN_MIDDLE,
+           // ],
 
                 [
                 'header' => '<div class="layui-table-cell">操作</div>',
@@ -384,7 +390,7 @@ CrudAsset::register($this);
             'panel' => [
                 'type' => "primary", 
                 'heading' => '<h3 class="panel-title"><i class="glyphicon glyphicon-th-list"></i> '.Html::encode($this->title) . Yii::t('app', 'list') . '</h3>',
-                'before' => "<em>* 你可以拖动改变单列的宽度；筛选框输入<code>" . \Yii::t('yii', '(not set)'). "</code>会只搜索值为空的数据；筛选框输入<code>" . $searchModel::EMPTY_STRING . "</code>会只搜索值为空字符的数据；筛选框输入<code>" . $searchModel::NO_EMPTY . "</code>会只搜索非空数据。</em>",
+                'before' => "<em>* 你可以拖动改变单列的宽度；筛选框输入<code>" . \Yii::t('app', '(not set)'). "</code>会只搜索值为空的数据；筛选框输入<code>" . $searchModel::EMPTY_STRING . "</code>会只搜索值为空字符的数据；筛选框输入<code>" . $searchModel::NO_EMPTY . "</code>会只搜索非空数据。</em>",
                 'after' => BulkButtonWidget::widget([
                     'buttons' => Html::a('<i class="glyphicon glyphicon-trash"></i>  ' . Yii::t('app', '删除选择'), ["bulkdelete", 'type' => "soft"], [
                         "class" => "btn btn-danger btn-xs",

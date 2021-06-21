@@ -1,0 +1,41 @@
+{
+    "name": "jinowom/yii2-pay-supports",
+    "description": "common components",
+    "keywords": ["support", "array", "collection", "config", "http", "guzzle", "throttle"],
+    "support": {
+        "issues": "https://github.com/jinowom/supports/issues",
+        "source": "https://github.com/jinowom/supports"
+    },
+    "authors": [
+        {
+            "name": "jinowom",
+            "email": "chareler@163.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "monolog/monolog": "^2.0",
+        "guzzlehttp/guzzle": "^6.5|^7.0.1"
+    },
+    "require-dev": {
+        "predis/predis": "^1.1",
+        "phpunit/phpunit": "^7.5",
+        "friendsofphp/php-cs-fixer": "^2.15",
+        "symfony/console": "^5.1"
+    },
+    "autoload": {
+        "psr-4": {
+            "jinowom\\Supports\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "jinowom\\Supports\\Tests\\": "tests/"
+        }
+    },
+    "suggest": {
+        "predis/predis": "Allows to use throttle feature",
+        "symfony/console": "Use stdout logger"
+    },
+    "license": "MIT"
+}

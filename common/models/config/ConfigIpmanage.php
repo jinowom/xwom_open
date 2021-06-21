@@ -3,13 +3,13 @@
  * This is the model class for table "ConfigIpmanage";
  * @package common\models\config;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-06 18:54 */
+ * @DateTime 2021-01-13 15:52 */
 namespace common\models\config;
 
 use Yii;
 
 /**
- * This is the model class for table "{{%config_ipmanage}}".
+ * This is the model class for table "config_ipmanage".
  *
  * @property int $id ID
  * @property string $ip IP地址
@@ -20,6 +20,7 @@ use Yii;
  * @property int $updated_at 修改时间
  * @property int $created_id 添加者
  * @property int $updated_id 修改者
+ * @property int $is_del 是否删除[0:否;1:是]
  */
 class ConfigIpmanage extends \yii\db\ActiveRecord
 {
@@ -29,7 +30,7 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
      */
     public static function tableName()
     {
-        return '{{%config_ipmanage}}';
+        return 'config_ipmanage';
     }
 
     /**
@@ -38,7 +39,7 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['status', 'start_time', 'end_time', 'created_at', 'updated_at', 'created_id', 'updated_id'], 'integer'],
+            [['status', 'start_time', 'end_time', 'created_at', 'updated_at', 'created_id', 'updated_id', 'is_del'], 'integer'],
             [['ip'], 'string', 'max' => 255],
         ];
     }
@@ -49,15 +50,16 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'ip' => Yii::t('app', 'IP地址'),
-            'status' => Yii::t('app', '状态 1: enable ; 0:disable'),
-            'start_time' => Yii::t('app', 'Start Time'),
-            'end_time' => Yii::t('app', 'End Time'),
-            'created_at' => Yii::t('app', '添加时间'),
-            'updated_at' => Yii::t('app', '修改时间'),
-            'created_id' => Yii::t('app', '添加者'),
-            'updated_id' => Yii::t('app', '修改者'),
+            'id' => 'ID',
+            'ip' => 'Ip',
+            'status' => 'Status',
+            'start_time' => 'Start Time',
+            'end_time' => 'End Time',
+            'created_at' => 'Created At',
+            'updated_at' => 'Updated At',
+            'created_id' => 'Created ID',
+            'updated_id' => 'Updated ID',
+            'is_del' => 'Is Del',
         ];
     }
     
@@ -77,16 +79,6 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
         return parent::beforeValidate();
     }
     */
-
-    /**
-     * {@inheritdoc}
-     * @return ConfigIpmanageQuery the active query used by this AR class.
-     */
-    public static function find()
-    {
-        return new ConfigIpmanageQuery(get_called_class());
-    }
-
     /**
      * beforeSave 存储数据库之前事件的实务的编排、注入；
      */ 
@@ -116,27 +108,7 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
     		return false;
     	}
     }
-    /*
-    * afterSave 保存之后的事件  示例
-    */
-//    public function afterSave($insert, $changedAttributes)
-//    {
-//        parent::afterSave($insert, $changedAttributes);
-//        if ($insert) {
-//            // 插入新数据之后修改订单状态
-//            Order::updateAll(['shipping_status' => Order::SHIPPING_STATUS1, 'shipping_at' => time()], ['trade_no' => $this->order_trade_no]);
-//        }
-//    }
-    
-    /*
-    * beforeDelete 删除之前事件 编排 ；  afterDelete 删除之后的事件编排  示例
-    */
-    
-//    public function beforeDelete()
-//    {
-//        parent::beforeDelete();
-//        
-//    }
+
     /**
     * 保证数据事务完成，否则回滚
     */
@@ -146,5 +118,31 @@ class ConfigIpmanage extends \yii\db\ActiveRecord
             self::SCENARIO_DEFAULT => self::OP_INSERT | self::OP_UPDATE | self::OP_DELETE
             // self::SCENARIO_DEFAULT => self::OP_INSERT
         ];
+    }
+    // 获取列表
+    public static function getList($parames)
+    {
+        return self::find()->select(['id', 'ip', 'status', 'from_unixtime(start_time,"%Y-%m-%d %H:%i:%s") start_time', 'from_unixtime(end_time,"%Y-%m-%d %H:%i:%s") end_time', 'created_at', 'updated_at', 'created_id', 'updated_id', 'is_del'])->Where(['is_del' => 0]);
+    }
+    // 提交添加表单
+    public static function createDo($request){
+        // 添加信息入库
+        $model = new ConfigIpmanage();
+        $model->attributes = $request;
+        if ($model->save()) {
+            return true;
+        } else {
+            return json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE);
+        }
+    }
+    //提交修改表单
+    public static function updateDo($request){
+        $model = self::findOne($request['id']);
+        $model->attributes = $request;
+        if ($model->save()) {
+            return true;
+        } else {
+            return json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE);
+        }
     }
 }

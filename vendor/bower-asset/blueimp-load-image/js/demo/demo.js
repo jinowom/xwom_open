@@ -11,15 +11,20 @@
 
 /* global loadImage, $ */
 
-$(function() {
+$(function () {
   'use strict'
 
-  var result = $('#result')
-  var exifNode = $('#exif')
-  var iptcNode = $('#iptc')
+  var resultNode = $('#result')
+  var metaNode = $('#meta')
   var thumbNode = $('#thumbnail')
   var actionsNode = $('#actions')
-  var currentFile
+  var orientationNode = $('#orientation')
+  var imageSmoothingNode = $('#image-smoothing')
+  var fileInputNode = $('#file-input')
+  var urlNode = $('#url')
+  var editNode = $('#edit')
+  var cropNode = $('#crop')
+  var cancelNode = $('#cancel')
   var coordinates
   var jcropAPI
 
@@ -27,15 +32,22 @@ $(function() {
    * Displays tag data
    *
    * @param {*} node jQuery node
-   * @param {object} tags Tags object
+   * @param {object} tags Tags map
+   * @param {string} title Tags title
    */
-  function displayTagData(node, tags) {
-    var table = node.find('table').empty()
+  function displayTagData(node, tags, title) {
+    var table = $('<table></table>')
     var row = $('<tr></tr>')
     var cell = $('<td></td>')
+    var headerCell = $('<th colspan="2"></th>')
     var prop
+    table.append(row.clone().append(headerCell.clone().text(title)))
     for (prop in tags) {
       if (Object.prototype.hasOwnProperty.call(tags, prop)) {
+        if (typeof tags[prop] === 'object') {
+          displayTagData(node, tags[prop], prop)
+          continue
+        }
         table.append(
           row
             .clone()
@@ -44,7 +56,7 @@ $(function() {
         )
       }
     }
-    node.show()
+    node.append(table).show()
   }
 
   /**
@@ -56,11 +68,15 @@ $(function() {
    */
   function displayThumbnailImage(node, thumbnail, options) {
     if (thumbnail) {
-      thumbNode.empty()
+      var link = $('<a></a>')
+        .attr('href', loadImage.createObjectURL(thumbnail))
+        .attr('download', 'thumbnail.jpg')
+        .appendTo(node)
       loadImage(
         thumbnail,
-        function(img) {
-          node.append(img).show()
+        function (img) {
+          link.append(img)
+          node.show()
         },
         options
       )
@@ -68,57 +84,79 @@ $(function() {
   }
 
   /**
-   * Displays meta data
+   * Displays metadata
    *
-   * @param {object} [data] Meta data object
+   * @param {object} [data] Metadata object
    */
   function displayMetaData(data) {
     if (!data) return
+    metaNode.data(data)
     var exif = data.exif
     var iptc = data.iptc
     if (exif) {
-      displayThumbnailImage(thumbNode, exif.get('Thumbnail'), {
-        orientation: exif.get('Orientation')
-      })
-      displayTagData(exifNode, exif.getAll())
+      var thumbnail = exif.get('Thumbnail')
+      if (thumbnail) {
+        displayThumbnailImage(thumbNode, thumbnail.get('Blob'), {
+          orientation: exif.get('Orientation')
+        })
+      }
+      displayTagData(metaNode, exif.getAll(), 'TIFF')
     }
     if (iptc) {
-      displayTagData(iptcNode, iptc.getAll())
+      displayTagData(metaNode, iptc.getAll(), 'IPTC')
     }
+  }
+
+  /**
+   * Removes meta data from the page
+   */
+  function removeMetaData() {
+    metaNode.hide().removeData().find('table').remove()
+    thumbNode.hide().empty()
   }
 
   /**
    * Updates the results view
    *
    * @param {*} img Image or canvas element
-   * @param {object} [data] Meta data object
+   * @param {object} [data] Metadata object
+   * @param {boolean} [keepMetaData] Keep meta data if true
    */
-  function updateResults(img, data) {
-    var fileName = currentFile.name
-    var href = currentFile.url || img.src
-    var dataURLStart
-    var content
-    if (!(img.src || img instanceof HTMLCanvasElement)) {
-      content = $('<span>Loading image file failed</span>')
-    } else {
-      if (!href) {
-        href = img.toDataURL(currentFile.type)
-        // Check if file type is supported for the dataURL export:
-        dataURLStart = 'data:' + currentFile.type
-        if (href.slice(0, dataURLStart.length) !== dataURLStart) {
-          fileName = fileName.replace(/\.\w+$/, '.png')
-        }
+  function updateResults(img, data, keepMetaData) {
+    var isCanvas = window.HTMLCanvasElement && img instanceof HTMLCanvasElement
+    if (!keepMetaData) {
+      removeMetaData()
+      if (data) {
+        displayMetaData(data)
       }
-      content = $('<a target="_blank">')
-        .append(img)
-        .attr('download', fileName)
-        .attr('href', href)
+      if (isCanvas) {
+        actionsNode.show()
+      } else {
+        actionsNode.hide()
+      }
     }
-    result.children().replaceWith(content)
-    if (img.getContext) {
-      actionsNode.show()
+    if (!(isCanvas || img.src)) {
+      resultNode
+        .children()
+        .replaceWith($('<span>Loading image file failed</span>'))
+      return
     }
-    displayMetaData(data)
+    var content = $('<a></a>').append(img)
+    resultNode.children().replaceWith(content)
+    if (data.imageHead) {
+      if (data.exif) {
+        // Reset Exif Orientation data:
+        loadImage.writeExifData(data.imageHead, data, 'Orientation', 1)
+      }
+      img.toBlob(function (blob) {
+        if (!blob) return
+        loadImage.replaceHead(blob, data.imageHead, function (newBlob) {
+          content
+            .attr('href', loadImage.createObjectURL(newBlob))
+            .attr('download', 'image.jpg')
+        })
+      }, 'image/jpeg')
+    }
   }
 
   /**
@@ -128,17 +166,17 @@ $(function() {
    */
   function displayImage(file) {
     var options = {
-      maxWidth: result.width(),
+      maxWidth: resultNode.width(),
       canvas: true,
       pixelRatio: window.devicePixelRatio,
       downsamplingRatio: 0.5,
-      orientation: true
+      orientation: Number(orientationNode.val()) || true,
+      imageSmoothingEnabled: imageSmoothingNode.is(':checked'),
+      meta: true
     }
-    exifNode.hide()
-    iptcNode.hide()
-    thumbNode.hide()
     if (!loadImage(file, updateResults, options)) {
-      result
+      removeMetaData()
+      resultNode
         .children()
         .replaceWith(
           $(
@@ -163,7 +201,6 @@ $(function() {
     if (!file) {
       return
     }
-    currentFile = file
     displayImage(file)
   }
 
@@ -172,71 +209,84 @@ $(function() {
    */
   function urlChangeHandler() {
     var url = $(this).val()
-    if (!url || (currentFile && currentFile.url === url)) return
-    currentFile = {
-      name: url.replace(/^.*\//g, ''),
-      url: url
-    }
-    displayImage(url)
+    if (url) displayImage(url)
   }
 
-  // Hide URL/FileReader API requirement message in capable browsers:
+  // Show the URL/FileReader API requirement message if not supported:
   if (
     window.createObjectURL ||
     window.URL ||
     window.webkitURL ||
     window.FileReader
   ) {
-    result.children().hide()
+    resultNode.children().hide()
+  } else {
+    resultNode.children().show()
   }
 
   $(document)
-    .on('dragover', function(e) {
+    .on('dragover', function (e) {
       e.preventDefault()
-      var originalEvent = event.originalEvent
-      if (originalEvent) originalEvent.dataTransfer.dropEffect = 'copy'
+      if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy'
     })
     .on('drop', fileChangeHandler)
 
-  $('#file-input').on('change', fileChangeHandler)
+  fileInputNode.on('change', fileChangeHandler)
 
-  $('#url').on('change paste input', urlChangeHandler)
+  urlNode.on('change paste input', urlChangeHandler)
 
-  $('#edit').on('click', function(event) {
+  orientationNode.on('change', function () {
+    var img = resultNode.find('img, canvas')[0]
+    if (img) {
+      updateResults(
+        loadImage.scale(img, {
+          maxWidth: resultNode.width() * (window.devicePixelRatio || 1),
+          pixelRatio: window.devicePixelRatio,
+          orientation: Number(orientationNode.val()) || true,
+          imageSmoothingEnabled: imageSmoothingNode.is(':checked')
+        }),
+        metaNode.data(),
+        true
+      )
+    }
+  })
+
+  editNode.on('click', function (event) {
     event.preventDefault()
-    var imgNode = result.find('img, canvas')
+    var imgNode = resultNode.find('img, canvas')
     var img = imgNode[0]
     var pixelRatio = window.devicePixelRatio || 1
+    var margin = img.width / pixelRatio >= 140 ? 40 : 0
     imgNode
       // eslint-disable-next-line new-cap
       .Jcrop(
         {
           setSelect: [
-            40,
-            40,
-            img.width / pixelRatio - 40,
-            img.height / pixelRatio - 40
+            margin,
+            margin,
+            img.width / pixelRatio - margin,
+            img.height / pixelRatio - margin
           ],
-          onSelect: function(coords) {
+          onSelect: function (coords) {
             coordinates = coords
           },
-          onRelease: function() {
+          onRelease: function () {
             coordinates = null
           }
         },
-        function() {
+        function () {
           jcropAPI = this
         }
       )
       .parent()
-      .on('click', function(event) {
+      .on('click', function (event) {
         event.preventDefault()
       })
   })
 
-  $('#crop').on('click', function(event) {
+  cropNode.on('click', function (event) {
     event.preventDefault()
-    var img = result.find('img, canvas')[0]
+    var img = resultNode.find('img, canvas')[0]
     var pixelRatio = window.devicePixelRatio || 1
     if (img && coordinates) {
       updateResults(
@@ -245,18 +295,23 @@ $(function() {
           top: coordinates.y * pixelRatio,
           sourceWidth: coordinates.w * pixelRatio,
           sourceHeight: coordinates.h * pixelRatio,
-          minWidth: result.width(),
-          maxWidth: result.width(),
+          maxWidth: resultNode.width() * pixelRatio,
+          contain: true,
           pixelRatio: pixelRatio,
-          downsamplingRatio: 0.5
-        })
+          imageSmoothingEnabled: imageSmoothingNode.is(':checked')
+        }),
+        metaNode.data(),
+        true
       )
       coordinates = null
     }
   })
 
-  $('#cancel').on('click', function(event) {
+  cancelNode.on('click', function (event) {
     event.preventDefault()
-    if (jcropAPI) jcropAPI.release()
+    if (jcropAPI) {
+      jcropAPI.release()
+      jcropAPI.disable()
+    }
   })
 })

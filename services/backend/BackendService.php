@@ -3,11 +3,11 @@
 namespace services\backend;
 
 use Yii;
-//use common\enums\AppEnum;
+use common\enums\AppEnum;
 use common\components\Service;
 
 /**
- * Class BackendService
+ * Class ApiService
  * @package services\backend
  * @author Womtech  email:chareler@163.com
  */

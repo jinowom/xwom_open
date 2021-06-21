@@ -2,38 +2,45 @@
 /**
  * Class name is ConfigFunctionlogSearch * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-07 15:17 
+ * @DateTime 2020-04-14 23:27 
  */
 
 namespace common\models\log;
 
+use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
+use yii\db\Expression;
+use yii\helpers\ArrayHelper;
 use common\models\log\ConfigFunctionlog;
 
 /**
- * ConfigFunctionlogSearch represents the model behind the search form of `common\models\log\ConfigFunctionlog`.
+ * ConfigFunctionlogSearch represents the model behind the search form about `common\models\log\ConfigFunctionlog`.
  */
 class ConfigFunctionlogSearch extends ConfigFunctionlog
 {
+    const EMPTY_STRING = "(空字符)";
+    const NO_EMPTY = "(非空)";
+    const SCENARIO_EDITABLE = 'editable';
+
+    public function scenarios()
+    {
+        return ArrayHelper::merge(parent::scenarios(), [
+            self::SCENARIO_EDITABLE => [],
+        ]);
+    }
+
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function rules()
     {
         return [
-            [['id', 'merchant_id', 'user_id', 'error_code', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['app_id', 'method', 'module', 'controller', 'action', 'url', 'get_data', 'post_data', 'header_data', 'ip', 'error_msg', 'error_data', 'req_id', 'user_agent', 'device', 'device_uuid', 'device_version', 'device_app_version'], 'safe'],
+            [['id', 'merchant_id', 'user_id', 'error_code'], 'integer'],
+            [['app_id', 'method', 'module', 'controller', 'action', 'url', 'get_data', 'post_data', 'header_data', 'ip', 'error_msg', 'error_data', 'req_id', 'user_agent', 'device', 'device_uuid', 'device_version', 'device_app_version', 'status'], 'safe'],
+            [['created_at', 'updated_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
     /**
      * 创建时间  如果不需要或者该数据模型 没有 created_at 字段，您应该删除
@@ -50,62 +57,80 @@ class ConfigFunctionlogSearch extends ConfigFunctionlog
         }
         return $createAt;
     }
+    
     /**
      * Creates data provider instance with search query applied
-     *
      * @param array $params
-     *
      * @return ActiveDataProvider
      */
     public function search($params)
     {
-        $query = ConfigFunctionlog::find();
-
-        // add conditions that should always apply here
-
-        $dataProvider = new ActiveDataProvider([
-            'pagination' => ['pageSize' => 10,],
-            'query' => $query,
-        ]);
-
+        $query = self::find();
         $this->load($params);
-
-        if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
-            return $dataProvider;
+        if ( ! is_null($this->created_at) && strpos($this->created_at, ' - ') !== false ) {
+            list($s, $e) = explode(' - ', $this->created_at);
+            $query->andFilterWhere(['between', 'created_at', strtotime($s), strtotime($e)]);
         }
-
-        // grid filtering conditions
+        if ( ! is_null($this->updated_at) && strpos($this->updated_at, ' - ') !== false ) {
+            list($s, $e) = explode(' - ', $this->updated_at);
+            $query->andFilterWhere(['between', 'updated_at', strtotime($s), strtotime($e)]);
+        }
         $query->andFilterWhere([
             'id' => $this->id,
             'merchant_id' => $this->merchant_id,
             'user_id' => $this->user_id,
             'error_code' => $this->error_code,
-            'status' => $this->status,
-            'created_at' => $this->created_at,
-            'updated_at' => $this->updated_at,
         ]);
-
-        $query->andFilterWhere(['like', 'app_id', $this->app_id])
-            ->andFilterWhere(['like', 'method', $this->method])
-            ->andFilterWhere(['like', 'module', $this->module])
-            ->andFilterWhere(['like', 'controller', $this->controller])
-            ->andFilterWhere(['like', 'action', $this->action])
-            ->andFilterWhere(['like', 'url', $this->url])
-            ->andFilterWhere(['like', 'get_data', $this->get_data])
-            ->andFilterWhere(['like', 'post_data', $this->post_data])
-            ->andFilterWhere(['like', 'header_data', $this->header_data])
-            ->andFilterWhere(['like', 'ip', $this->ip])
-            ->andFilterWhere(['like', 'error_msg', $this->error_msg])
-            ->andFilterWhere(['like', 'error_data', $this->error_data])
-            ->andFilterWhere(['like', 'req_id', $this->req_id])
-            ->andFilterWhere(['like', 'user_agent', $this->user_agent])
-            ->andFilterWhere(['like', 'device', $this->device])
-            ->andFilterWhere(['like', 'device_uuid', $this->device_uuid])
-            ->andFilterWhere(['like', 'device_version', $this->device_version])
-            ->andFilterWhere(['like', 'device_app_version', $this->device_app_version]);
-
+        $this->filterLike($query, 'app_id');
+        $this->filterLike($query, 'method');
+        $this->filterLike($query, 'module');
+        $this->filterLike($query, 'controller');
+        $this->filterLike($query, 'action');
+        $this->filterLike($query, 'url');
+        $this->filterLike($query, 'get_data');
+        $this->filterLike($query, 'post_data');
+        $this->filterLike($query, 'header_data');
+        $this->filterLike($query, 'ip');
+        $this->filterLike($query, 'error_msg');
+        $this->filterLike($query, 'error_data');
+        $this->filterLike($query, 'req_id');
+        $this->filterLike($query, 'user_agent');
+        $this->filterLike($query, 'device');
+        $this->filterLike($query, 'device_uuid');
+        $this->filterLike($query, 'device_version');
+        $this->filterLike($query, 'device_app_version');
+        $this->filterLike($query, 'status');;
+        $dataProvider = new ActiveDataProvider([
+            //'pagination' => ['pageSize' => 3,],
+            'query' => $query,
+            'sort' => ['defaultOrder' => ['id' => SORT_DESC]],
+            ]);
+        if (!$this->validate()) {
+            return $dataProvider;
+        }
         return $dataProvider;
+    }
+
+    /**
+     * @param ActiveQuery $query
+     * @param $attribute
+     */
+    protected function filterLike(&$query, $attribute)
+    {
+        $this->$attribute = trim($this->$attribute);
+        switch($this->$attribute){
+            case \Yii::t('app', '(not set)'):
+                $query->andFilterWhere(['IS', $attribute, new Expression('NULL')]);
+                break;
+            case self::EMPTY_STRING:
+                $query->andWhere([$attribute => '']);
+                break;
+            case self::NO_EMPTY:
+                $query->andWhere(['IS NOT', $attribute, new Expression('NULL')])->andWhere(['<>', $attribute, '']);
+                break;
+            default:
+                $query->andFilterWhere(['like', $attribute, $this->$attribute]);
+                break;
+        }
     }
 }

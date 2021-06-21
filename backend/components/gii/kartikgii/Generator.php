@@ -5,8 +5,8 @@
  * @license http://www.yiiframework.com/license/
  */
 
-namespace warrence\kartikgii\crud;
-//namespace backend\components\gii\kartikgii;
+//namespace warrence\kartikgii\crud;
+namespace backend\components\gii\kartikgii;
 
 use Yii;
 use yii\db\ActiveRecord;
@@ -31,6 +31,7 @@ use yii\web\Controller;
  */
 class Generator extends \yii\gii\generators\crud\Generator
 {
+    public $showName = 'Kartik CRUD Generator';
     public $modelClass;
     public $moduleID;
     public $controllerClass;
@@ -43,7 +44,8 @@ class Generator extends \yii\gii\generators\crud\Generator
      */
     public function getName()
     {
-        return 'Kartik CRUD Generator';
+        //return 'Kartik CRUD Generator';
+        return $this->showName;
     }
 
     /**
@@ -51,8 +53,7 @@ class Generator extends \yii\gii\generators\crud\Generator
      */
     public function getDescription()
     {
-        return 'This generator generates a controller and views that implement CRUD (Create, Read, Update, Delete)
-            operations for the specified data model.';
+        return '这套CRUD 模板支持增删改查；目前不支持批量删除。';
     }
 
     /**

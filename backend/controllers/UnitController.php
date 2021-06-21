@@ -27,8 +27,12 @@ class UnitController extends BaseController
     public function actionUnitList(){
         $isSuper = self::IsSuperAdmin($this->user_id);
         $unitName = $this->get('unitName');
-
-        return $this->render('unitlist',['unitName'=>$unitName,'isSuper'=>$isSuper]);
+        $title = self::getMenuName();
+        return $this->render('unitlist',[
+            'unitName' => $unitName,
+            'isSuper'=> $isSuper,
+            'title'=> $title
+        ]);
     }
 
     /**

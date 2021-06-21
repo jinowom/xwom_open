@@ -8,6 +8,7 @@ use Codeception\Exception\ModuleException;
 use Codeception\Lib\Connector\Yii2 as Yii2Connector;
 use Codeception\Lib\Framework;
 use Codeception\Lib\Interfaces\ActiveRecord;
+use Codeception\Lib\Interfaces\MultiSession;
 use Codeception\Lib\Interfaces\PartedModule;
 use Codeception\TestInterface;
 use Codeception\Util\Debug;
@@ -178,7 +179,7 @@ use yii\db\Transaction;
  *
  * @property \Codeception\Lib\Connector\Yii2 $client
  */
-class Yii2 extends Framework implements ActiveRecord, PartedModule
+class Yii2 extends Framework implements ActiveRecord, MultiSession, PartedModule
 {
     /**
      * Application config file must be set.
@@ -188,7 +189,7 @@ class Yii2 extends Framework implements ActiveRecord, PartedModule
         'fixturesMethod' => '_fixtures',
         'cleanup'     => true,
         'ignoreCollidingDSN' => false,
-        'transaction' => null,
+        'transaction' => true,
         'entryScript' => '',
         'entryUrl'    => 'http://localhost/index-test.php',
         'responseCleanMethod' => Yii2Connector::CLEAN_CLEAR,
@@ -573,7 +574,7 @@ class Yii2 extends Framework implements ActiveRecord, PartedModule
         $record->setAttributes($attributes, false);
         $res = $record->save(false);
         if (!$res) {
-            $this->fail("Record $model was not saved");
+            $this->fail("Record $model was not saved: " . \yii\helpers\Json::encode($record->errors));
         }
         return $record->primaryKey;
     }
@@ -865,5 +866,63 @@ class Yii2 extends Framework implements ActiveRecord, PartedModule
         codecept_debug('Suite done, restoring $_SERVER to original');
 
         $_SERVER = $this->server;
+    }
+
+    /**
+     * Initialize an empty session. Implements MultiSession.
+     */
+    public function _initializeSession()
+    {
+        $this->client->removeContext();
+        $this->headers = [];
+        $_SESSION = [];
+        $_COOKIE = [];
+    }
+
+    /**
+     * Return the session content for future restoring. Implements MultiSession.
+     * @return array backup data
+     */
+    public function _backupSession()
+    {
+        if (isset(Yii::$app) && Yii::$app->session->useCustomStorage) {
+            throw new ModuleException($this, "Yii2 MultiSession only supports the default session backend.");
+        }
+        return [
+            'clientContext' => $this->client->getContext(),
+            'headers' => $this->headers,
+            'cookie' => isset($_COOKIE) ? $_COOKIE : [],
+            'session' => isset($_SESSION) ? $_SESSION : [],
+        ];
+    }
+
+    /**
+     * Restore a session. Implements MultiSession.
+     * @param array output of _backupSession()
+     */
+    public function _loadSession($session)
+    {
+        $this->client->setContext($session['clientContext']);
+        $this->headers = $session['headers'];
+        $_SESSION = $session['session'];
+        $_COOKIE = $session['cookie'];
+
+        // reset Yii::$app->user
+        if (isset(Yii::$app)) {
+            $definitions = Yii::$app->getComponents(true);
+            if (Yii::$app->has('user', true)) {
+                Yii::$app->set('user', $definitions['user']);
+            }
+        }
+    }
+
+    /**
+     * Close and dump a session. Implements MultiSession.
+     */
+    public function _closeSession($session = null)
+    {
+        if (!$session) {
+            $this->_initializeSession();
+        }
     }
 }

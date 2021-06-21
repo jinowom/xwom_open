@@ -16,10 +16,10 @@ use common\models\auth\AuthItem;
 use common\models\auth\AuthPermission;
 use common\models\reg\RegSoftware;
 use common\models\User;
-use common\utils\LogUtil;
 use common\utils\ToolUtil;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+use Yii;
 
 class AuthController extends BaseController
 {
@@ -138,6 +138,7 @@ class AuthController extends BaseController
             $data[$key]['orderNumber'] = $list->orderSort;
             $data[$key]['parentId'] = !empty($list->parentName) ? $list->parentName : 0;
             $data[$key]['updateTime'] = $list->updatedAt;
+            $data[$key]['status'] = $list->status;
             $key++;
         }
         return $this->asJson([
@@ -185,14 +186,7 @@ class AuthController extends BaseController
             $query->andWhere(['<=','created_at',$endTime]);
         }
         $this->sidx = 'order_sort DESC,created_at';
-        $dealFunction = function ($lists){
-            foreach ($lists as $key => $list){
-                $lists[$key]['created_at'] = ToolUtil::getDate($list['created_at'],"Y-m-d H:i:s");
-                $lists[$key]['updated_at'] = ToolUtil::getDate($list['updated_at'],"Y-m-d H:i:s");
-            }
-            return $lists;
-        };
-        return $this->getJqTableData($query,$dealFunction);
+        return $this->getJqTableData($query);
     }
 
     /**
@@ -288,7 +282,6 @@ class AuthController extends BaseController
                 $lists[$key]['unit'] = AdminUnit::findValueByWhere(['unitid' => $unitid],'name',['unitid'=>SORT_DESC]);
 
                 $lists[$key]['roleName'] = $roleName;
-                $lists[$key]['created_at'] = ToolUtil::getDate($list['created_at'],"Y-m-d H:i:s");
             }
             return $lists;
         };
@@ -477,32 +470,9 @@ class AuthController extends BaseController
      * @Author Weihuaadmin@163.com
      */
     public function actionUpdateMenu(){
-        $menuId = $this->post('ids');
+        $oldName = $this->post('ids');
         $newName = $this->post('name');
-        $isExist = AuthItem::findValueByWhere(['name' => $newName],["name"],["name"=>$newName]);
-        if($isExist){
-            return ToolUtil::returnAjaxMsg(false,'抱歉该标识已经存在！');
-        }
-        $menuInfo = AuthItem::findOne($menuId);
-        if($menuInfo){
-            $transaction = \Yii::$app->db->beginTransaction();
-            try{
-                $updateRes = AuthItem::updateAll(['updated_at' => time(), 'name' => $newName],"name =:name",[":name"=>$menuId]);
-                AuthItem::updateAll(['updated_at' => time(),'parent_name' => $newName],"parent_name=:parent_name",[":parent_name"=>$menuId]);
-                if($updateRes){
-                    $transaction->commit();
-                    return ToolUtil::returnAjaxMsg(true,'操作成功');
-                }
-                $transaction->rollBack();
-                return ToolUtil::returnAjaxMsg(false,'操作失败');
-            }catch (\Exception $e){
-                $transaction->rollBack();
-                LogUtil::setExceptionLog('update Menu',$e);
-                return ToolUtil::returnAjaxMsg(false,'操作失败');
-            }
-        }
-        return ToolUtil::returnAjaxMsg(false,'操作失败');
-
+        return $this->asJson(AuthItem::updateMenu($oldName,$newName));
     }
 
     /**
@@ -597,4 +567,31 @@ class AuthController extends BaseController
         return ToolUtil::returnAjaxMsg(false);
     }
 
+    //修改菜单显示状态
+    public function actionUpdateStatus(){
+        $request = Yii::$app->request->post();
+        $model = AuthItem::findOne($request['name']);
+        $model->status = $request['status'];
+        if ($model->save()) {
+            $this->returnSuccess('','success');
+        } else {
+            $this->returnError('',json_encode($model->getErrors(),JSON_UNESCAPED_UNICODE));
+        }
+    }
+    //批量修改菜单显示状态
+    public function actionUpdateStatusAll(){
+        $request = Yii::$app->request->post();
+        $array = explode(',',$request['name']);
+        unset($array[0]);
+        if(!empty($array)){
+            foreach ($array as $key => $value) {
+                $model = AuthItem::findOne($value);
+                $model->status = $request['status'];
+                $model->save();
+            }   
+            $this->returnSuccess('','success');
+        }else{
+            $this->returnError('','请选择要操作的数据');
+        }
+    }
 }

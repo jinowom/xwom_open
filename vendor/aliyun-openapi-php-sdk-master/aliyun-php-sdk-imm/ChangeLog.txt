@@ -1,0 +1,238 @@
+2021-02-19 Version: 1.19.1
+- Support feedback.
+
+2021-02-19 Version: 1.19.1
+- Support feedback.
+
+2021-01-13 Version: 1.19.2
+- Support drm.
+
+2021-01-13 Version: 1.19.2
+- Support drm.
+
+2021-01-13 Version: 1.19.2
+- Support drm.
+
+2021-01-13 Version: 1.19.2
+- Support drm.
+
+2021-01-13 Version: 1.20.0
+- Minor chagnes.
+
+2020-12-29 Version: 1.19.2
+- Support drm.
+
+2020-12-22 Version: 1.21.0
+- Minor chagnes.
+
+2020-12-22 Version: 1.20.0
+- Minor chagnes.
+
+2020-12-17 Version: 1.19.1
+- Support feedback.
+
+2020-12-17 Version: 1.19.2
+- Support drm.
+
+2020-11-12 Version: 1.19.2
+- Support drm.
+
+2020-10-23 Version: 1.19.1
+- Support feedback.
+
+2020-03-09 Version: 1.15.8
+- Add EmotionConfidence to GetImage.
+
+2020-02-10 Version: 1.15.7
+- Supported address for GetMediaMeta.
+
+2020-02-05 Version: 1.15.6
+- Supported GetOfficePreviewURL.
+- Supported RefreshOfficePreviewToken.
+
+2020-01-08 Version: 1.15.5
+- Add TagLevel to ListSetTags.
+
+2019-12-31 Version: 1.15.4
+- Supported image for process.
+
+2019-11-28 Version: 1.15.3
+- Supported dash for compress.
+
+2019-11-13 Version: 1.15.2
+- Supported Stream analyse.
+
+2019-10-22 Version: 1.15.1
+- Supported ExternalId IMM.
+
+2019-10-08 Version: 1.15.0
+- Supported Grab Frame IMM.
+
+2019-09-19 Version: 1.10.8
+- Supported Video Abstract for IMM.
+
+2019-09-19 Version: 1.10.7
+- Supported Video Abstract for IMM.
+
+2019-08-30 Version: 1.10.5
+- Supported Meida complex for IMM.
+
+2019-08-06 Version: 1.10.4
+- Supported GetMediaMeta for IMM.
+
+2019-08-06 Version: 1.10.4
+- Supported GetMediaMeta for IMM.
+
+2019-08-06 Version: 1.10.4
+- Supported GetMediaMeta for IMM.
+
+2019-08-06 Version: 1.10.4
+- Supported GetMediaMeta for IMM.
+
+2019-08-06 Version: 1.10.4
+- Supported GetMediaMeta for IMM.
+
+2019-06-12 Version: 1.10.3
+1.Fix bug
+
+2019-05-27 Version: 1.10.3
+1, Support video transcode.
+
+2019-05-14 Version: 1.10.2
+1, Support body detect.
+
+2019-05-14 Version: 1.10.2
+1, support body detect
+
+2019-05-14 Version: 1.10.2
+1, Support body detect.
+
+2019-05-14 Version: 1.10.2
+1, Support body detect.
+
+2019-05-14 Version: 1.10.2
+1, Support body detect.
+
+2019-05-14 Version: 1.10.2
+1, Support body detect.
+
+2019-04-16 Version: 1.10.1
+1, Add group api.
+
+2019-04-16 Version: 1.10.1
+1, Add group api.
+
+2019-04-16 Version: 1.10.1
+1, Add group api.
+
+2019-04-16 Version: 1.10.1
+1, Add group api.
+
+2019-04-15 Version: 1.10.1
+1, Add Group Api.
+
+
+2019-03-28 Version: 1.10.0
+1, Add logo detect.
+
+2019-03-11 Version: 1.9.0
+1, Add face grouping feature .
+2, Add head pose and face quality.
+
+
+2019-01-29 Version: 1.8.0
+1, Make obsolete api offline.
+2, Fix some bug.
+
+
+2019-01-11 Version: 1.8.4
+1, CreateOfficeConversionTask, ConvertOfficeFormat support Hidecomments
+
+2019-01-09 Version: 1.8.3
+1, Add user role support.
+
+2019-01-09 Version: 1.8.2
+1, Add user role support.
+2, Add new APIs for IMM.
+
+2018-12-28 Version: 1.8.1
+1, Add new set image video api
+
+2018-12-28 Version: 1.8.0
+1, Add new set image video api
+
+2018-12-28 Version: 1.8.0
+1, Add new set image video api
+
+2018-12-28 Version: 1.8.0
+1, Add new set image video api
+
+2018-12-28 Version: 1.8.0
+1, Add new set image video api.
+
+
+2018-12-28 Version: 1.7.2
+1, Add new set image video api.
+2, Add video async task api.
+
+2018-12-05 Version: 1.7.2
+1, Add image async job.
+2, Fix group bug.
+
+2018-11-27 Version: 1.7.1
+1, ConvertOfficeFormat support TgtFilePrefix, TgtFileSuffix, TgtFilePages, FitToPagesTall, FitToPagesWide
+
+2018-11-27 Version: 1.7.0
+1, add doc index api
+
+2018-11-15 Version: 1.6.2
+1, update version
+
+2018-11-15 Version: 1.6.1
+1, update version.
+
+2018-11-15 Version: 1.6.0
+1, Remove FaceCompare, FaceRegist, FaceSearch api.
+2, Add DetectLogo api.
+3, CreateOfficeConversionTask support IdempotentToken.
+
+2018-10-10 Version: 1.6.0
+1, add UpdateProject api, support update CU, ServiceRole
+2, PutProject not support edit
+3, CreateOfficeConversionTask api now supports FitToPagesTall, FitToPagesWide
+4, Remove paramater Engines, Indexers from project apis
+
+2018-08-24 Version: 1.5.4
+1, Add api: DetectQRCode
+
+2018-08-21 Version: 1.5.3
+1, DeleteFaceSearchImageByIdRequest add field: srcUri(String).
+2, CreateFaceSetResponse  add field: faces(Long).
+3, GetFaceSetResponse add field: faces(Long).
+4, Fix class Blurness in IndexFaceResponse.
+
+2018-08-04 Version: 1.5.2
+1, CreateOfficeConversionTask add TgtFilePages field to specify the final uploaded page
+
+2018-07-23 Version: 1.5.1
+1, CreateOfficeConversionTask add two fields: TgtFilePrefix and TgtFileSuffix, for setting up the definition of the converted object name.
+
+2018-07-04 Version: 1.5.0
+1, Add new function getFaceDetail
+
+2018-06-28 Version: 1.4.0
+1, Add: ConvertOfficeFormat,PutProject
+2, Update: GetProject,IndexFace,ListProjects
+
+2018-06-19 Version: 1.3.0
+1, Add 2 API: DeleteFaceById, UpdateFaceGroupById
+
+2018-05-28 Version: 1.2.0
+1, Fix fields of FaceDetect API
+
+2018-05-15 Version: 1.1.0
+1, Add some APIs: CreateOfficeConversionTask,DeleteFaceByUrl,DeleteTagByName,etc.
+
+2018-04-27 Version: 1.0.0
+1, IMM 1.0.0
+

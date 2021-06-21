@@ -2,7 +2,7 @@
 /**
  * Class name is RegSoftwareSearch * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-04-02 15:34 
+ * @DateTime 2020-04-09 18:20 
  */
 
 namespace common\models\reg;
@@ -38,7 +38,7 @@ class RegSoftwareSearch extends RegSoftware
     {
         return [
             [['id', 'created_id', 'updated_id', 'sortOrder'], 'integer'],
-            [['title', 'name', 'title_initial', 'bootstrap', 'service', 'cover', 'brief_introduction', 'description', 'author', 'version', 'is_setting', 'is_rule', 'parent_rule_name', 'route_map', 'default_config', 'console', 'status'], 'safe'],
+            [['title', 'name', 'title_initial', 'bootstrap', 'service', 'cover', 'brief_introduction', 'description', 'author', 'version', 'is_setting', 'is_rule', 'parent_rule_name', 'route_map', 'default_config', 'console', 'status', 'is_del'], 'safe'],
             [['created_at', 'updated_at'], 'match', 'pattern' => '/^.+\s\-\s.+$/'],
         ];
     }
@@ -97,7 +97,8 @@ class RegSoftwareSearch extends RegSoftware
         $this->filterLike($query, 'route_map');
         $this->filterLike($query, 'default_config');
         $this->filterLike($query, 'console');
-        $this->filterLike($query, 'status');;
+        $this->filterLike($query, 'status');
+        $this->filterLike($query, 'is_del');
         $dataProvider = new ActiveDataProvider([
             //'pagination' => ['pageSize' => 3,],
             'query' => $query,
@@ -117,7 +118,7 @@ class RegSoftwareSearch extends RegSoftware
     {
         $this->$attribute = trim($this->$attribute);
         switch($this->$attribute){
-            case \Yii::t('yii', '(not set)'):
+            case \Yii::t('app', '(not set)'):
                 $query->andFilterWhere(['IS', $attribute, new Expression('NULL')]);
                 break;
             case self::EMPTY_STRING:

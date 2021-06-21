@@ -12,7 +12,7 @@ AppAsset::register($this);
 /* @var $searchModel backend\modules\common\models\WomPlanSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 $this->title = Yii::t('app', 'Wom Plans');
-$this->params['breadcrumbs'][] = $this->title;
+$this->params['breadcrumbs'][] = $this->title
 ?>
 <!-- 面包屑 -->
 <?= \Yii::$app->view->renderFile('@app/views/public/breadcrumb.php')?>
@@ -137,9 +137,9 @@ $this->params['breadcrumbs'][] = $this->title;
 				'buttons' => [
                                         'view' => function ($url, $model, $key){
                                             //return Html::a('查看', Url::to(['view','id'=>$model->id]), ['class' => "layui-btn layui-btn-xs layui-default-view"]);
-                                            return Html::Button('查看',
+                                            return Html::Button(Yii::t('app', 'View'),
                                                     [
-                                                    'onclick' => 'xadmin.open("查看", "'.$url.'",500,550)',
+                                                    'onclick' => 'xadmin.open("'.Yii::t('app', 'View').'", "'.$url.'",500,550)',
                                                     'data-target' => '#view-modal',
                                                     'class' => 'layui-btn layui-btn-xs layui-default-view',
                                                     'id' => 'modalButton',
@@ -149,9 +149,9 @@ $this->params['breadcrumbs'][] = $this->title;
                                         },
                                         'update' => function ($url, $model, $key) {
                                             //return Html::a('修改', Url::to(['update','id'=>$model->id]), ['class' => "layui-btn layui-btn-normal layui-btn-xs layui-default-update"]);
-                                            return Html::Button('修改',
+                                            return Html::Button(Yii::t('app', 'Update'),
                                                     [
-                                                    'onclick' => 'xadmin.open("修改", "'.$url.'",500,550)',
+                                                    'onclick' => 'xadmin.open("'.Yii::t('app', 'Update').'", "'.$url.'",500,550)',
                                                     'data-target' => '#update-modal',
                                                     'class' => 'layui-btn layui-btn-normal layui-btn-xs layui-default-update',
                                                     'id' => 'modalButton',
@@ -163,22 +163,22 @@ $this->params['breadcrumbs'][] = $this->title;
                                         'delete'=>function($url,$model,$key)
                                             {
                                                 $options=[
-                                                    'title'=>Yii::t('yii', '删除'),
-                                                    'aria-label'=>Yii::t('yii','删除'),
-                                                    'data-confirm'=>Yii::t('yii','你确定删除吗？'),
+                                                    'title'=>Yii::t('app', 'Delete'),
+                                                    'aria-label'=>Yii::t('app','Delete'),
+                                                    'data-confirm'=>Yii::t('app','Are you sure you want to delete this item?'),
                                                     'data-method'=>'post',
                                                     'data-pjax'=>'0',
                                                     'class'=>'layui-btn layui-btn-danger layui-btn-xs layui-default-delete'
                                                     ];
-                                                return Html::a('删除',$url,$options); 
+                                                return Html::a(Yii::t('app', 'Delete'),$url,$options); 
                                             },
                                         //接手
                                         'approve'=>function($url,$model,$key)
                                         {
                                                 $options=[
-                                                        'title'=>Yii::t('yii', '接手任务'),
-                                                        'aria-label'=>Yii::t('yii','接手任务'),
-                                                        'data-confirm'=>Yii::t('yii','您确定接手这个任务吗？'),
+                                                        'title'=>Yii::t('app', 'rove task'),
+                                                        'aria-label'=>Yii::t('app','rove task'),
+                                                        'data-confirm'=>Yii::t('app','Are you sure you want to rove this item?'),
                                                         'data-method'=>'post',
                                                         'data-pjax'=>'0',
                                                         'class'=>'layui-btn layui-btn-normal layui-btn-xs layui-default-approve'

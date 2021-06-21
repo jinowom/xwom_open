@@ -2,7 +2,7 @@
 /**
  * Class name is RegWidgetsSearch * @package backend\modules\common\controllers;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-30 09:58 
+ * @DateTime 2020-04-05 18:12 
  */
 
 namespace common\models\reg;
@@ -27,7 +27,7 @@ class RegWidgetsSearch extends RegWidgets
     public function scenarios()
     {
         return ArrayHelper::merge(parent::scenarios(), [
-            self::SCENARIO_EDITABLE => ['title','author','brief_introduction','description'],
+            self::SCENARIO_EDITABLE => ['title','brief_introduction','description','author'],
         ]);
     }
 
@@ -115,7 +115,7 @@ class RegWidgetsSearch extends RegWidgets
     {
         $this->$attribute = trim($this->$attribute);
         switch($this->$attribute){
-            case \Yii::t('yii', '(not set)'):
+            case \Yii::t('app', '(not set)'):
                 $query->andFilterWhere(['IS', $attribute, new Expression('NULL')]);
                 break;
             case self::EMPTY_STRING:

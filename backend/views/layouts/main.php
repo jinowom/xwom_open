@@ -11,7 +11,15 @@ AppAsset::register($this);
 <!doctype html>
 <html class="x-admin-sm" lang="<?= Yii::$app->language ?>">
 <head>
-    <meta charset="<?= Yii::$app->charset ?>">
+    <meta http-equiv="Content-Type" content="text/html; charset=<?= Yii::$app->charset ?>">
+    <meta http-equiv="Cache-Control"content="no-store" />
+    <meta http-equiv=〞Pragma〞,content=〞no-cache〞>
+    <meta content="IE=edge" http-equiv="X-UA-Compatible">
+    <meta http-equiv="Content-Security-Policy" content="child-src http: https:" />
+    <meta http-equiv="Strict-Transport-Security" content="max-age=31536000;includeSubDomains" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta http-equiv="Expires" content="0" />
     <title><?=Html::encode($this->title)?></title>
     <?php
     $this->registerMetaTag(["name" => "renderer", "content" => "webkit|ie-comp|ie-stand"]);

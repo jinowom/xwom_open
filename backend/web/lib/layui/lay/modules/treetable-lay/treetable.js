@@ -193,8 +193,8 @@ layui.define(['layer', 'table'], function (exports) {
             });
         }
     };
-
-    layui.link('lib/layui/lay/modules/treetable-lay/treetable.css');
+    //路由原因所以改用外部引用
+    // layui.link('lib/layui/lay/modules/treetable-lay/treetable.css');
 
     // 给图标列绑定事件
     $('body').on('click', '.treeTable .treeTable-icon', function () {

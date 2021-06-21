@@ -3,7 +3,7 @@
  * This is the model class for table "ConfigBase";
  * @package common\models\config;
  * @author  Womtech  email:chareler@163.com
- * @DateTime 2020-03-05 16:42 */
+ * @DateTime 2020-04-14 23:40 */
 namespace common\models\config;
 
 use Yii;
@@ -132,6 +132,24 @@ class ConfigBase extends \yii\db\ActiveRecord
     		return false;
     	}
     }
+    /**
+    * @var array 开关变量字段示例，如果已经开启，需要把字段赋值以数组形式列出
+    */
+   public $switchValues = [
+       'status' => [
+           'on' => 1,
+           'off' => 0,
+       ],
+   //    'emphasis' => [
+   //        'on' => 1,
+   //        'off' => 0,
+   //    ],
+   //   //也可以是非 1，0 譬如，如下
+   //   'isRecommend' => [
+   //     'on' => 10,
+   //     'off' => 0,
+   //   ],
+   ];
     /*
     * afterSave 保存之后的事件  示例
     */

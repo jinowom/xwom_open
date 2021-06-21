@@ -34,7 +34,7 @@ class BaseModel extends ActiveRecord
 
     /**
      * @Function: 获取指定条件获取某个值
-     * @Author: harxingxing@163.com
+     * @Author: weihuaadmin@163.com
      * @Date: 2019/1/12 10:00
      * @param $where
      * @param $field
@@ -57,7 +57,7 @@ class BaseModel extends ActiveRecord
 
     /**
      * @Function: 获取指定条件的数据
-     * @Author: harxingxing@163.com
+     * @Author: weihuaadmin@163.com
      * @Date: 2019/1/16 9:18
      * @param $where
      * @param array $field
@@ -77,7 +77,7 @@ class BaseModel extends ActiveRecord
 
     /**
      * @Function: 获取指定条件的数据[返回对象]
-     * @Author: harxingxing@163.com
+     * @Author: weihuaadmin@163.com
      * @Date: 2019/1/16 9:18
      * @param $where
      * @param array $field

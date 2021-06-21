@@ -1,0 +1,32 @@
+2020-04-29 Version: 2.0.1
+- Sync cdn APIs.
+
+2019-11-15 Version: 2.0.0
+- Sync cdn APIs.
+
+2019-03-05 Version: 1.2.4
+1, Update the SDK version to 1.2.4
+
+2019-01-03 Version: 1.2.3
+1, Regenerate.
+
+2018-12-20 Version: 1.2.2
+1, Sync CDN API.
+
+2018-12-11 Version: 1.2.1
+1, Sync CDN API.
+
+2018-12-03 Version: 1.2.0
+1, Sync CDN API.
+
+2018-09-29 Version: 1.1.0
+1, Sync cdn api.
+
+2018-04-28 Version: 1.0.0
+1, Add dcdn domain interface，Support add、modify、delete、query dcdn domain.
+2, Add dcdn config interface，Support set、delete、query domain config.
+
+2018-04-28 Version: 1.0.0
+1, Add dcdn domain interface，Support add、modify、delete、query dcdn domain.
+2, Add dcdn config interface，Support set、delete、query domain config.
+

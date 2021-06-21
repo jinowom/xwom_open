@@ -21,6 +21,7 @@ use yii\gii\CodeFile;
  */
 class Generator extends \yii\gii\Generator
 {
+    public $showName = 'Form Generator';
     public $modelClass;
     public $viewPath = '@app/views';
     public $viewName;
@@ -32,7 +33,8 @@ class Generator extends \yii\gii\Generator
      */
     public function getName()
     {
-        return 'Form Generator';
+        //return 'Form Generator';
+        return $this->showName;
     }
 
     /**
@@ -40,7 +42,7 @@ class Generator extends \yii\gii\Generator
      */
     public function getDescription()
     {
-        return 'This generator generates a view script file that displays a form to collect input for the specified model class.';
+        return '此Form生成器生成一个视图脚本文件，该文件显示用于收集指定模型类的输入的窗体。';
     }
 
     /**

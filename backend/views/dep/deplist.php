@@ -299,11 +299,11 @@ $tableJs = <<<JS
                 if(obj.event === 'del'){
                     rowDel(obj,data);
                 } else if(obj.event === 'edit'){
-                    xadmin.open('部门信息修改','$addDep&depId='+data.depid,500,340);
+                    xadmin.open('部门信息修改','$addDep?depId='+data.depid,500,340);
                 } else if(obj.event === 'member_stop'){
                     member_stop(obj);
                 } else if(obj.event === 'authSet'){
-                    xadmin.open('部门权限管理','$depAuth&description='+data.name+'&authId='+data.auth_item_id,500,340);
+                    xadmin.open('部门权限管理','$depAuth?description='+data.name+'&authId='+data.auth_item_id,500,340);
                 }
             });
             $(function(){
@@ -313,14 +313,14 @@ $tableJs = <<<JS
                    if(depId ==''){
                        layer.msg('请选择要移入的部门'); return false;
                    }
-                  xadmin.open('批量移入人员','$batchImport&type=batchImport&unitId='+unitId+'&depId='+depId,850,600);
+                  xadmin.open('批量移入人员','$batchImport?type=batchImport&unitId='+unitId+'&depId='+depId,850,600);
                }); 
                $('body').on('click','#batchExport',function(){
                    var depId = $('#currentDepid').val();
                    if(depId ==''){
                        layer.msg('请选择要移出的部门'); return false;
                    }
-                   xadmin.open('批量移出人员','$batchExport&type=batchExport&depId='+depId,850,600);
+                   xadmin.open('批量移出人员','$batchExport?type=batchExport&depId='+depId,850,600);
                });
                $('body').on('click','#addChildDep',function(){
                    var depId = $('#currentDepid').val();
@@ -328,7 +328,7 @@ $tableJs = <<<JS
                    if(depId =='' || depId == 1 || unidId ==''){
                        layer.msg('请选择父级部门'); return false;
                    }
-                   xadmin.open('添加子部门','$addChildDep&depId='+depId+'&unit_id='+unidId,500,280);
+                   xadmin.open('添加子部门','$addChildDep?depId='+depId+'&unit_id='+unidId,500,280);
                });
             });
             form.on('checkbox(lockDemo)', function(obj){

@@ -17,8 +17,8 @@ use yii\base\InvalidConfigException;
  * @author Carsten Brandt <mail@cebe.cc>
  * @since 2.0
  *
- * @method ActiveRecordInterface one()
- * @method ActiveRecordInterface[] all()
+ * @method ActiveRecordInterface one($db = null)
+ * @method ActiveRecordInterface[] all($db = null)
  * @property ActiveRecord $modelClass
  */
 trait ActiveRelationTrait
@@ -242,7 +242,7 @@ trait ActiveRelationTrait
                 $viaQuery->asArray($this->asArray);
             }
             $viaQuery->primaryModel = null;
-            $viaModels = $viaQuery->populateRelation($viaName, $primaryModels);
+            $viaModels = array_filter($viaQuery->populateRelation($viaName, $primaryModels));
             $this->filterByModels($viaModels);
         } else {
             $this->filterByModels($primaryModels);

@@ -4,16 +4,16 @@
  * @copyright Copyright &copy; Kartik Visweswaran, Krajee.com, 2014 - 2020
  * @package yii2-widgets
  * @subpackage yii2-widget-alert
- * @version 1.1.3
+ * @version 1.1.4
  */
 
 namespace kartik\alert;
 
 use Yii;
 use yii\base\InvalidConfigException;
-use yii\bootstrap\Widget;
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
+use kartik\base\Widget;
 use kartik\base\Config;
 use kartik\growl\Growl;
 

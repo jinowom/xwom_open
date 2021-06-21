@@ -1,7 +1,7 @@
 <?php
 namespace backend\controllers;
 
-use common\models\User;
+use common\models\{Admin,user};
 use common\models\wechat\OuterMp;
 use common\utils\ToolUtil;
 use common\utils\WechatUtil;
@@ -28,11 +28,11 @@ class SiteController extends Controller
                 'class' => AccessControl::className(),
                 'rules' => [
                     [
-                        'actions' => ['login', 'error','captcha','entr'],
+                        'actions' => ['login', 'error','captcha','entr','update-pwd'],
                         'allow' => true,
                     ],
                     [
-                        'actions' => ['logout', 'index'],
+                        'actions' => ['logout', 'index', 'update-pwd'],
                         'allow' => true,
                         'roles' => ['@'],
                     ],
@@ -112,17 +112,69 @@ class SiteController extends Controller
                 'model' => $model,
             ]);
         }
-
+        $UserModel = Admin::findOne(['username'=>$postData['username']]);
+        if($UserModel->login_count <= 0 ){
+            return ToolUtil::returnAjaxMsg('403','初始账户请重新设置密码',['user_id'=>$UserModel->user_id]);
+        }
+        if(time() <= $UserModel->allow_login_time ){
+                return ToolUtil::returnAjaxMsg(false,'登录失败次数过多，账号已锁定，请在'.date('Y-m-d H:i:s',$UserModel->allow_login_time).'之后重新登录');
+            }
         //验证
         if ($model->load($postData,'') && $model->login()) {
-            return ToolUtil::returnAjaxMsg(true,'登录成功',[
-                'goBack' => Url::to(['index/index'])
-            ]);
+
+                $UserModel->login_count = $UserModel->login_count + 1;
+                $UserModel->error_count = 0;
+                $UserModel->allow_login_time = 0;
+                $UserModel->login_time = time();
+                $UserModel->login_ip = Yii::$app->request->getUserIP();
+                $UserModel->save();
+                return ToolUtil::returnAjaxMsg(true,'登录成功',[
+                    'goBack' => Url::to(['index/index'])
+                ]);
         } else {
             $modelError = $model->getFirstErrors();
+            if(!empty($UserModel) && empty($modelError['verifyCode'])){
+                if($UserModel->error_count >= 2 ){
+                    $UserModel->error_count = 0;
+                    $UserModel->allow_login_time = time()+10*60;
+                }else{
+                    $UserModel->error_count = $UserModel->error_count + 1;
+                }
+                $UserModel->save();
+            }
             $modelError = end($modelError);
             return ToolUtil::returnAjaxMsg(false,$modelError);
         }
+    }
+
+    /**
+     * @Function 修改密码
+     * @Author Weihuaadmin@163.com
+     * @return string
+     */
+    public function actionUpdatePwd(){
+        $request = \Yii::$app->request;
+        if($request->isPost){
+            //验证原密码
+            $postData = $request->post('user');
+            $user_id = isset($postData['user_id'])?$postData['user_id']:"";
+            $password = $postData['L_pass'];
+            $pass = $postData['pass'];
+            $UserModel = Admin::findOne(['user_id'=>$user_id]);
+            $password_hash = $UserModel->password_hash;
+            if(\Yii::$app->security->validatePassword($password, $password_hash)){
+                $newPass = \Yii::$app->getSecurity()->generatePasswordHash($pass);
+                $updateRes = User::updateAll(['password_hash' => $newPass,'login_count'=>1], "user_id = :user_id", [":user_id" => $user_id]);
+                if($updateRes){
+                    return ToolUtil::returnAjaxMsg(true,'修改成功');
+                }
+            }else{
+                return ToolUtil::returnAjaxMsg(false,'原密码不正确');
+            }
+            return ToolUtil::returnAjaxMsg(false,'修改失败');
+        }
+        $user_id = isset($_GET['user_id'])?$_GET['user_id']:"";
+        return $this->render('update-pwd',['user_id'=>$user_id]);
     }
 
     /**

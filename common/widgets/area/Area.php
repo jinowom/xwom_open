@@ -9,7 +9,7 @@ use common\helpers\StringHelper;
 /**
  * Class Area
  * @package common\widgets\area
- * @author  Womtech  email:chareler@163.com
+ * @author Womtech  email:chareler@163.com
  */
 class Area extends Widget
 {

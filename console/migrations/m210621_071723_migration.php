@@ -968,17 +968,6 @@ $this->execute('SET foreign_key_checks = 0');
  
 /* Table admin */
 $this->batchInsert('{{%admin}}',['user_id','username','real_name','password_hash','password_reset_hash','email','email_verify_token','phone','auth_key','access_token','role','role_id','login_ip','login_time','login_count','error_count','allow_login_time','status','created_at','updated_at','dep_isleader','team_leader'],[['100007','admin','admin','$2y$13$jegxp9mG5j/Iq5dCqQy59e6.KNXl6SGkDBS/UYUAk2.3EMYjg3aDe',null,'admin',null,'admin','','','1','admin','127.0.0.1','1624234200','476','0','0','10','1542126369','1615345827','0','0'],
-['100024','WhbTest','whb','$2y$13$Z98BDKYTU49fLns0fR0m9.T0iPvckM0rxWnTZ960WzTWVMlnWMdli',null,'1318888888@qq.com',null,'15677777777','','','1','PHPadmin',null,null,null,null,null,'0','1603934560','1603934560','0','0'],
-['100025','firstCheck','一审管理员','$2y$13$Rk9ur.4H/1vIYw3jkK4lj.UH0zr7GO8SSuN0qVqzqwQCSGrwVvicq',null,'142536@qq.com',null,'15888888888','','','1','firstCheck','113.44.54.115','1611024667','5',null,'0','0','1610966090','1610966090','0','0'],
-['100026','secondCheck','二审管理员','$2y$13$Jgj9G1RRTgwtOJ4CzD..1..h6K8i9/bs7V/R1MzK1bq8vxAStrb66',null,'5765657@qq.com',null,'17600000000','','','1','SecondCheck','127.0.0.1','1611025117','8',null,'0','0','1605860435','1605860435','0','0'],
-['100027','endcheck','终审管理员','$2y$13$FtwyBJIIM6Bam7wd5dI06uxA2N5EvfmdxW2RUgsznJXzCViei5D9O',null,'1324jjh@qq.com',null,'13888888888','','','1','endCheck','113.44.54.115','1611026039','4',null,'0','0','1605865488','1605865488','0','0'],
-['100028','editer','采编人员','$2y$13$iy.bP6HqdYd11QNNhaFH1OmN2CGED8/6CuaEv55xevoyc8kbassym',null,'123123123@qq.com',null,'15677777770','','','1','editer','60.6.255.62','1612421142','20','1','0','0','1605860828','1605860828','0','0'],
-['100029','submitCheck','初审人员','$2y$13$dLzk5qj/OO4zKOuFL9dwX.NglbX1P8kJW5/ApqYASYJC9qCuo8qlK',null,'123132@qq.com',null,'19898989898','','','1','submitCheck','113.44.54.115','1611049500','5',null,'0','0','1610966067','1610966067','0','0'],
-['100030','ren','任纪临','$2y$13$jegxp9mG5j/Iq5dCqQy59e6.KNXl6SGkDBS/UYUAk2.3EMYjg3aDe',null,'ren_jilin@163.com',null,'13910566257','','','1','admin','127.0.0.1','1615944357','28','0','0','0','1611549654','1611549654','0','0'],
-['100031','xportaledit','频道栏目编辑人员','$2y$13$s/CT3RGR7gyI6gTy/4vV5.ia.7r2MY16tBM7XOlE8yk4ay4lBQTJe',null,'1316177158@qq.com',null,'15831482865','','','1','xportal_channel_edit',null,null,null,null,null,'0','1607586777','1607586777','0','0'],
-['100032','jizhong','一般管理员','$2y$13$dhR1B7P/a8OjqXwPYadulOafsxRzWjQB26sXRxwRUtovz5NvYZIFO',null,'122223@qq.com',null,'13910000000','','','1','clientele',null,null,null,null,null,'0','1617000497','1617000497','0','0'],
-['100033','releaser','发布管理员','$2y$13$siuYuu4aF2IVmmIN0CaD6eyHlLGTnWASJurUsh2cWl9x2kGqyG3Ka',null,'132627@qq.com',null,'13899999999','','','1','releaser','60.6.255.62','1612421530','4','0','0','0','1610966143','1610966143','0','0'],
-['100034','testUser','testUser','$2y$13$5sTvWOIayTQl0JwZ5BayGObpBqU9fNk1ZaPUV.a1c7YTjKsDdAgCO',null,'1326271997@qq.com',null,'13899999991','','','1','admin','113.46.175.38','1614925134','0','0','0','0','1614914996','1614914996','0','0'],
 ]);
  
 /* Table admin_auth_relation */

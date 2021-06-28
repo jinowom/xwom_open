@@ -39,6 +39,8 @@ return [
             'frontend/web/assets',
             'api/runtime',
             'api/web/assets',
+            'html5/runtime',
+            'html5/web/assets',
         ],
         'setExecutable' => [
             'yii',
@@ -49,6 +51,7 @@ return [
             'common/config/codeception-local.php',
             'frontend/config/main-local.php',
             'api/config/main-local.php',
+            'html5/config/main-local.php',
         ],
     ],
     'Production' => [
@@ -61,6 +64,8 @@ return [
             'frontend/web/assets',
             'api/runtime',
             'api/web/assets',
+            'html5/runtime',
+            'html5/web/assets',
         ],
         'setExecutable' => [
             'yii',
@@ -69,6 +74,7 @@ return [
             'backend/config/main-local.php',
             'frontend/config/main-local.php',
             'api/config/main-local.php',
+            'html5/config/main-local.php',
         ],
     ],
 ];

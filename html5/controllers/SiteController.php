@@ -1,8 +1,8 @@
 <?php
-namespace api\controllers;
+namespace html5\controllers;
 
-use api\models\ResendVerificationEmailForm;
-use api\models\VerifyEmailForm;
+use html5\models\ResendVerificationEmailForm;
+use html5\models\VerifyEmailForm;
 use Yii;
 use yii\base\InvalidArgumentException;
 use yii\web\BadRequestHttpException;
@@ -10,10 +10,10 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use yii\filters\AccessControl;
 use common\models\LoginForm;
-use api\models\PasswordResetRequestForm;
-use api\models\ResetPasswordForm;
-use api\models\SignupForm;
-use api\models\ContactForm;
+use html5\models\PasswordResetRequestForm;
+use html5\models\ResetPasswordForm;
+use html5\models\SignupForm;
+use html5\models\ContactForm;
 
 /**
  * Site controller

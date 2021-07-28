@@ -5018,12 +5018,8 @@ $this->batchInsert('{{%config_searchengine}}',['id','name','name_en','descriptio
  
 /* Table config_sms */
 $this->batchInsert('{{%config_sms}}',['id','order','sdk_com','sdk_type','send_type','description','access_key_id','access_key_secret','access_key_sign','model_id','send_message','sendvariable','created_id','updated_id','created_at','updated_at','status','site_id','app_id','is_del'],[['1',null,'阿里云SDK','1','1','使用场景：注册登陆认证','LTAI4G31WrCap6cG2b11111','a5C6JiA4cfrrpYRuW4VUoy1111111','jinostart','SMS_209172191','验证码${code}，该验证码5分钟内有效，请勿泄露他人。','["s"]',null,'100007',null,'1624236667','1','1','1','0'],
-['2',null,'测试123','1','1','123123123','123123','12312313','123123123','132123123','123123123123','["s"]','100007','100007','1610507749','1617086321','0','1','3','1'],
-['3',null,'67','1','1','123','546','234','123','123','123','["s"]','100007','100007','1610509684','1617086321','0','1','3','1'],
-['4',null,'123','1','1','123','123','123','123','123','213','["s"]','100007','100007','1610515661','1617086321','0','1','3','1'],
-['5',null,null,'1','2','用于业务通知','LTAI4G31WrCap6cG2bkWNUwY','a5C6JiA4cfrrpYRuW4VUoyAxGpq5GQ','冀中能源股份','SMS_209172285','您有${userName}提交的${status}文章待处理','["userName","status"]','100007','100007','1610524924','1617086321','0','1','3','1'],
-['6',null,null,'2','1','','1400049147','b1e8af6356bad2353bf464eb0113236b','xpaper报刊','402252','测试','["code"]','100007','100007','1610598095','1617086321','0','1','3','1'],
-['7',null,null,'2','2','','1400049147','b1e8af6356bad2353bf464eb0113236b','xpaper报刊','402252','测试','["code"]','100007','100007','1610598095','1617086321','0','1','3','1'],
+['5',null,null,'1','2','用于业务通知','LTAI4G31WrCap6cG2bkWNUwY','a5C6JiA4cfrrpYRuW4VUoyAxGpq5GQ','xx股份','SMS_209172285','您有${userName}提交的${status}文章待处理','["userName","status"]','100007','100007','1610524924','1617086321','0','1','3','1'],
+
 ]);
  
 /* Table config_smslog */

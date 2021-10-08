@@ -114,7 +114,7 @@ class TeamController extends BaseController
             $teamList = AdminUnit::findAllByWhere(['u_status'=>AdminUnit::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unit_Id],['unitid','name','auth_item_id'],'name desc');
         }
         if($unitId){
-            $teamList = AdminTeam::findAllByWhere(['t_status'=>AdminTeam::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unitId],['teamid','name','auth_item_id'],'teamid desc');
+            $teamList = AdminTeam::findAllByWhere(['t_status'=>AdminTeam::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unitId,'father_id'=>1],['teamid','name','auth_item_id'],'teamid desc');
         }
         if($depId){
             $teamList = AdminTeam::findAllByWhere(['t_status'=>AdminTeam::STATUS_ACTIVE,'is_del'=>0,'father_id'=>$depId],['teamid','name','auth_item_id'],'teamid desc');

@@ -123,7 +123,7 @@ class DepController extends BaseController
             $depList = AdminUnit::findAllByWhere(['u_status'=>AdminUnit::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unit_Id],['unitid','name','auth_item_id'],'name desc');
         }
         if($unitId){
-             $depList = AdminDep::findAllByWhere(['d_status'=>AdminDep::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unitId],['depid','name','auth_item_id'],'depid desc');
+             $depList = AdminDep::findAllByWhere(['d_status'=>AdminDep::STATUS_ACTIVE,'is_del'=>0,'unit_id'=>$unitId,'father_id'=>1],['depid','name','auth_item_id'],'depid desc');
         }
         if($depId){
             $depList = AdminDep::findAllByWhere(['d_status'=>AdminDep::STATUS_ACTIVE,'is_del'=>0,'father_id'=>$depId],['depid','name','auth_item_id'],'depid desc');

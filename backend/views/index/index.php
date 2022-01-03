@@ -18,16 +18,14 @@ $this->title = Yii::$app->name.'管理控制台';
                 <li class="layui-nav-item to-index layui-this" >
                     <?php if(!empty($value['children'][0])){  ?>
                           <a class="leftbon" b_url="<?=\yii\helpers\Url::toRoute('index/dashboard?name='.$value['name'])?>" id="<?php echo $value['name'] ?>" ><?=$value['description']?></a>
-                    <?php  }else{ ?>
-                          <a class="leftbon" b_url="<?=\yii\helpers\Url::toRoute('index/dashboard?name='.$value['name'])?>" id="<?php echo $value['name'] ?>" ><?=$value['description']?></a>
+
                     <?php  } ?>
                 </li> 
             <?php }else{ ?>
                 <li class="layui-nav-item to-index">
                     <?php if(!empty($value['children'][0])){  ?>
                           <a class="leftbon" b_url="<?=\yii\helpers\Url::toRoute('index/dashboard?name='.$value['name'])?>" id="<?php echo $value['name'] ?>" ><?=$value['description']?></a>
-                    <?php  }else{ ?>
-                          <a class="leftbon" b_url="<?=\yii\helpers\Url::toRoute('index/dashboard?name='.$value['name'])?>" id="<?php echo $value['name'] ?>" ><?=$value['description']?></a>
+
                     <?php  } ?>
                 </li> 
             <?php } ?>

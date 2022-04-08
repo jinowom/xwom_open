@@ -1,6 +1,7 @@
 <?php
-defined('YII_DEBUG') or define('YII_DEBUG', true);
-defined('YII_ENV') or define('YII_ENV', 'dev');
+defined('YII_DEBUG') or define('YII_DEBUG', false);// 调试 true  上线 false
+defined('YII_ENV') or define('YII_ENV', 'dev');//  开发时 dev   交付时  prod
+
 
 require __DIR__ . '/../../vendor/autoload.php';
 require __DIR__ . '/../../vendor/yiisoft/yii2/Yii.php';

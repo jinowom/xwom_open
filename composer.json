@@ -45,7 +45,8 @@
         "philippfrenzel/yii2fullcalendar": "3.9.*",
         "jinowom/yii2-ueditor": "dev-master",
         "jinowom/yii2-doctohtml": "dev-master",
-        "jinowom/yii2-pay": "dev-master"
+        "jinowom/yii2-pay": "dev-master",
+        "yiisoft/yii2-redis": "^2.0@dev"
     },
     "require-dev": {
         "yiisoft/yii2-debug": "~2.1.0",
@@ -64,10 +65,10 @@
             "enabled": false
         }
     },
-    "repositories": {
+     "repositories": {
         "packagist": {
             "type": "composer",
-            "url": "https://packagist.phpcomposer.com"
+            "url": "https://packagist.org"
         },
         "0": {
             "type": "composer",

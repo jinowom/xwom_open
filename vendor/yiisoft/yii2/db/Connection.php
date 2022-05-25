@@ -274,6 +274,7 @@ class Connection extends Component
      * [[Schema]] class to support DBMS that is not supported by Yii.
      */
     public $schemaMap = [
+        'kdb' => 'yii\db\kdb\Schema', // kingbase
         'pgsql' => 'yii\db\pgsql\Schema', // PostgreSQL
         'mysqli' => 'yii\db\mysql\Schema', // MySQL
         'mysql' => 'yii\db\mysql\Schema', // MySQL
@@ -311,6 +312,7 @@ class Connection extends Component
      * @since 2.0.14
      */
     public $commandMap = [
+        'kdb' => 'yii\db\Command', // Kingbase
         'pgsql' => 'yii\db\Command', // PostgreSQL
         'mysqli' => 'yii\db\Command', // MySQL
         'mysql' => 'yii\db\Command', // MySQL
@@ -728,7 +730,7 @@ class Connection extends Component
         if (!$this->isSybase && in_array($this->getDriverName(), ['mssql', 'dblib'], true)) {
             $this->pdo->exec('SET ANSI_NULL_DFLT_ON ON');
         }
-        if ($this->charset !== null && in_array($this->getDriverName(), ['pgsql', 'mysql', 'mysqli', 'cubrid'], true)) {
+        if ($this->charset !== null && in_array($this->getDriverName(), ['pgsql','kdb', 'mysql', 'mysqli', 'cubrid'], true)) {
             $this->pdo->exec('SET NAMES ' . $this->pdo->quote($this->charset));
         }
         $this->trigger(self::EVENT_AFTER_OPEN);

@@ -64,7 +64,14 @@ return [
             'class' => 'services\Application',
         ],
         /** ------ redis配置 ------ **/
-        
+        /** ------ 以下是redis配置示例，如果开启redis密码，请自定义写入main-local.php文件'components'[ ]里,并修改redis的主机Ip和redis的设置的密码------ **/
+        'redis' => [
+            'class' => 'yii\redis\Connection',
+            'hostname' => 'localhost',
+            //'password' => 'test*',
+            'port' => 6379,
+            'database' => 0,
+        ],
         /** ------ 网站碎片管理 ------ **/
         
         /** ------ 访问设备信息 ------ **/

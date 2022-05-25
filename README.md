@@ -8,11 +8,23 @@ xwom旨在为yii2爱好者提供一个基础功能稳定完善的系统，使开
 
 一、更新记录Records
 ------------
-1.0.1beta  增加4个自定义CRUD 路由，参见/backend/config/main-lock_bak.php
+1.1.3 升级yii2 核心组件；添加redis扩展包；优化顶部菜单不存在子集菜单的时候隐藏；修改layui 样式，用来满足栏目表单中左侧文案6个汉字时2行问题
 
-1.0.0beta1 开启xwom开发引擎beta1，预装常用扩展组件，对配置文件做细致的注释说明。
+1.1.2 修复部门管理、团队管理 添加子部门时目录树bug；以及html5应用初始化配置
 
-1.0.1 beta  已经修复kindeditor 富媒体编辑不渲染功能键的异常。
+1.1.1 修改html5初始化模板
+
+1.0.7 规范优化 国际化i18n 配置;增加顶部_dashboard功能，全栈短信配置管理、全栈分页管理、全栈水印管理、全栈OSS管理、IP黑名单管理等
+
+1.0.6 登录验证码优化，菜单管理优化：增加顶级菜单添加功能，并可编辑修改
+
+1.0.4 & 1.0.5 修复kindeditor 富媒体编辑不渲染功能键的异常
+
+1.0.2 修改 gii gurd 模板bug 增加4个自定义CRUD 路由，参见/backend/config/main-lock_bak.php
+
+1.0.1 composer yii2-ajaxcrud ex，yii2-round-switch-column ex，update yii2wajaxcrud ex theme
+
+1.0 发布xwom 核心基础功能 开启xwom开发引擎beta1，预装常用扩展组件，对配置文件做细致的注释说明。
 
 二、帮助Help
 ------------

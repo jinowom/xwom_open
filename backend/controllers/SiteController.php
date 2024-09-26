@@ -164,8 +164,12 @@ class SiteController extends Controller
             $password_hash = $UserModel->password_hash;
             if(\Yii::$app->security->validatePassword($password, $password_hash)){
                 $newPass = \Yii::$app->getSecurity()->generatePasswordHash($pass);
-                $updateRes = User::updateAll(['password_hash' => $newPass,'login_count'=>1], "user_id = :user_id", [":user_id" => $user_id]);
-                if($updateRes){
+//                $updateRes = User::updateAll(['password_hash' => $newPass,'login_count'=>1], "user_id = :user_id", [":user_id" => $user_id]);//在User模型中，没找到此User::updateAll方法
+                $UserModel->password_hash = $newPass;
+                $UserModel->login_count = 1;
+                $UserModel->save();
+                //if($updateRes){
+                if($UserModel){
                     return ToolUtil::returnAjaxMsg(true,'修改成功');
                 }
             }else{
